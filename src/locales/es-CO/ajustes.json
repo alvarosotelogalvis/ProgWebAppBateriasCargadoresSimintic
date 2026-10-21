@@ -1,0 +1,11 @@
+{
+  "titulo": "Ajustes",
+  "tamano": {
+    "aria": "Tamano de fuente",
+    "descripcion": "Elige el tamano del texto de la app. El cambio se aplica de inmediato.",
+    "normal": "Normal",
+    "grande": "Grande",
+    "muy-grande": "Muy grande",
+    "vistaPrevia": "Texto de ejemplo para ver como se lee con este tamano."
+  }
+}

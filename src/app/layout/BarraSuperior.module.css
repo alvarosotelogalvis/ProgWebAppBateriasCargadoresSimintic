@@ -1,0 +1,24 @@
+.barra {
+  padding: env(safe-area-inset-top, 0) var(--gutter) var(--espacio-3);
+  background: linear-gradient(90deg, var(--nav-start) 0%, var(--nav-end) 100%);
+  color: var(--text-inverse);
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.titulo {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-bold);
+  color: var(--text-inverse);
+}
+
+.indicadores {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+}

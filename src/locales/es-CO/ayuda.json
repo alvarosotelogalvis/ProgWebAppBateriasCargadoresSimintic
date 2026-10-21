@@ -1,0 +1,33 @@
+{
+  "titulo": "Ayuda",
+  "temaNoEncontrado": "Tema no encontrado",
+  "temas": {
+    "instalar": {
+      "titulo": "Instalar la app",
+      "cuerpo": "La app se instala desde el navegador. Quedara disponible como un icono en tu pantalla de inicio.",
+      "pasos": [
+        "Abre la direccion de la app en Chrome, Edge o Safari.",
+        "En Android y Windows elige \"Instalar app\". En iPhone usa Compartir > Agregar a pantalla de inicio.",
+        "Confirma la instalacion."
+      ]
+    },
+    "sin-conexion": {
+      "titulo": "Trabajar sin conexion",
+      "cuerpo": "Puedes registrar recepciones, tomar fotos y guardar PDFs sin internet. Todo se sincroniza cuando vuelvas a tener conexion.",
+      "pasos": [
+        "Registra el servicio con normalidad.",
+        "Toma las fotos: se guardan optimizadas en el dispositivo.",
+        "Cuando tengas senal, ve a Sincronizar y confirma tu identidad."
+      ]
+    },
+    "preguntas-frecuentes": {
+      "titulo": "Preguntas frecuentes",
+      "cuerpo": "Respuestas a las dudas mas comunes sobre el funcionamiento de la app.",
+      "pasos": [
+        "La app borra mis datos? No. Los datos se guardan en el dispositivo y solo se purgan al confirmar que ya estan en SharePoint.",
+        "Necesito internet? Solo para sincronizar. Captura y consulta funcionan sin conexion.",
+        "Cambio de celular? Exporta un respaldo en el menu Tecnico e importalo en el nuevo dispositivo."
+      ]
+    }
+  }
+}

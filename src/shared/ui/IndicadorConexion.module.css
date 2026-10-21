@@ -1,0 +1,20 @@
+.indicador {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  white-space: nowrap;
+}
+
+.en-linea {
+  color: var(--text-inverse);
+}
+
+.sin-conexion {
+  color: var(--accent);
+}
+
+.texto {
+  white-space: nowrap;
+}

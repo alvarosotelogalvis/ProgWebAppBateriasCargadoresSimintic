@@ -1,0 +1,58 @@
+.fondo {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.principal {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+}
+
+.suave {
+  background: linear-gradient(160deg, var(--gradient-soft-start) 0%, var(--gradient-soft-end) 100%);
+  min-height: 100%;
+}
+
+.contenido {
+  position: relative;
+  z-index: 1;
+  min-height: inherit;
+}
+
+.deco-uno,
+.deco-dos,
+.deco-tres {
+  position: absolute;
+  border-radius: var(--radio-full);
+  background-color: var(--deco-bg-strong);
+  pointer-events: none;
+}
+
+.deco-uno {
+  width: 16rem;
+  height: 16rem;
+  top: -4rem;
+  right: -5rem;
+}
+
+.deco-dos {
+  width: 10rem;
+  height: 10rem;
+  bottom: 12%;
+  left: -4rem;
+  background-color: var(--deco-bg);
+}
+
+.deco-tres {
+  display: none;
+  width: 22rem;
+  height: 22rem;
+  top: 30%;
+  right: -8rem;
+}
+
+@media (width >= 1024px) {
+  .deco-tres {
+    display: block;
+  }
+}

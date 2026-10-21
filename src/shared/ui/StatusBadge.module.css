@@ -1,0 +1,48 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0 var(--espacio-3);
+  border-radius: var(--radio-full);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-bold);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-inverse);
+}
+
+.borrador {
+  background-color: var(--estado-borrador);
+}
+
+.recibido {
+  background-color: var(--estado-recibido);
+}
+
+.diagnosticado {
+  background-color: var(--estado-diagnosticado);
+}
+
+.cotizado {
+  background-color: var(--estado-cotizado);
+}
+
+.en-reparacion {
+  background-color: var(--estado-reparacion);
+}
+
+.entregado {
+  background-color: var(--estado-entregado);
+}
+
+.facturado {
+  background-color: var(--estado-facturado);
+}
+
+.disposicion-final {
+  background-color: var(--estado-disposicion-final);
+}
+
+.anulado {
+  background-color: var(--estado-anulado);
+}

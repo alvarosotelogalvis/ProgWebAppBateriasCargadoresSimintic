@@ -1,0 +1,14 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "color-no-hex": true,
+    "declaration-property-value-disallowed-list": {
+      "/^color$/": ["/#/", "/rgb/", "/hsl/"],
+      "/^border-color$/": ["/#/", "/rgb/", "/hsl/"],
+      "/^background-color$/": ["/#/", "/rgb/", "/hsl/"],
+      "/^border-radius$/": ["/px/"],
+      "/^box-shadow$/": ["/rgba\\(/", "/#/"]
+    }
+  },
+  "ignoreFiles": ["**/tokens.css"]
+}

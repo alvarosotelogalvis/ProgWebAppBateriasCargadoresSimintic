@@ -1,0 +1,27 @@
+{
+  "app": {
+    "nombre": "Servicio Técnico",
+    "cargando": "Cargando…",
+    "error": {
+      "titulo": "Algo salió mal",
+      "descripcion": "Ocurrio un error inesperado en esta seccion.",
+      "volver": "Volver al inicio",
+      "recuperar": "Intentar de nuevo"
+    },
+    "config": {
+      "titulo": "Configuracion invalida",
+      "descripcion": "Esta version de la app no se configuro correctamente. Contacta al administrador.",
+      "campo": "Variable",
+      "reiniciar": "Recargar"
+    }
+  },
+  "comun": {
+    "guardar": "Guardar",
+    "cancelar": "Cancelar",
+    "continuar": "Continuar",
+    "atras": "Atras",
+    "cerrar": "Cerrar",
+    "si": "Si",
+    "no": "No"
+  }
+}

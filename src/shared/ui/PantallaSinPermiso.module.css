@@ -1,0 +1,30 @@
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-10) var(--espacio-4);
+  text-align: center;
+}
+
+.titulo {
+  font-size: var(--texto-xl);
+}
+
+.descripcion {
+  max-width: 24rem;
+  color: var(--text-secondary);
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-alto);
+  padding: 0 var(--espacio-5);
+  border-radius: var(--radio-full);
+  background-color: var(--primary);
+  color: var(--primary-contrast);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-bold);
+  text-decoration: none;
+}

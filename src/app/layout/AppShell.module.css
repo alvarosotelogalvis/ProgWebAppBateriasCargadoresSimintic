@@ -1,0 +1,26 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.cuerpo {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.contenido {
+  flex: 1;
+  min-width: 0;
+  padding: var(--espacio-4) var(--gutter) calc(var(--ancho-barra-inferior) + var(--espacio-6));
+  max-width: var(--ancho-maximo-contenido, 1280px);
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (width >= 600px) {
+  .contenido {
+    padding-bottom: var(--espacio-8);
+  }
+}

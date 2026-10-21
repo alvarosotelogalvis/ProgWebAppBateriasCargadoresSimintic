@@ -1,0 +1,46 @@
+.region {
+  position: fixed;
+  right: var(--espacio-4);
+  bottom: calc(var(--ancho-barra-inferior) + var(--espacio-4));
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  max-width: min(24rem, calc(100vw - 2rem));
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio-md);
+  background-color: var(--text-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--sombra-md);
+  font-size: var(--texto-sm);
+}
+
+.mensaje {
+  flex: 1;
+}
+
+.cerrar {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.info {
+  background-color: var(--info);
+}
+
+.exito {
+  background-color: var(--exito);
+}
+
+.error {
+  background-color: var(--peligro);
+}

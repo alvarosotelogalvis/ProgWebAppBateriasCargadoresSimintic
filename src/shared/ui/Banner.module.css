@@ -1,0 +1,37 @@
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio-md);
+  border-left: 4px solid var(--info);
+  background-color: var(--surface);
+  box-shadow: var(--sombra-sm);
+  font-size: var(--texto-sm);
+}
+
+.texto {
+  flex: 1 1 16rem;
+}
+
+.accion {
+  flex: 0 0 auto;
+}
+
+.info {
+  border-left-color: var(--info);
+}
+
+.exito {
+  border-left-color: var(--exito);
+}
+
+.advertencia {
+  border-left-color: var(--advertencia);
+}
+
+.peligro {
+  border-left-color: var(--peligro);
+}

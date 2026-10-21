@@ -1,0 +1,54 @@
+.fila {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  width: 100%;
+  min-height: var(--objetivo-tactil);
+  padding: var(--espacio-2) 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.fila:last-child {
+  border-bottom: none;
+}
+
+.icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radio-full);
+  background-color: var(--primary-light);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.etiqueta {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+  color: var(--text-primary);
+}
+
+.descripcion {
+  font-size: var(--texto-xs);
+  color: var(--text-muted);
+}
+
+.chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}

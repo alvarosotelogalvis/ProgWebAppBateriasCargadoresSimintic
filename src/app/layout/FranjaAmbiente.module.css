@@ -1,0 +1,11 @@
+.franja {
+  display: inline-block;
+  margin-bottom: var(--espacio-2);
+  padding: 0.1rem var(--espacio-2);
+  border-radius: var(--radio-sm);
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 0.65rem;
+  font-weight: var(--peso-extrabold);
+  letter-spacing: 0.1em;
+}

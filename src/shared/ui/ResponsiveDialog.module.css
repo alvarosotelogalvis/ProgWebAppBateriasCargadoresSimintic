@@ -1,0 +1,87 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--espacio-4);
+  background-color: var(--overlay);
+}
+
+.overlay-hoja {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--overlay);
+}
+
+.modal {
+  width: 100%;
+  max-width: 35rem;
+  border-radius: var(--radio-lg);
+  background-color: var(--surface);
+  box-shadow: var(--sombra-lg);
+}
+
+.hoja {
+  width: 100%;
+  max-height: 90dvh;
+  border-radius: var(--radio-lg) var(--radio-lg) 0 0;
+  background-color: var(--surface);
+  box-shadow: var(--sombra-lg);
+}
+
+.asa {
+  display: block;
+  width: 2.5rem;
+  height: 0.25rem;
+  margin: var(--espacio-2) auto 0;
+  border-radius: var(--radio-full);
+  background-color: var(--border-strong);
+}
+
+.dialogo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  max-height: inherit;
+  overflow-y: auto;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.titulo {
+  font-size: var(--texto-lg);
+}
+
+.cerrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--objetivo-tactil);
+  height: var(--objetivo-tactil);
+  border: none;
+  border-radius: var(--radio-full);
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--texto-lg);
+  cursor: pointer;
+}
+
+.cerrar:hover {
+  background-color: var(--surface-muted);
+}
+
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
