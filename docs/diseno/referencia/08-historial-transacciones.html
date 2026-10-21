@@ -1,0 +1,79 @@
+<!doctype html>
+<!--
+  PANTALLA 08 — Historial de transacciones (filtros)
+  Referencia visual: 08-historial-transacciones.png · Especificación: ../DESIGN.md §6
+  Fondo: degradado principal, Card llena la pantalla hasta la BottomNav.
+  Componentes: TextField con label, Select, DateChip x2 con icono swap, Calendar
+               (rango 9–14 resaltado en accent, domingos en danger), PrimaryButton, BottomNav (Transaction activo).
+  Comportamiento: tocar un DateChip selecciona qué extremo del rango se edita en el Calendar;
+                  CHECK aplica los filtros y muestra los resultados (lista por definir, ver DESIGN.md §7).
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>08 Historial de transacciones</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,1,0">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="screen">
+    <main class="screen-body" style="padding-bottom:0">
+      <section class="card fill" style="border-radius:var(--radius-card) var(--radius-card) 0 0;gap:12px">
+        <h2 class="h2" style="margin-bottom:4px">Transaction History</h2>
+
+        <div>
+          <span class="label">Bank Account</span>
+          <div class="text-field">00 123 456</div>
+        </div>
+
+        <!-- Select -->
+        <div>
+          <span class="label">Transaction Type</span>
+          <div class="text-field">All <span class="material-symbols-rounded">expand_more</span></div>
+        </div>
+
+        <!-- DateChips -->
+        <div class="row between">
+          <div class="stack gap-4" style="align-items:center">
+            <span class="label" style="margin:0">From Date</span>
+            <span class="date-chip">Mon, 9 Sep 2021</span>
+          </div>
+          <span class="material-symbols-rounded" style="color:var(--text-primary);margin-top:14px">swap_horiz</span>
+          <div class="stack gap-4" style="align-items:center">
+            <span class="label" style="margin:0">To Date</span>
+            <span class="date-chip">Sat, 14 Sep 2021</span>
+          </div>
+        </div>
+
+        <!-- Calendar (semana empieza en domingo) -->
+        <div class="card-inner calendar">
+          <div class="calendar-header"><span>2021</span><span>September</span></div>
+          <div class="calendar-grid">
+            <span class="dow">Sun</span><span class="dow">Mon</span><span class="dow">Tue</span><span class="dow">Wed</span><span class="dow">Thu</span><span class="dow">Fri</span><span class="dow">Sat</span>
+            <span class="day sun">1</span><span class="day">2</span><span class="day">3</span><span class="day">4</span><span class="day">5</span><span class="day">6</span><span class="day">7</span>
+            <span class="day sun">8</span><span class="day range range-start">9</span><span class="day range">10</span><span class="day range">11</span><span class="day range">12</span><span class="day range">13</span><span class="day range range-end">14</span>
+            <span class="day sun">15</span><span class="day">16</span><span class="day">17</span><span class="day">18</span><span class="day">19</span><span class="day">20</span><span class="day">21</span>
+            <span class="day sun">22</span><span class="day">23</span><span class="day sun">24</span><span class="day">25</span><span class="day">26</span><span class="day">27</span><span class="day">28</span>
+            <span class="day sun">29</span><span class="day">30</span>
+          </div>
+        </div>
+        <!-- Nota: en la referencia el 24 también aparece en rojo (festivo). Úsalo como ejemplo de "día festivo" = danger. -->
+
+        <div class="button-row" style="margin-top:auto">
+          <button class="primary-button small" style="padding:0 32px">Check</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- BottomNav -->
+    <nav class="bottom-nav">
+      <div class="nav-item"><span class="material-symbols-rounded">home</span>Home</div>
+      <div class="nav-item active"><span class="material-symbols-rounded">swap_horiz</span>Transaction</div>
+      <div class="nav-item"><span class="material-symbols-rounded">notifications</span>Notification</div>
+      <div class="nav-item"><span class="material-symbols-rounded">person</span>Account</div>
+    </nav>
+  </div>
+</body>
+</html>
