@@ -1,6 +1,6 @@
 # Spec 001 — Fundación PWA e interfaz base
 
-- **Estado**: Borrador
+- **Estado**: Implementada
 - **Fecha**: 2026-10-21 · **Rama**: `feature/001-fundacion-pwa`
 - **Fase**: F0 + F2 (`docs/07`) · **Depende de**: — (requiere el tenant DEV para los spikes S1, S2 y S7)
 - **Fuentes**: PRD [HU-01, HU-14; RF-01, RF-16 parcial, RF-20, RF-21, RF-22; RNF-03, RNF-04, RNF-06, RNF-08, RNF-09, RNF-10, RNF-13, RNF-16] · ADR [0002, 0003, 0004, 0014, 0015, 0020, 0022] · UX [§1, §2, §3.1, §3.3, §4] · Sistema de diseño [`docs/10` §1–§4, §6, §8] · Referencia visual [`docs/diseno/referencia/`]
