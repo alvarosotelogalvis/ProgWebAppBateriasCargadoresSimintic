@@ -1,0 +1,2 @@
+import{a as r,j as t}from"./index-CkMSeJCC.js";import{C as o}from"./Card-DNiSBNf7.js";import{E as e}from"./EmptyState-BFnAQP3o.js";function m(){const{t:i}=r("alertas");return t.jsx("div",{children:t.jsx(o,{fill:!0,children:t.jsx(e,{titulo:i("proximamente"),descripcion:i("proximamenteDescripcion"),icono:"notificaciones"})})})}export{m as AlertasPage};
+//# sourceMappingURL=AlertasPage-CyGWGZ0Z.js.map

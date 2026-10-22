@@ -1,0 +1,2 @@
+import{a as o,j as i}from"./index-CkMSeJCC.js";import{C as n}from"./Card-DNiSBNf7.js";import{E as t}from"./EmptyState-BFnAQP3o.js";function c(){const{t:r}=o("sync");return i.jsx("div",{children:i.jsx(n,{fill:!0,children:i.jsx(t,{titulo:r("proximamente"),descripcion:r("proximamenteDescripcion"),icono:"sincronizar"})})})}export{c as SincronizacionPage};
+//# sourceMappingURL=SincronizacionPage-CiPOH2LQ.js.map

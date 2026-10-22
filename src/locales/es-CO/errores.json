@@ -1,0 +1,33 @@
+{
+  "servicio": {
+    "serieRequerida": "errores.servicio.serieRequerida",
+    "serieFormato": "errores.servicio.serieFormato",
+    "referenciaRequerida": "errores.servicio.referenciaRequerida",
+    "marcaRequerida": "errores.servicio.marcaRequerida",
+    "fechaFutura": "errores.servicio.fechaFutura",
+    "entregaAntesRecepcion": "errores.servicio.entregaAntesRecepcion",
+    "vidaUtilInvalida": "errores.servicio.vidaUtilInvalida",
+    "motivoMinimo": "errores.servicio.motivoMinimo",
+    "camposObligatorios": "errores.servicio.camposObligatorios"
+  },
+  "transicion": {
+    "noPermitida": "errores.transicion.noPermitida",
+    "faltantes": "errores.transicion.faltantes",
+    "rolNoAutorizado": "errores.transicion.rolNoAutorizado",
+    "estadoFinal": "errores.transicion.estadoFinal",
+    "entregaSinReparacion": "errores.transicion.entregaSinReparacion"
+  },
+  "anulacion": {
+    "motivoRequerido": "errores.anulacion.motivoRequerido",
+    "rolNoAutorizado": "errores.anulacion.rolNoAutorizado"
+  },
+  "borrador": {
+    "noEsBorrador": "errores.borrador.noEsBorrador"
+  },
+  "adjunto": {
+    "hashDuplicado": "errores.adjunto.hashDuplicado"
+  },
+  "config": {
+    "invalida": "errores.config.invalida"
+  }
+}

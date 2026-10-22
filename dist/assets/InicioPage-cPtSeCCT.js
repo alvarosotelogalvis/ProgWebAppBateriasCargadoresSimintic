@@ -1,0 +1,2 @@
+import{a as r,j as i}from"./index-CkMSeJCC.js";import{C as a}from"./Card-DNiSBNf7.js";import{E as t}from"./EmptyState-BFnAQP3o.js";function s(){const{t:o}=r("common");return i.jsx("div",{children:i.jsx(a,{fill:!0,children:i.jsx(t,{titulo:o("inicio:vacio.titulo","Aun no hay servicios"),descripcion:o("inicio:vacio.descripcion","Registra la recepcion de una bateria o cargador para empezar.")})})})}export{s as InicioPage};
+//# sourceMappingURL=InicioPage-cPtSeCCT.js.map
