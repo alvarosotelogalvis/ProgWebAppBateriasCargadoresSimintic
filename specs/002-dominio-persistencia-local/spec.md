@@ -1,6 +1,6 @@
 # Spec 002 — Dominio y persistencia local
 
-- **Estado**: Borrador
+- **Estado**: En implementación
 - **Fecha**: 2026-10-21 · **Rama**: `feature/002-dominio-persistencia-local`
 - **Fase**: F1 (`docs/07`) · **Depende de**: 001 (andamiaje y capas)
 - **Fuentes**: PRD [RF-03, RF-06, RF-07, RF-08, RF-14 (cálculo), RF-25, RF-27 (regla de no-pérdida); RNF-01, RNF-02, RNF-11, RNF-12] · ADR [0004, 0005, 0008, 0010 (merge), 0012] · Modelo de datos [§2–§6, §8]
