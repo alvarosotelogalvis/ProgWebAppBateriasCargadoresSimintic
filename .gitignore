@@ -1,4 +1,4 @@
-﻿node_modules
+node_modules
 dist
 .vite
 *.local
@@ -9,4 +9,3 @@ dist
 coverage
 playwright-report
 test-results
-

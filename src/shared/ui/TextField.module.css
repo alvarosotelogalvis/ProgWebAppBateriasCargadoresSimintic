@@ -1,0 +1,45 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  width: 100%;
+}
+
+.etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--text-secondary);
+}
+
+.entrada {
+  width: 100%;
+  min-height: var(--control-alto);
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radio-md);
+  background-color: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--fuente-principal);
+  font-size: var(--texto-base);
+  transition: border-color var(--duracion-rapida) var(--curva);
+}
+
+.entrada:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.entrada[data-invalid],
+.entrada[aria-invalid='true'] {
+  border-color: var(--peligro);
+}
+
+.ayuda {
+  font-size: var(--texto-xs);
+  color: var(--text-muted);
+}
+
+.error {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  color: var(--peligro);
+}

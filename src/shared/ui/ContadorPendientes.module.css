@@ -1,0 +1,17 @@
+.contador {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  min-height: 1.75rem;
+  padding: 0 var(--espacio-3);
+  border-radius: var(--radio-full);
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-bold);
+  text-decoration: none;
+}
+
+.cifra {
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,52 @@
+.tarjeta {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-4);
+  padding: var(--espacio-4);
+  border-radius: var(--radio-lg);
+  background-color: var(--surface);
+  box-shadow: var(--sombra-md);
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radio-full);
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  color: var(--text-inverse);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-bold);
+  flex-shrink: 0;
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.saludo {
+  font-size: var(--texto-sm);
+  color: var(--text-muted);
+}
+
+.nombre {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-bold);
+  color: var(--text-primary);
+}
+
+.pendientes {
+  font-size: var(--texto-sm);
+  color: var(--text-secondary);
+}
+
+.cifra {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-extrabold);
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,29 @@
+.grupo {
+  display: inline-flex;
+  gap: var(--espacio-1);
+  padding: var(--espacio-1);
+  border-radius: var(--radio-full);
+  background-color: var(--surface-sunken);
+}
+
+.opcion {
+  min-height: var(--control-alto-compacto);
+  padding: 0 var(--espacio-4);
+  border: none;
+  border-radius: var(--radio-full);
+  background-color: transparent;
+  color: var(--text-secondary);
+  font-family: var(--fuente-principal);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--duracion-rapida) var(--curva),
+    color var(--duracion-rapida) var(--curva);
+}
+
+.opcion[data-selected] {
+  background-color: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--sombra-sm);
+}

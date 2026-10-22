@@ -1,0 +1,29 @@
+.pastilla {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-alto-compacto);
+  padding: 0 var(--espacio-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radio-full);
+  background-color: var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--fuente-principal);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--duracion-rapida) var(--curva),
+    color var(--duracion-rapida) var(--curva);
+}
+
+.pastilla:hover:not([data-disabled]) {
+  background-color: var(--surface-muted);
+}
+
+.pastilla[data-pressed],
+.seleccionado {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+}

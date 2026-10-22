@@ -1,0 +1,13 @@
+{
+  "titulo": "Acerca de",
+  "version": "Version",
+  "build": "Build",
+  "fechaBuild": "Fecha de build",
+  "ambiente": "Ambiente",
+  "novedades": "Novedades",
+  "sinNovedades": "Sin novedades registradas en esta version.",
+  "licencia": "Licencia",
+  "licenciaTexto": "Uso interno autorizado. Todos los derechos reservados.",
+  "privacidad": "Privacidad",
+  "privacidadTexto": "Los datos de los servicios se guardan en el dispositivo y se sincronizan con SharePoint de la empresa cuando el usuario confirma su identidad."
+}

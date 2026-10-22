@@ -1,0 +1,43 @@
+.flotante {
+  position: fixed;
+  right: var(--espacio-4);
+  bottom: calc(var(--ancho-barra-inferior) + var(--espacio-4) + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-fab);
+}
+
+.riel {
+  position: fixed;
+  top: calc(var(--ancho-barra-inferior) + var(--espacio-6));
+  left: var(--espacio-2);
+  z-index: var(--z-fab);
+}
+
+.lateral {
+  position: fixed;
+  top: 5.5rem;
+  left: var(--espacio-5);
+  z-index: var(--z-fab);
+}
+
+.fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: none;
+  border-radius: var(--radio-full);
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow: var(--sombra-lg);
+  cursor: pointer;
+  transition: transform var(--duracion-rapida) var(--curva);
+}
+
+.fab:hover {
+  transform: scale(1.05);
+}
+
+.fab:active {
+  transform: scale(0.98);
+}

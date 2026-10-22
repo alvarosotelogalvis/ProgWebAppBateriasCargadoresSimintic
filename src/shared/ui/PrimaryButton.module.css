@@ -1,0 +1,50 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  min-height: var(--control-alto);
+  padding: 0 var(--espacio-5);
+  border: none;
+  border-radius: var(--radio-full);
+  font-family: var(--fuente-principal);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-extrabold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color var(--duracion-rapida) var(--curva),
+    transform var(--duracion-rapida) var(--curva);
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.boton:hover:not([data-disabled]) {
+  background-color: var(--accent-hover);
+}
+
+.boton:active:not([data-disabled]) {
+  transform: scale(0.98);
+}
+
+.boton[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.small {
+  min-height: var(--control-alto-compacto);
+  padding: 0 var(--espacio-4);
+  font-size: var(--texto-xs);
+}
+
+.on-gradient {
+  background-color: transparent;
+  color: var(--text-inverse);
+  border: 2px solid var(--text-inverse);
+}
+
+.on-gradient:hover:not([data-disabled]) {
+  background-color: var(--surface);
+}

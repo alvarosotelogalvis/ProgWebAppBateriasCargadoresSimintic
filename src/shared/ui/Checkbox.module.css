@@ -1,0 +1,42 @@
+.envoltorio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-height: var(--objetivo-tactil);
+  cursor: pointer;
+}
+
+.casilla {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radio-sm);
+  background-color: var(--surface);
+  transition:
+    background-color var(--duracion-rapida) var(--curva),
+    border-color var(--duracion-rapida) var(--curva);
+}
+
+.envoltorio[data-selected] .casilla {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.envoltorio[data-selected] .casilla::after {
+  content: '✓';
+  color: var(--primary-contrast);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-bold);
+}
+
+.envoltorio[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.etiqueta {
+  font-size: var(--texto-base);
+}

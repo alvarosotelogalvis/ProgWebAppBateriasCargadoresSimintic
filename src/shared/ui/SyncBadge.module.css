@@ -1,0 +1,30 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+}
+
+.punto {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radio-full);
+  background-color: currentcolor;
+}
+
+.pendiente {
+  color: var(--sync-pendiente);
+}
+
+.sincronizado {
+  color: var(--sync-sincronizado);
+}
+
+.error {
+  color: var(--sync-error);
+}
+
+.texto {
+  white-space: nowrap;
+}
