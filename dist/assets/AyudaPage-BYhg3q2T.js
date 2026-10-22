@@ -1,2 +1,0 @@
-import{a as i,j as s}from"./index-CkMSeJCC.js";import{C as o}from"./Card-DNiSBNf7.js";import{L as r}from"./ListRow-S7RfvP9E.js";const n=["instalar","sin-conexion","preguntas-frecuentes"];function l(){const{t:a}=i("ayuda");return s.jsx("div",{children:s.jsxs(o,{fill:!0,children:[s.jsx("h2",{className:"titulo-seccion",children:a("titulo")}),n.map(t=>s.jsx(r,{icono:"ayuda",etiqueta:a(`temas.${t}.titulo`),href:`/ayuda/${t}`},t))]})})}export{l as AyudaPage};
-//# sourceMappingURL=AyudaPage-BYhg3q2T.js.map

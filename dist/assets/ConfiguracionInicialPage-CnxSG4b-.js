@@ -1,2 +1,0 @@
-import{a as r,j as i}from"./index-CkMSeJCC.js";import{C as n}from"./Card-DNiSBNf7.js";import{E as t}from"./EmptyState-BFnAQP3o.js";function s(){const{t:o}=r("config");return i.jsx("div",{children:i.jsx(n,{fill:!0,children:i.jsx(t,{titulo:o("proximamente"),descripcion:o("proximamenteDescripcion"),icono:"configuracion"})})})}export{s as ConfiguracionInicialPage};
-//# sourceMappingURL=ConfiguracionInicialPage-CnxSG4b-.js.map
