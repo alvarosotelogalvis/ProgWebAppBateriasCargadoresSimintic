@@ -1,35 +1,70 @@
-import type { Adjunto } from '@/domain/adjunto'
-import { FakeIdGenerator } from '../fakes/FakeIdGenerator'
-import { FakeClock } from '../fakes/FakeClock'
+import type { Adjunto } from '@/domain/adjunto';
+import type { TipoAdjunto } from '@/domain/servicio';
 
-const ids = new FakeIdGenerator()
-const reloj = new FakeClock()
+const SERVICIO_ID = '00000000-0000-4000-8000-000000000001';
 
-export const adjuntoBuilder = () => {
-  let adjunto: Partial<Adjunto> = {
-    AdjuntoId: ids.siguiente(),
-    ServicioId: '00000000-0000-4000-8000-000000000001',
-    tipo: 'FOTO',
-    etapa: 'RECEPCION',
+const imagen = (contenido: string): Blob =>
+  new Blob([new Uint8Array([...contenido].map((caracter) => caracter.charCodeAt(0)))], {
+    type: 'image/jpeg',
+  });
+
+export const adjuntoBuilder = (inicial?: Partial<Adjunto>) => {
+  let adjunto: Adjunto = {
+    id: '00000000-0000-4000-8000-000000000101',
+    servicioId: SERVICIO_ID,
+    tipo: 'FOTO_INGRESO',
     nombreArchivo: 'foto.jpg',
-    mimeType: 'image/jpeg',
-    tamanoBytes: 1024,
-    hashSha256: 'ab'.repeat(32),
-    blob: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' }),
-    miniaturaBlob: new Blob([new Uint8Array([4, 5, 6])], { type: 'image/jpeg' }),
+    mime: 'image/jpeg',
+    tamanoBytes: 3,
+    sha256: 'a'.repeat(64),
+    capturadoEn: '2026-10-21T08:00:00.000Z',
+    capturadoPor: 'tecnico.demo@empresa.com',
+    blob: imagen('abc'),
+    miniatura: imagen('xy'),
     syncState: 'local',
-    subidoPor: 'tecnico@ejemplo.com',
-    subidoEn: reloj.ahoraIso(),
-    camposSucios: [],
-  }
+    eliminarRemoto: false,
+    ...inicial,
+  };
 
-  return {
+  const api = {
+    conCampos(campos: Partial<Adjunto>) {
+      adjunto = { ...adjunto, ...campos };
+      return api;
+    },
+    deTipo(tipo: TipoAdjunto) {
+      adjunto = {
+        ...adjunto,
+        tipo,
+        mime: tipo === 'FOTO_INGRESO' || tipo === 'FOTO_SALIDA' ? 'image/jpeg' : 'application/pdf',
+        nombreArchivo: tipo === 'FOTO_INGRESO' || tipo === 'FOTO_SALIDA' ? 'foto.jpg' : 'doc.pdf',
+      };
+      return api;
+    },
     enServicio(servicioId: string) {
-      adjunto.ServicioId = servicioId
-      return this
+      adjunto = { ...adjunto, servicioId };
+      return api;
+    },
+    sincronizado(fecha = '2026-10-20T00:00:00.000Z') {
+      adjunto = {
+        ...adjunto,
+        syncState: 'synced',
+        sincronizadoEn: fecha,
+        sp: {
+          driveItemId: 'drive-1',
+          webUrl: 'https://ejemplo.sharepoint.com/adjunto',
+          eTag: 'etag-1',
+        },
+      };
+      return api;
+    },
+    sinBlob() {
+      adjunto = { ...adjunto, blob: null };
+      return api;
     },
     construir(): Adjunto {
-      return adjunto as Adjunto
+      return adjunto;
     },
-  }
-}
+  };
+
+  return api;
+};

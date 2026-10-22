@@ -1,11 +1,11 @@
-import type { Servicio } from '@/domain/servicio'
-import type { Adjunto } from '@/domain/adjunto'
+import type { Servicio } from '@/domain/servicio';
 
 export interface ServicioRepository {
-  guardar(servicio: Servicio): Promise<void>
-  obtenerPorId(id: string): Promise<Servicio | undefined>
-  buscarPorSerie(serie: string): Promise<Servicio | undefined>
-  listarPendientes(): Promise<Servicio[]>
-  eliminarBorrador(id: string): Promise<void>
-  purgarCerrados(fechaLimiteIso: string): Promise<number>
+  obtener(id: string): Promise<Servicio | undefined>;
+  guardar(servicio: Servicio): Promise<void>;
+  listarPendientes(): Promise<Servicio[]>;
+  buscarPorSpItemId(itemId: string): Promise<Servicio | undefined>;
+  buscarPorSerie(serie: string): Promise<Servicio[]>;
+  eliminarBorrador(id: string): Promise<void>;
+  purgarCerrados(antesDe: string): Promise<number>;
 }

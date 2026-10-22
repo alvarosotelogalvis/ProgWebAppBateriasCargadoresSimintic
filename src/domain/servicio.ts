@@ -1,18 +1,4 @@
-export type SyncState = 'local' | 'pending' | 'synced' | 'error'
-
-export type RolUsuario = 'Tecnico' | 'Comercial' | 'Administrador'
-
-export type TipoEquipo = 'BATERIA' | 'CARGADOR' | 'OTRO'
-
-export type Etapa =
-  | 'RECEPCION'
-  | 'DIAGNOSTICO'
-  | 'COTIZACION'
-  | 'REPARACION'
-  | 'PRUEBAS'
-  | 'ENTREGA'
-  | 'ANULADO'
-  | 'DISPOSICION_FINAL'
+export type TipoEquipo = 'BATERIA' | 'CARGADOR';
 
 export type EstadoServicio =
   | 'BORRADOR'
@@ -20,113 +6,122 @@ export type EstadoServicio =
   | 'DIAGNOSTICADO'
   | 'COTIZADO'
   | 'EN_REPARACION'
-  | 'PRUEBAS_OK'
-  | 'PRUEBAS_NO_OK'
-  | 'LISTO_ENTREGA'
   | 'ENTREGADO'
   | 'FACTURADO'
-  | 'ANULADO'
   | 'DISPOSICION_FINAL'
+  | 'ANULADO'
+  | 'DESCONOCIDO';
 
-export type Diagnostico = {
-  fecha: string
-  tecnico: string
-  hallazgos: string
-  causaFallo: string
-  solucionPropuesta: string
-  repuestos: string[]
+export type EstadoCotizacion = 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
+
+export type TipoAdjunto =
+  | 'FOTO_INGRESO'
+  | 'FORMATO_DIAGNOSTICO'
+  | 'DISPOSICION_FINAL'
+  | 'COTIZACION'
+  | 'FOTO_SALIDA'
+  | 'FACTURA';
+
+export type SyncState = 'local' | 'pending' | 'syncing' | 'synced' | 'error' | 'conflict';
+
+export type Rol = 'Tecnico' | 'Comercial' | 'Administrador';
+
+export interface CuentaUsuario {
+  readonly id: string;
+  readonly nombre: string;
+  readonly correo: string;
+  readonly roles: readonly Rol[];
 }
 
-export type Cotizacion = {
-  fecha: string
-  comercial: string
-  valorManoObra: number
-  valorRepuestos: number
-  iva: number
-  total: number
-  moneda: string
-  aceptaCliente: boolean | null
-  fechaRespuesta?: string
+export interface CamposServicio {
+  tipoEquipo: TipoEquipo;
+  estado: EstadoServicio;
+  fechaRecepcion: string;
+  clienteId: number;
+  clienteNombre: string;
+  numeroSolicitud: number;
+  marca: string;
+  referencia: string;
+  serie: string;
+  diagnostico?: string;
+  observacionTecnica?: string;
+  fechaSocializacionDF?: string;
+  cotizacionFechaEnvio?: string;
+  cotizacionValor?: number;
+  cotizacionEstado?: EstadoCotizacion;
+  otDetalle?: string;
+  otCostoReparacion?: number;
+  fechaEntrega?: string;
+  proyeccionVidaUtil?: string;
+  facturaNumero?: string;
+  facturaFecha?: string;
+  anulacionMotivo?: string;
+  anulacionFecha?: string;
 }
 
-export type Reparacion = {
-  fechaInicio: string
-  fechaFin?: string
-  tecnico: string
-  descripcion: string
-  repuestosUsados: string[]
+export interface ConflictoCampo {
+  campo: keyof CamposServicio;
+  local: unknown;
+  remoto: unknown;
 }
 
-export type Pruebas = {
-  fecha: string
-  tecnico: string
-  aprobado: boolean
-  observaciones?: string
+export interface DatosRemotosServicio {
+  itemId: string;
+  eTag: string;
+  modificadoEn: string;
+  webUrl: string;
+  urlCarpeta?: string;
 }
 
-export type Entrega = {
-  fecha: string
-  entregadoPor: string
-  recibidoPor: string
-  identificacionRecibe: string
-  formaEntrega: string
-  observaciones?: string
+export interface ErrorRemoto {
+  codigo: string;
+  mensaje: string;
+  en: string;
 }
 
-export type DisposicionFinal = {
-  fecha: string
-  registradoPor: string
-  tipo: string
-  motivo: string
+export interface Servicio extends CamposServicio {
+  id: string;
+  codigo: string;
+  capturadoPor: string;
+  capturadoPorNombre: string;
+  creadoEn: string;
+  actualizadoEn: string;
+  dispositivoId: string;
+  appVersion: string;
+  urlCarpetaAdjuntos?: string;
+  syncState: SyncState;
+  camposSucios: (keyof CamposServicio)[];
+  base: Partial<CamposServicio>;
+  conflictos: ConflictoCampo[];
+  sp?: DatosRemotosServicio;
+  intentos: number;
+  proximoIntentoEn?: string;
+  ultimoError?: ErrorRemoto;
+  origen: 'local' | 'remoto';
 }
 
-export type Anulacion = {
-  fecha: string
-  usuario: string
-  motivo: string
-}
-
-export type Cliente = {
-  nombre: string
-  identificacion?: string
-  telefono?: string
-  correo?: string
-}
-
-export type Equipo = {
-  tipo: TipoEquipo
-  marca: string
-  modelo: string
-  serie: string
-  referencia?: string
-  cliente?: string
-}
-
-export type Servicio = {
-  ServicioId: string
-  Folio: string
-  Estado: EstadoServicio
-  syncState: SyncState
-  capturadoPor: string
-  dispositivoId: string
-  fechaRecepcion: string
-  cliente: Cliente
-  equipo: Equipo
-  solicitud: string
-  diagnostico?: Diagnostico
-  cotizacion?: Cotizacion
-  reparacion?: Reparacion
-  pruebas?: Pruebas
-  entrega?: Entrega
-  disposicionFinal?: DisposicionFinal
-  anulacion?: Anulacion
-  camposSucios: string[]
-  codigo?: string
-  fechaLimiteReparacion?: string
-  creadoEn: string
-  actualizadoEn: string
-  version?: number
-  sincronizadoEn?: string
-  conflicto?: boolean
-  motivoAnulacion?: string
-}
+export const CAMPOS_SERVICIO: readonly (keyof CamposServicio)[] = [
+  'tipoEquipo',
+  'estado',
+  'fechaRecepcion',
+  'clienteId',
+  'clienteNombre',
+  'numeroSolicitud',
+  'marca',
+  'referencia',
+  'serie',
+  'diagnostico',
+  'observacionTecnica',
+  'fechaSocializacionDF',
+  'cotizacionFechaEnvio',
+  'cotizacionValor',
+  'cotizacionEstado',
+  'otDetalle',
+  'otCostoReparacion',
+  'fechaEntrega',
+  'proyeccionVidaUtil',
+  'facturaNumero',
+  'facturaFecha',
+  'anulacionMotivo',
+  'anulacionFecha',
+];

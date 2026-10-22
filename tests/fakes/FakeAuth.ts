@@ -1,17 +1,41 @@
-import type { AuthPort } from '@/application/ports/authPort'
+import type { AuthPort } from '@/application/ports/authPort';
+import type { CuentaUsuario, Rol } from '@/domain/servicio';
+
+export const CUENTA_ADMIN: CuentaUsuario = {
+  id: 'mock-local',
+  nombre: 'Tecnico Demo',
+  correo: 'tecnico.demo@empresa.com',
+  roles: ['Tecnico', 'Comercial', 'Administrador'],
+};
 
 export class FakeAuth implements AuthPort {
-  private cuenta: string | null = null
+  private cuenta: CuentaUsuario | null;
 
-  iniciarSesion = async (): Promise<void> => {
-    this.cuenta = 'tecnico@ejemplo.com'
+  constructor(cuenta: CuentaUsuario | null = CUENTA_ADMIN) {
+    this.cuenta = cuenta;
   }
 
-  cerrarSesion = async (): Promise<void> => {
-    this.cuenta = null
+  cuentaActiva(): CuentaUsuario | null {
+    return this.cuenta;
   }
 
-  obtenerCuenta = (): string | null => this.cuenta
+  rolesCacheados(): readonly Rol[] {
+    return this.cuenta?.roles ?? [];
+  }
 
-  estaAutenticado = (): boolean => this.cuenta !== null
+  async asegurarToken(): Promise<string> {
+    return 'token-fake';
+  }
+
+  async cambiarCuenta(): Promise<void> {
+    this.cuenta = CUENTA_ADMIN;
+  }
+
+  async cerrarSesion(): Promise<void> {
+    this.cuenta = null;
+  }
+
+  iniciarSesion(cuenta: CuentaUsuario = CUENTA_ADMIN): void {
+    this.cuenta = cuenta;
+  }
 }

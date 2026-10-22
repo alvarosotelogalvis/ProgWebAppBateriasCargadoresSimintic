@@ -1,33 +1,67 @@
 {
   "servicio": {
-    "serieRequerida": "errores.servicio.serieRequerida",
-    "serieFormato": "errores.servicio.serieFormato",
-    "referenciaRequerida": "errores.servicio.referenciaRequerida",
-    "marcaRequerida": "errores.servicio.marcaRequerida",
-    "fechaFutura": "errores.servicio.fechaFutura",
-    "entregaAntesRecepcion": "errores.servicio.entregaAntesRecepcion",
-    "vidaUtilInvalida": "errores.servicio.vidaUtilInvalida",
-    "motivoMinimo": "errores.servicio.motivoMinimo",
-    "camposObligatorios": "errores.servicio.camposObligatorios"
+    "tipoEquipoRequerido": "Selecciona el tipo de equipo.",
+    "fechaRecepcionRequerida": "La fecha de recepcion es obligatoria.",
+    "fechaFormato": "La fecha no tiene un formato valido (AAAA-MM-DD).",
+    "fechaFutura": "La fecha no puede ser futura.",
+    "clienteRequerido": "Selecciona el cliente.",
+    "solicitudRequerida": "El numero de solicitud es obligatorio.",
+    "marcaRequerida": "La marca es obligatoria.",
+    "marcaFormato": "La marca no puede superar 60 caracteres.",
+    "referenciaRequerida": "La referencia es obligatoria.",
+    "referenciaFormato": "La referencia solo admite letras, numeros, guiones, puntos y barras.",
+    "referenciaEspacios": "La referencia no puede contener espacios.",
+    "serieRequerida": "La serie es obligatoria.",
+    "serieFormato": "La serie solo admite letras, numeros, guiones, puntos y barras.",
+    "serieEspacios": "La serie no puede contener espacios.",
+    "diagnosticoRequerido": "El diagnostico es obligatorio.",
+    "observacionRequerida": "La observacion tecnica es obligatoria.",
+    "observacionFormato": "La observacion debe tener entre 5 y 4000 caracteres.",
+    "fechaSocializacionRequerida": "La fecha de socializacion es obligatoria.",
+    "fechaSocializacionInvalida": "La fecha de socializacion no puede ser anterior a la recepcion.",
+    "cotizacionFechaRequerida": "La fecha de envio de la cotizacion es obligatoria.",
+    "cotizacionValorInvalido": "El valor de la cotizacion no es valido.",
+    "cotizacionEstadoInvalido": "El estado de la cotizacion no es valido.",
+    "cotizacionNoAprobada": "La cotizacion debe estar aprobada para generar la orden de trabajo.",
+    "cotizacionNoRechazada": "La cotizacion debe estar rechazada para entregar sin reparacion.",
+    "diagnosticoEsDisposicionFinal": "El diagnostico indica disposicion final; usa esa etapa.",
+    "diagnosticoNoDisposicionFinal": "El diagnostico debe ser D. FINAL para esta etapa.",
+    "otDetalleRequerido": "El detalle de la orden de trabajo es obligatorio.",
+    "otDetalleFormato": "El detalle de la orden de trabajo debe tener entre 5 y 4000 caracteres.",
+    "otCostoInvalido": "El costo de reparacion no es valido.",
+    "fechaEntregaRequerida": "La fecha de entrega es obligatoria.",
+    "vidaUtilRequerida": "La proyeccion de vida util es obligatoria.",
+    "vidaUtilInvalida": "La proyeccion de vida util debe ser posterior a la entrega.",
+    "facturaFechaRequerida": "La fecha de factura es obligatoria.",
+    "facturaNumeroFormato": "El numero de factura no es valido.",
+    "motivoMinimo": "El motivo de anulacion debe tener al menos 10 caracteres.",
+    "campoNoEditable": "El campo no se puede editar en el estado actual.",
+    "noEncontrado": "No se encontro el servicio.",
+    "camposObligatorios": "Completa los campos obligatorios."
   },
   "transicion": {
-    "noPermitida": "errores.transicion.noPermitida",
-    "faltantes": "errores.transicion.faltantes",
-    "rolNoAutorizado": "errores.transicion.rolNoAutorizado",
-    "estadoFinal": "errores.transicion.estadoFinal",
-    "entregaSinReparacion": "errores.transicion.entregaSinReparacion"
+    "noPermitida": "La transicion no esta permitida.",
+    "faltantes": "Faltan requisitos para completar la etapa.",
+    "rolNoAutorizado": "No tienes permiso para realizar esta accion.",
+    "estadoFinal": "El servicio ya esta en un estado final.",
+    "entregaSinReparacion": "Usa la entrega sin reparacion para una cotizacion rechazada."
   },
   "anulacion": {
-    "motivoRequerido": "errores.anulacion.motivoRequerido",
-    "rolNoAutorizado": "errores.anulacion.rolNoAutorizado"
+    "motivoRequerido": "El motivo de anulacion es obligatorio.",
+    "rolNoAutorizado": "Solo un administrador puede anular un servicio."
   },
   "borrador": {
-    "noEsBorrador": "errores.borrador.noEsBorrador"
+    "noEsBorrador": "El servicio ya no es un borrador y no se puede descartar."
   },
   "adjunto": {
-    "hashDuplicado": "errores.adjunto.hashDuplicado"
+    "min": "Falta al menos un adjunto obligatorio de este tipo.",
+    "max": "Hay demasiados adjuntos de este tipo.",
+    "hashDuplicado": "El archivo ya esta adjunto al servicio."
+  },
+  "auth": {
+    "requerida": "Debes iniciar sesion para continuar."
   },
   "config": {
-    "invalida": "errores.config.invalida"
+    "invalida": "La configuracion recibida no es valida."
   }
 }

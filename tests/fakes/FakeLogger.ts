@@ -1,25 +1,52 @@
-import type { LoggerPort } from '@/application/ports/loggerPort'
+import type { ContextoLog, Logger } from '@/application/ports/loggerPort';
 
-export class FakeLogger implements LoggerPort {
-  errores: Array<{ mensaje: string; contexto?: Record<string, unknown> }> = []
-  advertencias: Array<{ mensaje: string; contexto?: Record<string, unknown> }> = []
-  info: Array<{ mensaje: string; contexto?: Record<string, unknown> }> = []
+export interface EventoLog {
+  nivel: 'debug' | 'info' | 'warn' | 'error';
+  evento: string;
+  datos?: Record<string, unknown>;
+  ctx?: ContextoLog;
+}
 
-  error = (mensaje: string, contexto?: Record<string, unknown>): void => {
-    this.errores.push({ mensaje, ...(contexto ? { contexto } : {}) })
+export class FakeLogger implements Logger {
+  eventos: EventoLog[] = [];
+
+  debug(evento: string, datos?: Record<string, unknown>, ctx?: ContextoLog): void {
+    this.registrar('debug', evento, datos, ctx);
   }
 
-  warn = (mensaje: string, contexto?: Record<string, unknown>): void => {
-    this.advertencias.push({ mensaje, ...(contexto ? { contexto } : {}) })
+  info(evento: string, datos?: Record<string, unknown>, ctx?: ContextoLog): void {
+    this.registrar('info', evento, datos, ctx);
   }
 
-  infoLog = (mensaje: string, contexto?: Record<string, unknown>): void => {
-    this.info.push({ mensaje, ...(contexto ? { contexto } : {}) })
+  warn(evento: string, datos?: Record<string, unknown>, ctx?: ContextoLog): void {
+    this.registrar('warn', evento, datos, ctx);
   }
 
-  limpiar = (): void => {
-    this.errores = []
-    this.advertencias = []
-    this.info = []
+  error(evento: string, datos?: Record<string, unknown>, ctx?: ContextoLog): void {
+    this.registrar('error', evento, datos, ctx);
+  }
+
+  get errores(): EventoLog[] {
+    return this.eventos.filter((evento) => evento.nivel === 'error');
+  }
+
+  get advertencias(): EventoLog[] {
+    return this.eventos.filter((evento) => evento.nivel === 'warn');
+  }
+
+  limpiar(): void {
+    this.eventos = [];
+  }
+
+  private registrar(
+    nivel: EventoLog['nivel'],
+    evento: string,
+    datos?: Record<string, unknown>,
+    ctx?: ContextoLog
+  ): void {
+    const entrada: EventoLog = { nivel, evento };
+    if (datos) entrada.datos = datos;
+    if (ctx) entrada.ctx = ctx;
+    this.eventos.push(entrada);
   }
 }

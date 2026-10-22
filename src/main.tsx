@@ -9,6 +9,10 @@ import '@fontsource/montserrat/800.css';
 import '@/shared/ui/global.css';
 
 import { App } from '@/app/App';
+import { AppDB } from '@/infrastructure/db/dexie';
+import { instalarManejadoresGlobales, LoggerDexie } from '@/infrastructure/logging/logger';
+
+instalarManejadoresGlobales(new LoggerDexie(new AppDB()));
 
 const contenedor = document.getElementById('root');
 if (!contenedor) {

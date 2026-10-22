@@ -1,4 +1,14 @@
+import type { CuentaUsuario, Rol } from '@/domain/servicio';
+
+export interface OpcionesAsegurarToken {
+  interactivoSiEsNecesario: boolean;
+  forzarLogin?: boolean;
+}
+
 export interface AuthPort {
-  obtenerCuenta(): string | null
-  estaAutenticado(): boolean
+  cuentaActiva(): CuentaUsuario | null;
+  rolesCacheados(): readonly Rol[];
+  asegurarToken(opciones: OpcionesAsegurarToken): Promise<string>;
+  cambiarCuenta(): Promise<void>;
+  cerrarSesion(): Promise<void>;
 }
