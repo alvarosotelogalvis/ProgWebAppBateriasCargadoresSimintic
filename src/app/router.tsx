@@ -40,9 +40,36 @@ export const router = createBrowserRouter([
               },
               {
                 path: 'servicios',
-                lazy: async () => ({
-                  Component: (await import('@/features/servicios/ServiciosPage')).ServiciosPage,
-                }),
+                children: [
+                  {
+                    index: true,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/ListaServiciosPage'))
+                        .ListaServiciosPage,
+                    }),
+                  },
+                  {
+                    path: 'nuevo',
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/NuevoServicioPage'))
+                        .NuevoServicioPage,
+                    }),
+                  },
+                  {
+                    path: ':id',
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/DetalleServicioPage'))
+                        .DetalleServicioPage,
+                    }),
+                  },
+                  {
+                    path: ':id/etapa/recepcion',
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/EtapaRecepcionPage'))
+                        .EtapaRecepcionPage,
+                    }),
+                  },
+                ],
               },
               {
                 path: 'sincronizar',

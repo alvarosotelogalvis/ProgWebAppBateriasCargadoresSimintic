@@ -57,3 +57,31 @@ export class AlmacenamientoError extends Error {
     this.name = 'AlmacenamientoError';
   }
 }
+
+export class FormatoImagenError extends Error {
+  constructor(readonly detalle: string) {
+    super('errores.adjunto.formato');
+    this.name = 'FormatoImagenError';
+  }
+}
+
+export class AdjuntoDuplicadoError extends Error {
+  constructor() {
+    super('errores.adjunto.hashDuplicado');
+    this.name = 'AdjuntoDuplicadoError';
+  }
+}
+
+export class LimiteAdjuntosError extends Error {
+  constructor() {
+    super('errores.adjunto.max');
+    this.name = 'LimiteAdjuntosError';
+  }
+}
+
+export class AlmacenamientoLlenoError extends Error {
+  constructor() {
+    super('errores.adjunto.almacenamiento');
+    this.name = 'AlmacenamientoLlenoError';
+  }
+}

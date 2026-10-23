@@ -2,6 +2,8 @@
   "app": {
     "nombre": "Servicio Técnico",
     "cargando": "Cargando…",
+    "creandoServicio": "Creando servicio…",
+    "baseDatosError": "No se pudo abrir la base de datos local. Recarga la aplicación. Detalle:",
     "error": {
       "titulo": "Algo salió mal",
       "descripcion": "Ocurrio un error inesperado en esta seccion.",

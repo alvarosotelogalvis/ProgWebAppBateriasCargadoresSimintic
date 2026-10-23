@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Card } from '@/shared/ui/Card';
+import { ComboboxField } from '@/shared/ui/ComboboxField';
+import { DateChip, DateRangeFilter } from '@/shared/ui/DateChip';
+import { PhotoGallery } from '@/shared/ui/PhotoGallery';
+import { PillInput } from '@/shared/ui/PillInput';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
 import { PillButton } from '@/shared/ui/PillButton';
@@ -22,6 +26,11 @@ import { Icon } from '@/shared/ui/Icon';
 export function CatalogoUiPage(): React.JSX.Element {
   const { t } = useTranslation('tecnico');
   const [segmento, setSegmento] = useState('1');
+  const [fecha, setFecha] = useState('2026-10-22');
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
+  const [combo, setCombo] = useState('');
+  const [busqueda, setBusqueda] = useState('');
 
   return (
     <div className="catalogo">
@@ -66,6 +75,60 @@ export function CatalogoUiPage(): React.JSX.Element {
           selectedKey={segmento}
           onChange={setSegmento}
           aria-label="Control segmentado"
+        />
+      </Card>
+
+      <Card fill>
+        <h3>Busqueda, combos y fechas</h3>
+        <PillInput
+          etiqueta="Buscar"
+          valor={busqueda}
+          onCambio={setBusqueda}
+          placeholder="Buscar servicios"
+        />
+        <ComboboxField
+          etiqueta="Cliente"
+          valor={combo}
+          items={[
+            { id: '1', texto: 'Navar Asociados' },
+            { id: '2', texto: 'Distribuidora Andina' },
+          ]}
+          onCambio={setCombo}
+        />
+        <DateChip etiqueta="Fecha" valor={fecha} max="2026-10-22" onCambio={setFecha} />
+        <DateRangeFilter
+          desde={desde}
+          hasta={hasta}
+          max="2026-10-22"
+          onCambio={(nuevoDesde, nuevoHasta) => {
+            setDesde(nuevoDesde);
+            setHasta(nuevoHasta);
+          }}
+          desdeEtiqueta="Desde"
+          hastaEtiqueta="Hasta"
+        />
+      </Card>
+
+      <Card fill>
+        <h3>Galeria de fotos</h3>
+        <PhotoGallery
+          adjuntos={[
+            {
+              id: 'demo-1',
+              servicioId: 'demo',
+              tipo: 'FOTO_INGRESO',
+              nombreArchivo: 'foto-demo.jpg',
+              mime: 'image/jpeg',
+              tamanoBytes: 0,
+              sha256: '',
+              capturadoEn: '2026-10-22T08:00:00.000Z',
+              capturadoPor: 'demo',
+              blob: null,
+              miniatura: null,
+              syncState: 'local',
+              eliminarRemoto: false,
+            },
+          ]}
         />
       </Card>
 

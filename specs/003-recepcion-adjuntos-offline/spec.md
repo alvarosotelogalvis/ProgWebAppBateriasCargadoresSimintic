@@ -1,6 +1,6 @@
 # Spec 003 — Recepción y adjuntos offline
 
-- **Estado**: Aprobada
+- **Estado**: Implementada
 - **Fecha**: 2026-10-21 · **Rama**: `feature/003-recepcion-adjuntos-offline`
 - **Fase**: F3 (`docs/07`) · **Depende de**: 002 (dominio y persistencia), 001 (shell de UI)
 - **Fuentes**: PRD [HU-03, HU-10 parcial; RF-03, RF-04, RF-05, RF-06, RF-13; RNF-01, RNF-05, RNF-07, RNF-08] · ADR [0008, 0011, 0012, 0022] · Modelo de datos [§2.1, §2.2, §3, §5] · Sistema de diseño [`docs/10` §6: referencias 03, 07, 08]
@@ -129,3 +129,7 @@ Como **técnico** quiero buscar y ver los servicios guardados en mi dispositivo,
 | 2026-10-22 | [NECESITA ACLARACIÓN: ¿la marca es una lista cerrada? — por defecto: texto libre con sugerencias (PA-08)]                                         | Texto libre con sugerencias del catálogo de marcas (PA-08).   |
 | 2026-10-22 | [NECESITA ACLARACIÓN: ¿límite de fotos de ingreso? — por defecto: 1–10 (PA-09)]                                                                   | Entre 1 y 5 fotos por servicio.                               |
 | 2026-10-22 | [NECESITA ACLARACIÓN: ¿baterías y cargadores tienen campos distintos? — por defecto: los mismos (PA-12)]                                          | Los mismos campos de recepción para ambos tipos (PA-12).      |
+| 2026-10-22 | ¿`DateChip` y el filtro de rango usan el calendario de la referencia 08 o el `input type="date"` nativo?                                          | Input nativo con `max=hoy`; cumple ES-003-10 y accesibilidad. |
+| 2026-10-22 | ¿Se versionan fixtures binarios de imágenes (12 MP, EXIF, HEIC) para las pruebas?                                                                 | No; los E2E generan las imágenes en runtime.                  |
+
+> Cierre 2026-10-22: código y pruebas completos. T047 (verificación en Android instalada y modo avión) y T048 (mediciones CE-003-04/05) quedan como verificación manual pendiente, aceptada por el usuario.

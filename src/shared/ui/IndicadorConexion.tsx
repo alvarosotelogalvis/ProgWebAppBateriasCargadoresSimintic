@@ -16,7 +16,7 @@ export function IndicadorConexion({
 
   return (
     <span
-      className={`${styles.indicador!} ${enLinea ? styles['en-linea']! : styles['sin-conexion']!}`}
+      className={`${styles.indicador!} ${enLinea ? styles.enLinea! : styles.sinConexion!}`}
       role="status"
       aria-live="polite"
     >

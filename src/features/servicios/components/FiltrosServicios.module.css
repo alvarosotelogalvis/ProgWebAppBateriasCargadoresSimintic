@@ -1,0 +1,33 @@
+.panel {
+  display: grid;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  border-radius: var(--radio-lg);
+  background-color: var(--surface);
+  box-shadow: var(--sombra-sm);
+}
+
+@media (width >= 600px) {
+  .panel {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (width >= 1024px) {
+  .panel {
+    grid-template-columns: 1fr 1fr 1fr 2fr;
+    align-items: end;
+  }
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espacio-2);
+}
+
+@media (width >= 1024px) {
+  .acciones {
+    grid-column: 1 / -1;
+  }
+}

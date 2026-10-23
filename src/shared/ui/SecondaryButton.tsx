@@ -11,7 +11,7 @@ export function SecondaryButton({
   className,
   ...props
 }: SecondaryButtonProps): React.JSX.Element {
-  const clases = [styles.boton!, onGradient ? styles['on-gradient']! : '', className]
+  const clases = [styles.boton!, onGradient ? styles.onGradient! : '', className]
     .filter(Boolean)
     .join(' ');
 

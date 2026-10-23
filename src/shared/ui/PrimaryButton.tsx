@@ -13,7 +13,7 @@ export function PrimaryButton({
   className,
   ...props
 }: PrimaryButtonProps): React.JSX.Element {
-  const clases = [styles.boton!, styles[size], onGradient ? styles['on-gradient']! : '', className]
+  const clases = [styles.boton!, styles[size], onGradient ? styles.onGradient! : '', className]
     .filter(Boolean)
     .join(' ');
 

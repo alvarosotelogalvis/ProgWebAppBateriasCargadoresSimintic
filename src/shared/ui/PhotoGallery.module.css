@@ -1,0 +1,69 @@
+﻿.galeria {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espacio-2);
+  list-style: none;
+}
+
+@media (width >= 600px) {
+  .galeria {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (width >= 1024px) {
+  .galeria {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  margin: 0;
+}
+
+.miniatura {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radio-md);
+  background-color: var(--surface-sunken);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-1);
+}
+
+.eliminar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: var(--radio-full);
+  background: none;
+  color: var(--peligro);
+  cursor: pointer;
+}
+
+.eliminar:hover {
+  background-color: var(--surface-muted);
+}

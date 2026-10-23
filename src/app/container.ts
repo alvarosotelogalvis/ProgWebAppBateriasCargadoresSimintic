@@ -4,6 +4,9 @@ import type { CatalogoRepository } from '@/application/ports/catalogoRepository'
 import type { Logger } from '@/application/ports/loggerPort';
 import type { MetaRepository } from '@/application/ports/metaRepository';
 import type { ServicioRepository } from '@/application/ports/servicioRepository';
+import type { StoragePort } from '@/application/ports/storagePort';
+import type { CasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
+import { crearCasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearCasosDeUso } from '@/application/servicios/casosDeUso';
 import type { ConfigApp } from '@/domain/config';
 import { CONFIG_DEFECTO } from '@/domain/config';
@@ -16,6 +19,8 @@ import { ServicioRepositoryDexie } from '@/infrastructure/db/servicioRepository'
 import { UnidadDeTrabajoDexie } from '@/infrastructure/db/unidadDeTrabajo';
 import { UuidGenerator } from '@/infrastructure/ids/uuidGenerator';
 import { LoggerDexie } from '@/infrastructure/logging/logger';
+import { ImageProcessorCanvas } from '@/infrastructure/media/imageProcessor';
+import { StorageNavegador } from '@/infrastructure/pwa/storage';
 import { SystemClock } from '@/infrastructure/reloj/systemClock';
 import { useSesionStore } from '@/shared/stores/sesionStore';
 
@@ -25,6 +30,7 @@ export interface DependenciasContainer {
   logger?: Logger;
   config?: ConfigApp;
   appVersion?: string;
+  storage?: StoragePort;
 }
 
 export interface Container {
@@ -35,8 +41,10 @@ export interface Container {
   meta: MetaRepository;
   auth: AuthPort;
   logger: Logger;
+  storage: StoragePort;
   config: () => ConfigApp;
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
+  casosAdjuntos: CasosDeUsoAdjuntos;
 }
 
 const crearAuthMock = (): AuthPort => {
@@ -65,8 +73,9 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
   const logger = deps.logger ?? new LoggerDexie(db);
   const auth = deps.auth ?? crearAuthMock();
   const config = deps.config ?? CONFIG_DEFECTO;
+  const storage = deps.storage ?? new StorageNavegador();
 
-  const casosDeUso = crearCasosDeUso({
+  const depsServicios = {
     servicios,
     adjuntos,
     uow,
@@ -78,7 +87,16 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     config: () => config,
     appVersion:
       deps.appVersion ?? (typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0'),
+  };
+
+  const casosDeUso = crearCasosDeUso(depsServicios);
+  const casosAdjuntos = crearCasosDeUsoAdjuntos({
+    ...depsServicios,
+    imageProcessor: new ImageProcessorCanvas(),
+    storage,
   });
+
+  await sembrarCatalogosDemo(catalogos);
 
   return {
     db,
@@ -88,9 +106,26 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     meta,
     auth,
     logger,
+    storage,
     config: () => config,
     casosDeUso,
+    casosAdjuntos,
   };
+};
+
+const CLIENTES_DEMO = [
+  { id: 1, nombre: 'Navar Asociados', activo: true },
+  { id: 2, nombre: 'Distribuidora Andina', activo: true },
+  { id: 3, nombre: 'Transportes del Norte', activo: true },
+];
+
+const MARCAS_DEMO = ['ROQUET', 'TROJAN', 'BOSCH', 'DELTA', 'EXIDE'];
+
+const sembrarCatalogosDemo = async (catalogos: CatalogoRepository): Promise<void> => {
+  const esDemo = typeof import.meta !== 'undefined' && import.meta.env?.VITE_AUTH_MODE === 'mock';
+  if (!esDemo) return;
+  if (!(await catalogos.obtener('clientes'))) await catalogos.guardar('clientes', CLIENTES_DEMO);
+  if (!(await catalogos.obtener('marcas'))) await catalogos.guardar('marcas', MARCAS_DEMO);
 };
 
 export type CasosDeUsoServicios = Container['casosDeUso'];

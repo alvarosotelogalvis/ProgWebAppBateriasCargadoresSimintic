@@ -134,3 +134,13 @@
   margin: var(--espacio-3) 0;
   background-color: var(--text-inverse);
 }
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

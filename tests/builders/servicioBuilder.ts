@@ -32,6 +32,10 @@ export const servicioBuilder = (inicial: Servicio = crearServicioBase()) => {
   let servicio: Servicio = { ...inicial, base: { ...inicial.base } };
 
   const api = {
+    conId(id: string) {
+      servicio = { ...servicio, id };
+      return api;
+    },
     conCampos(campos: Partial<CamposServicio>) {
       servicio = { ...servicio, ...campos };
       return api;

@@ -35,7 +35,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
 
   if (breakpoint === 'compacto') {
     return (
-      <nav className={styles['barra-inferior']!} aria-label="Navegacion principal">
+      <nav className={styles.barraInferior!} aria-label="Navegacion principal">
         <ul className={styles.lista!}>
           {principal.map((item) => (
             <li key={item.id}>
@@ -46,7 +46,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
               >
                 {({ isActive }) => (
                   <>
-                    <span className={styles['icono-envuelto']!}>
+                    <span className={styles.iconoEnvuelto!}>
                       <Icon nombre={item.icono} tamano={24} />
                       {typeof item.badge === 'number' && item.badge > 0 ? (
                         <span className={styles.badge!} aria-hidden="true">
@@ -69,18 +69,18 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
   if (breakpoint === 'medio') {
     return (
       <nav className={styles.riel!} aria-label="Navegacion principal">
-        <ul className={styles['lista-riel']!}>
+        <ul className={styles.listaRiel!}>
           {principal.map((item) => (
             <li key={item.id}>
               <NavLink
                 to={item.ruta}
                 end={item.ruta === '/'}
                 className={({ isActive }) =>
-                  `${styles['enlace-riel']!} ${isActive ? styles.activo! : ''}`
+                  `${styles.enlaceRiel!} ${isActive ? styles.activo! : ''}`
                 }
               >
                 <Icon nombre={item.icono} tamano={24} />
-                <span className={styles['etiqueta-riel']!}>{etiquetaDe(item.etiquetaKey)}</span>
+                <span className={styles.etiquetaRiel!}>{etiquetaDe(item.etiquetaKey)}</span>
               </NavLink>
             </li>
           ))}
@@ -91,14 +91,14 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
 
   return (
     <nav className={styles.lateral!} aria-label="Navegacion principal">
-      <ul className={styles['lista-lateral']!}>
+      <ul className={styles.listaLateral!}>
         {principal.map((item) => (
           <li key={item.id}>
             <NavLink
               to={item.ruta}
               end={item.ruta === '/'}
               className={({ isActive }) =>
-                `${styles['enlace-lateral']!} ${isActive ? styles.activo! : ''}`
+                `${styles.enlaceLateral!} ${isActive ? styles.activo! : ''}`
               }
             >
               <Icon nombre={item.icono} tamano={24} />
@@ -114,7 +114,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
                 <NavLink
                   to={item.ruta}
                   className={({ isActive }) =>
-                    `${styles['enlace-lateral']!} ${isActive ? styles.activo! : ''}`
+                    `${styles.enlaceLateral!} ${isActive ? styles.activo! : ''}`
                   }
                 >
                   <Icon nombre={item.icono} tamano={24} />

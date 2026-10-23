@@ -11,7 +11,7 @@ export function TextLink({
   className,
   ...props
 }: TextLinkProps): React.JSX.Element {
-  const clases = [styles.enlace!, onGradient ? styles['on-gradient']! : '', className]
+  const clases = [styles.enlace!, onGradient ? styles.onGradient! : '', className]
     .filter(Boolean)
     .join(' ');
 

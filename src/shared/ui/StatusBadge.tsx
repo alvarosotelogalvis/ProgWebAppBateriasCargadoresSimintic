@@ -9,18 +9,20 @@ export type EstadoServicio =
   | 'ENTREGADO'
   | 'FACTURADO'
   | 'DISPOSICION_FINAL'
-  | 'ANULADO';
+  | 'ANULADO'
+  | 'DESCONOCIDO';
 
 const CLASES: Record<EstadoServicio, string> = {
   BORRADOR: styles.borrador!,
   RECIBIDO: styles.recibido!,
   DIAGNOSTICADO: styles.diagnosticado!,
   COTIZADO: styles.cotizado!,
-  EN_REPARACION: styles['en-reparacion']!,
+  EN_REPARACION: styles.enReparacion!,
   ENTREGADO: styles.entregado!,
   FACTURADO: styles.facturado!,
-  DISPOSICION_FINAL: styles['disposicion-final']!,
+  DISPOSICION_FINAL: styles.disposicionFinal!,
   ANULADO: styles.anulado!,
+  DESCONOCIDO: styles.borrador!,
 };
 
 interface Props {

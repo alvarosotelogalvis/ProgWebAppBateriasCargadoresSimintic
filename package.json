@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "build:dev": "tsc --noEmit && vite build --mode development",
     "preview": "vite preview",
+    "preview:dev": "vite preview --mode development",
     "lint": "eslint . && stylelint \"src/**/*.css\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest",

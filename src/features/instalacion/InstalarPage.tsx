@@ -23,8 +23,8 @@ export function InstalarPage(): React.JSX.Element {
         <p className={styles.subtitulo!}>{t('subtitulo')}</p>
 
         <Card fill>
-          <h2 className={styles['instruccion-titulo']!}>{t('instrucciones.titulo')}</h2>
-          <p className={styles['instruccion-texto']!}>{t('instrucciones.texto')}</p>
+          <h2 className={styles.instruccionTitulo!}>{t('instrucciones.titulo')}</h2>
+          <p className={styles.instruccionTexto!}>{t('instrucciones.texto')}</p>
           <ol className={styles.pasos!}>
             <li>{t('instrucciones.paso1')}</li>
             <li>{t('instrucciones.paso2')}</li>

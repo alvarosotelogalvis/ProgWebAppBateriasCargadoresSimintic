@@ -1,5 +1,6 @@
 import { RouterProvider } from 'react-router-dom';
 
+import { ContainerProvider } from '@/app/containerContext';
 import { ErrorBoundary } from '@/app/ErrorBoundary';
 import { Proveedores } from '@/app/providers';
 import { router } from '@/app/router';
@@ -16,7 +17,9 @@ export function App(): React.JSX.Element {
   return (
     <ErrorBoundary>
       <Proveedores>
-        <RouterProvider router={router} />
+        <ContainerProvider>
+          <RouterProvider router={router} />
+        </ContainerProvider>
       </Proveedores>
     </ErrorBoundary>
   );
