@@ -1,4 +1,33 @@
-{
-  "proximamente": "Sincronizacion disponible pronto",
-  "proximamenteDescripcion": "La sincronizacion con SharePoint se habilita en una version posterior."
+﻿{
+  "titulo": "Sincronizar",
+  "confirmarCuenta": {
+    "titulo": "Confirmar cuenta",
+    "descripcion": "Confirma la cuenta con la que deseas sincronizar los servicios pendientes."
+  },
+  "resumen": {
+    "pendientes": "Pendientes",
+    "sinErrores": "Sin errores",
+    "conErrores": "Con errores"
+  },
+  "acciones": {
+    "confirmar": "Confirmar",
+    "usarOtraCuenta": "Usar otra cuenta",
+    "sincronizarAhora": "Sincronizar ahora",
+    "reintentar": "Reintentar",
+    "cancelar": "Cancelar"
+  },
+  "estados": {
+    "enCola": "En cola",
+    "subiendo": "Subiendo",
+    "sincronizado": "Sincronizado",
+    "error": "Con error",
+    "conflicto": "Conflicto"
+  },
+  "errores": {
+    "sinConexion": "Sin conexión a Internet",
+    "sesionExpirada": "Sesión expirada",
+    "sinPermisos": "Sin permisos para sincronizar",
+    "configuracion": "Configuración incompleta",
+    "desconocido": "Error al sincronizar"
+  }
 }
