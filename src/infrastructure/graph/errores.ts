@@ -1,5 +1,5 @@
-﻿import { AppError, type CodigoError } from './shared/errors';
-export type { CodigoError } from './shared/errors';
+﻿import { AppError, type CodigoError } from '@/shared/errors';
+export type { CodigoError } from '@/shared/errors';
 
 export interface RespuestaGraphError {
   readonly error?: {
@@ -35,7 +35,7 @@ export function traducirRespuesta(respuesta: Response): AppError {
   if (estado >= 500) {
     return new AppError({ codigo: 'SP_SERVIDOR', mensaje: 'Error del servidor', reintentable: true, estadoHttp: estado });
   }
-  return new AppError({ codigo: 'DESCONOCIDO', mensaje: Error HTTP , reintentable: false, estadoHttp: estado });
+  return new AppError({ codigo: 'DESCONOCIDO', mensaje: 'Error HTTP ' + estado, reintentable: false, estadoHttp: estado });
 }
 
 export function esReintentable(codigo: CodigoError): boolean {
