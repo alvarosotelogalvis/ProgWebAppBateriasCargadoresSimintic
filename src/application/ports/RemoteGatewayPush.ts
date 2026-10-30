@@ -1,5 +1,4 @@
-﻿import type { SitioResuelto, ClienteCatalogo, Catalogos } from './RemoteGateway';
-import type { AppError } from '@/shared/errors';
+﻿import type { SitioResuelto, Catalogos } from './remoteGateway';
 
 export interface ServicioRemotoPush {
   readonly id?: string;

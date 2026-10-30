@@ -1,5 +1,6 @@
 import type { Logger } from '@/application/ports/loggerPort';
 import type { MetaRepository } from '@/application/ports/metaRepository';
+import type { ArchivoRemoto, ServicioRemotoPush } from '@/application/ports/RemoteGatewayPush';
 import type {
   Catalogos,
   ClienteCatalogo,
@@ -34,6 +35,10 @@ interface ListaGraph {
   readonly displayName?: string;
 }
 
+interface ItemAdjuntoGraph extends ItemGraph {
+  readonly '@odata.etag'?: string;
+}
+
 export interface DepsSharePointGateway {
   readonly graph: GraphClient;
   readonly env: Entorno;
@@ -48,7 +53,8 @@ export class SharePointGateway implements RemoteGateway {
 
   async resolverSitio(): Promise<SitioResuelto> {
     const { hostname, pathname } = new URL(this.deps.env.VITE_SHAREPOINT_SITE_URL);
-    const ruta = pathname && pathname !== '/' ? pathname : `/sites/${this.deps.env.VITE_SHAREPOINT_SITE_NAME}`;
+    const ruta =
+      pathname && pathname !== '/' ? pathname : `/sites/${this.deps.env.VITE_SHAREPOINT_SITE_NAME}`;
 
     const sitio = await this.deps.graph.enviar<{ id: string; webUrl: string }>({
       metodo: 'GET',
@@ -177,80 +183,105 @@ export class SharePointGateway implements RemoteGateway {
     return this.sitio;
   }
 
-
-   // Push methods
-    async buscarServicioPorId(servicioId: string): Promise<any> {
-      const sitio = await this.obtenerSitio();
-      try {
-        const items: any[] = [];
-        const iterador = (this.deps.graph as any).paginar(`/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items?$filter=fields/ServicioId eq '${servicioId}'&$expand=fields($select=*)`);
-        for await (const item of iterador) {
-          items.push(item);
-        }
-        if (items.length > 0) {
-          return { id: items[0].id, fields: items[0].fields };
-        }
-        return null;
-      } catch {
-        return null;
+  // Operaciones de push (spec 005)
+  async buscarServicioPorId(servicioId: string): Promise<ServicioRemotoPush | null> {
+    const sitio = await this.obtenerSitio();
+    try {
+      const items: ItemGraph[] = [];
+      const iterador = this.deps.graph.paginar<ItemGraph>(
+        `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items?$filter=fields/ServicioId eq '${servicioId}'&$expand=fields($select=*)`
+      );
+      for await (const item of iterador) {
+        items.push(item);
       }
+      const encontrado = items[0];
+      if (encontrado?.id !== undefined) {
+        return {
+          id: String(encontrado.id),
+          ...(encontrado.fields ? { fields: encontrado.fields } : { fields: {} }),
+        };
+      }
+      return null;
+    } catch {
+      return null;
     }
-  
-    async crearServicio(campos: Record<string, unknown>): Promise<any> {
-      const sitio = await this.obtenerSitio();
-      try {
-        const respuesta = await this.deps.graph.enviar<any>({
-          metodo: "POST",
-          ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items`,
-          cuerpo: { fields: campos },
-        });
-        return { id: respuesta.datos.id, fields: respuesta.datos.fields ?? campos };
-      } catch (error: any) {
-        if (error?.estadoHttp === 409) {
-          const encontrado = await this.buscarServicioPorId(campos.ServicioId as string);
+  }
+
+  async crearServicio(campos: Record<string, unknown>): Promise<ServicioRemotoPush> {
+    const sitio = await this.obtenerSitio();
+    try {
+      const respuesta = await this.deps.graph.enviar<ItemGraph>({
+        metodo: 'POST',
+        ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items`,
+        cuerpo: { fields: campos },
+      });
+      return {
+        ...(respuesta.datos.id !== undefined ? { id: String(respuesta.datos.id) } : {}),
+        fields: respuesta.datos.fields ?? campos,
+      };
+    } catch (error) {
+      if (error instanceof AppError && error.estadoHttp === 409) {
+        const servicioId = campos.ServicioId;
+        if (typeof servicioId === 'string') {
+          const encontrado = await this.buscarServicioPorId(servicioId);
           if (encontrado) return encontrado;
         }
-        throw error;
       }
+      throw error;
     }
-  
-    async actualizarServicio(itemId: string, campos: Record<string, unknown>, etag?: string): Promise<void> {
-      const sitio = await this.obtenerSitio();
-      const cabeceras: Record<string, string> = {};
-      if (etag) cabeceras["If-Match"] = etag;
-      await this.deps.graph.enviar({
-        metodo: "PATCH",
-        ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items/${itemId}/fields`,
-        cuerpo: campos,
-        cabeceras,
+  }
+
+  async actualizarServicio(
+    itemId: string,
+    campos: Record<string, unknown>,
+    etag?: string
+  ): Promise<void> {
+    const sitio = await this.obtenerSitio();
+    const cabeceras: Record<string, string> = {};
+    if (etag) cabeceras['If-Match'] = etag;
+    await this.deps.graph.enviar({
+      metodo: 'PATCH',
+      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items/${itemId}/fields`,
+      cuerpo: campos,
+      cabeceras,
+    });
+  }
+
+  async listarAdjuntosDeServicio(servicioId: string): Promise<readonly ArchivoRemoto[]> {
+    const sitio = await this.obtenerSitio();
+    const items: ArchivoRemoto[] = [];
+    const iterador = this.deps.graph.paginar<ItemAdjuntoGraph>(
+      `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items?$filter=fields/ServicioId eq '${servicioId}'&$expand=fields($select=*)`
+    );
+    for await (const item of iterador) {
+      if (item.id === undefined) continue;
+      const nombre = item.fields?.NombreArchivo ?? item.fields?.Title;
+      items.push({
+        id: String(item.id),
+        name: typeof nombre === 'string' ? nombre : '',
+        ...(item['@odata.etag'] ? { '@odata.etag': item['@odata.etag'] } : {}),
       });
     }
-  
-    async listarAdjuntosDeServicio(servicioId: string): Promise<readonly any[]> {
-      const sitio = await this.obtenerSitio();
-      const items: any[] = [];
-      const iterador = (this.deps.graph as any).paginar(`/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items?$filter=fields/ServicioId eq '${servicioId}'&$expand=fields($select=*)`);
-      for await (const item of iterador) {
-        items.push({ id: item.id, name: item.fields?.NombreArchivo ?? item.fields?.Title, "@odata.etag": item["@odata.etag"] });
-      }
-      return items;
-    }
-  
-    async eliminarArchivo(itemId: string): Promise<void> {
-      const sitio = await this.obtenerSitio();
-      await this.deps.graph.enviar({
-        metodo: "DELETE",
-        ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items/${itemId}`,
-      });
-    }
-  
-    async actualizarMetadatosArchivo(itemId: string, metadatos: Record<string, unknown>): Promise<void> {
-      const sitio = await this.obtenerSitio();
-      await this.deps.graph.enviar({
-        metodo: "PATCH",
-        ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items/${itemId}/fields`,
-        cuerpo: metadatos,
-      });
-    }
+    return items;
+  }
+
+  async eliminarArchivo(itemId: string): Promise<void> {
+    const sitio = await this.obtenerSitio();
+    await this.deps.graph.enviar({
+      metodo: 'DELETE',
+      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items/${itemId}`,
+    });
+  }
+
+  async actualizarMetadatosArchivo(
+    itemId: string,
+    metadatos: Record<string, unknown>
+  ): Promise<void> {
+    const sitio = await this.obtenerSitio();
+    await this.deps.graph.enviar({
+      metodo: 'PATCH',
+      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items/${itemId}/fields`,
+      cuerpo: metadatos,
+    });
   }
 }

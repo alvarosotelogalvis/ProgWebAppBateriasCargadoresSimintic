@@ -9,6 +9,8 @@ import { Icon } from '@/shared/ui/Icon';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { QuickActionGrid } from '@/shared/ui/QuickActionGrid';
 
+import { AvisoIniciarSesion } from './AvisoIniciarSesion';
+
 export function InicioPage(): React.JSX.Element {
   const { t } = useTranslation(['inicio', 'servicios', 'navegacion']);
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ export function InicioPage(): React.JSX.Element {
 
   return (
     <div>
+      <AvisoIniciarSesion />
       <AvisoAlmacenamiento />
       <Card fill>
         {servicios.length === 0 ? (

@@ -85,6 +85,12 @@ export const router = createBrowserRouter([
                 }),
               },
               {
+                path: 'cuenta',
+                lazy: async () => ({
+                  Component: (await import('@/features/auth/MiCuentaPage')).MiCuentaPage,
+                }),
+              },
+              {
                 path: 'ajustes',
                 lazy: async () => ({
                   Component: (await import('@/features/ajustes/AjustesPage')).AjustesPage,

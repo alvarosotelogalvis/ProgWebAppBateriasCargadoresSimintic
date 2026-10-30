@@ -1,13 +1,8 @@
 import { create } from 'zustand';
 
-export type Rol = 'Tecnico' | 'Comercial' | 'Administrador';
+import type { CuentaUsuario, Rol } from '@/domain/servicio';
 
-export interface CuentaUsuario {
-  readonly id: string;
-  readonly nombre: string;
-  readonly correo: string;
-  readonly roles: readonly Rol[];
-}
+export type { CuentaUsuario, Rol } from '@/domain/servicio';
 
 interface EstadoSesion {
   readonly cuenta: CuentaUsuario | null;
@@ -18,18 +13,12 @@ interface EstadoSesion {
 }
 
 /**
- * Sesion simulada en esta spec. La spec 004 reemplaza la fuente por el AuthPort real
- * sin cambiar la interfaz de este store (plan 001, seccion 3.4).
+ * La fuente es AuthPort; el container hidrata este store al arrancar (spec 004).
  */
 export const useSesionStore = create<EstadoSesion>((set) => ({
-  cuenta: {
-    id: 'mock-local',
-    nombre: 'Tecnico Demo',
-    correo: 'tecnico.demo@empresa.com',
-    roles: ['Tecnico', 'Comercial', 'Administrador'],
-  },
-  roles: ['Tecnico', 'Comercial', 'Administrador'],
-  configuracionInicialCompleta: true,
+  cuenta: null,
+  roles: [],
+  configuracionInicialCompleta: false,
   setCuenta: (cuenta) => set({ cuenta, roles: cuenta ? cuenta.roles : [] }),
   setConfiguracionInicialCompleta: (valor) => set({ configuracionInicialCompleta: valor }),
 }));

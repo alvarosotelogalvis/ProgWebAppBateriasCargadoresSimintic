@@ -1,12 +1,10 @@
 import type { Page } from '@playwright/test';
 
-import { expect, test } from './base';
+import { expect, prepararApp, sinDesborde, test } from './base';
 
-const sinDesborde = async (page: Page): Promise<boolean> =>
-  page.evaluate(() => {
-    const raiz = document.documentElement;
-    return raiz.scrollWidth <= raiz.clientWidth + 1;
-  });
+test.beforeEach(async ({ page }) => {
+  await prepararApp(page);
+});
 
 const listo = async (page: Page): Promise<void> => {
   await expect(page.locator('main')).toBeVisible();

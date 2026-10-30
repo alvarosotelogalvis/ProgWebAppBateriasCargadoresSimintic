@@ -31,6 +31,9 @@ export interface CuentaUsuario {
   readonly nombre: string;
   readonly correo: string;
   readonly roles: readonly Rol[];
+  readonly tenantId?: string;
+  readonly homeId?: string;
+  readonly ultimoLoginInteractivoEn?: string;
 }
 
 export interface CamposServicio {

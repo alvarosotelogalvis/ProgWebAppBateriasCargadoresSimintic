@@ -26,6 +26,7 @@
   --surface: #ffffff;
   --surface-muted: #f5f6fa;
   --surface-sunken: #eceef5;
+  --surface-translucida: rgb(255 255 255 / 14%);
   --border: #d8dbe6;
   --border-strong: #b6bccf;
 

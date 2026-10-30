@@ -1,11 +1,10 @@
 ﻿import { conLockSync } from '@/infrastructure/sync/webLocks';
-import { AppError } from '@/shared/errors';
 
 export interface SyncEngineDeps {
-  readonly db?: any;
-  readonly remoto?: any;
-  readonly auth?: any;
-  readonly logger?: any;
+  readonly db?: unknown;
+  readonly remoto?: unknown;
+  readonly auth?: unknown;
+  readonly logger?: unknown;
 }
 
 export class SyncEngine {

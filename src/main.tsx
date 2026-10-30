@@ -10,6 +10,7 @@ import '@/shared/ui/global.css';
 
 import { App } from '@/app/App';
 import { AppDB } from '@/infrastructure/db/dexie';
+import { prepararAutenticacion } from '@/infrastructure/auth/arranque';
 import { instalarManejadoresGlobales, LoggerDexie } from '@/infrastructure/logging/logger';
 
 instalarManejadoresGlobales(new LoggerDexie(new AppDB()));
@@ -19,8 +20,12 @@ if (!contenedor) {
   throw new Error('No se encontro el elemento #root en index.html');
 }
 
-createRoot(contenedor).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+void prepararAutenticacion()
+  .catch(() => undefined)
+  .finally(() => {
+    createRoot(contenedor).render(
+      <StrictMode>
+        <App />
+      </StrictMode>
+    );
+  });

@@ -1,7 +1,9 @@
-import { expect, test } from './base';
+import { expect, prepararApp, test } from './base';
 
 test('la foto grande se reduce y genera miniatura', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'Playwright WebKit no soporta guardar Blob en IndexedDB');
+
+  await prepararApp(page);
 
   await page.goto('/servicios/nuevo');
   await expect(page).toHaveURL(/\/etapa\/recepcion$/, { timeout: 15_000 });

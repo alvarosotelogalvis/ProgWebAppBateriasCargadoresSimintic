@@ -1,0 +1,62 @@
+.pantalla {
+  display: flex;
+  justify-content: center;
+  padding: var(--espacio-4) 0;
+}
+
+.tarjeta {
+  align-items: center;
+  gap: var(--espacio-3);
+  width: min(100%, 45rem);
+  text-align: center;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: var(--radio-full);
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  color: var(--text-inverse);
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-extrabold);
+}
+
+.nombre {
+  font-size: var(--texto-2xl);
+}
+
+.correo {
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--espacio-2);
+}
+
+.rol {
+  padding: var(--espacio-1) var(--espacio-3);
+  border-radius: var(--radio-full);
+  background-color: var(--primary-light);
+  color: var(--text-link);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+}
+
+.ultimo-login {
+  color: var(--text-muted);
+  font-size: var(--texto-sm);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--espacio-3);
+  padding-top: var(--espacio-2);
+}

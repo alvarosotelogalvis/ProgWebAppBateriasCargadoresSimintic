@@ -2,8 +2,8 @@
   | { tipo: 'inicio' }
   | { tipo: 'progreso'; completados: number; total: number; servicioId?: string }
   | { tipo: 'servicioCompletado'; servicioId: string }
-  | { tipo: 'error'; servicioId?: string; error: any }
-  | { tipo: 'fin'; resumen: any };
+  | { tipo: 'error'; servicioId?: string; error: unknown }
+  | { tipo: 'fin'; resumen: unknown };
 
 export class EventBusSync {
   private listeners: Array<(evento: TipoEventoSync) => void> = [];

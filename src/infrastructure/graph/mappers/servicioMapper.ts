@@ -3,7 +3,22 @@
   readonly fields: Record<string, unknown>;
 }
 
-export function aCamposRemotos(servicio: any): Record<string, unknown> {
+/** Campos locales que se proyectan a la lista de SharePoint. */
+export interface ServicioMapeable {
+  readonly ServicioId?: unknown;
+  readonly ClienteId?: unknown;
+  readonly MarcaId?: unknown;
+  readonly TipoEquipo?: unknown;
+  readonly ModeloEquipo?: unknown;
+  readonly SerieEquipo?: unknown;
+  readonly DescripcionFalla?: unknown;
+  readonly Estado?: unknown;
+  readonly FechaRecepcion?: unknown;
+  readonly Observaciones?: unknown;
+  readonly TecnicoAsignado?: unknown;
+}
+
+export function aCamposRemotos(servicio: ServicioMapeable): Record<string, unknown> {
   const campos: Record<string, unknown> = {};
 
   if (servicio.ServicioId !== undefined) campos.ServicioId = servicio.ServicioId;
@@ -21,7 +36,7 @@ export function aCamposRemotos(servicio: any): Record<string, unknown> {
   return campos;
 }
 
-export function deCamposRemotos(campos: Record<string, unknown>): any {
+export function deCamposRemotos(campos: Record<string, unknown>): Record<string, unknown> {
   return {
     ServicioId: campos.ServicioId,
     ClienteId: campos.ClienteLookupId,

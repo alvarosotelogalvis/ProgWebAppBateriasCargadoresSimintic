@@ -63,5 +63,30 @@
   },
   "config": {
     "invalida": "La configuracion recibida no es valida."
+  },
+  "codigo": {
+    "CONFIG_INVALIDA": "La configuracion de la app no es valida.",
+    "SIN_CONEXION": "No hay conexion a internet.",
+    "RED_SIN_CONEXION": "No hay conexion a internet. Revisa tu red e intentalo de nuevo.",
+    "AUTH_REQUERIDA": "Debes iniciar sesion para continuar.",
+    "AUTH_SIN_ROL": "Tu cuenta no tiene acceso a esta app. Pide acceso al administrador.",
+    "AUTH_TENANT_INVALIDO": "Esta cuenta no pertenece a la organizacion.",
+    "SP_SIN_PERMISO": "Tu cuenta no tiene permiso en el sitio de SharePoint.",
+    "SP_NO_ENCONTRADO": "No se encontro el sitio o la lista configurada. Avisa a soporte.",
+    "SP_CONFLICTO": "El dato cambio en SharePoint. Revisa la informacion e intentalo de nuevo.",
+    "SP_LIMITE": "El servicio de datos limito la solicitud. Espera un momento y reintenta.",
+    "SP_SERVIDOR": "El servicio de datos no esta disponible. Intentalo mas tarde.",
+    "VALIDACION": "Los datos enviados no son validos.",
+    "VERSION_OBSOLETA": "Debes actualizar la app para continuar.",
+    "NO_AUTORIZADO": "No tienes autorizacion para esta accion.",
+    "SIN_PERMISO": "No tienes permiso para esta accion.",
+    "NO_ENCONTRADO": "No se encontro la informacion.",
+    "CONFLICTO": "Hay un conflicto con los datos.",
+    "LIMITE_ALCANZADO": "Se alcanzo el limite permitido.",
+    "ARCHIVO_INVALIDO": "El archivo no es valido.",
+    "FALLA_GRAFICO": "No se pudo procesar la imagen.",
+    "ALMACENAMIENTO_LLENO": "El almacenamiento del dispositivo esta lleno.",
+    "ALMACENAMIENTO_NO_DISPONIBLE": "El almacenamiento del dispositivo no esta disponible.",
+    "DESCONOCIDO": "Ocurrio un error inesperado."
   }
 }

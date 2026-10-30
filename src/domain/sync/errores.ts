@@ -15,33 +15,45 @@ export function esNoReintentable(codigo: CodigoError): boolean {
   return NO_REINTENTABLES.has(codigo);
 }
 
+function reclasificar(original: AppError, codigo: CodigoError, reintentable: boolean): AppError {
+  return new AppError({
+    codigo,
+    mensaje: original.message,
+    claveI18n: original.claveI18n ?? `errores.codigo.${codigo}`,
+    reintentable,
+    ...(original.detalles === undefined ? {} : { detalles: original.detalles }),
+    ...(original.estadoHttp === undefined ? {} : { estadoHttp: original.estadoHttp }),
+    causa: original,
+  });
+}
+
 export function clasificarError(error: unknown): AppError {
-  const appError = error instanceof AppError ? error : undefined;
-  if (appError) {
-    if (appError.codigo === 'AUTH_REQUERIDA') {
-      return appError;
+  if (error instanceof AppError) {
+    if (error.codigo === 'AUTH_REQUERIDA' || error.codigo === 'SP_SIN_PERMISO') {
+      return error;
     }
-    if (appError.codigo === 'SP_SIN_PERMISO') {
-      return appError;
+    if (error.estadoHttp === 429) {
+      return reclasificar(error, 'SP_LIMITE', true);
     }
-    if (appError.estadoHttp === 429) {
-      return new AppError({ ...appError, codigo: 'SP_LIMITE', reintentable: true });
+    if (error.estadoHttp !== undefined && error.estadoHttp >= 500) {
+      return reclasificar(error, 'SP_SERVIDOR', true);
     }
-    if (appError.estadoHttp && appError.estadoHttp >= 500) {
-      return new AppError({ ...appError, codigo: 'SP_SERVIDOR', reintentable: true });
+    if (error.estadoHttp === 404) {
+      return reclasificar(error, 'SP_NO_ENCONTRADO', false);
     }
-    if (appError.estadoHttp === 404) {
-      return new AppError({ ...appError, codigo: 'SP_NO_ENCONTRADO', reintentable: false });
+    if (error.estadoHttp === 403) {
+      return reclasificar(error, 'SP_SIN_PERMISO', false);
     }
-    if (appError.estadoHttp === 403) {
-      return new AppError({ ...appError, codigo: 'SP_SIN_PERMISO', reintentable: false });
-    }
+    return error;
   }
 
   if (error instanceof TypeError && error.message.toLowerCase().includes('fetch')) {
-    return new AppError({ codigo: 'RED_SIN_CONEXION', mensaje: 'Sin conexión', reintentable: true });
+    return new AppError({
+      codigo: 'RED_SIN_CONEXION',
+      mensaje: 'Sin conexión',
+      reintentable: true,
+    });
   }
 
-  if (error instanceof AppError) return error;
   return new AppError({ codigo: 'DESCONOCIDO', mensaje: String(error), reintentable: true });
 }

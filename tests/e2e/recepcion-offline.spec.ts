@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 
-import { expect, test } from './base';
+import { expect, prepararApp, test } from './base';
 
 const PNG_1X1 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=';
@@ -15,6 +15,8 @@ test('recepción completa, persistencia y consulta sin conexión', async ({
   browserName,
 }) => {
   test.skip(browserName === 'webkit', 'Playwright WebKit no soporta guardar Blob en IndexedDB');
+
+  await prepararApp(page);
 
   await page.goto('/servicios/nuevo');
   await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+\/etapa\/recepcion$/, {

@@ -1,6 +1,17 @@
 export type CodigoError =
   | 'CONFIG_INVALIDA'
   | 'SIN_CONEXION'
+  | 'RED_SIN_CONEXION'
+  | 'AUTH_REQUERIDA'
+  | 'AUTH_SIN_ROL'
+  | 'AUTH_TENANT_INVALIDO'
+  | 'SP_SIN_PERMISO'
+  | 'SP_NO_ENCONTRADO'
+  | 'SP_CONFLICTO'
+  | 'SP_LIMITE'
+  | 'SP_SERVIDOR'
+  | 'VALIDACION'
+  | 'VERSION_OBSOLETA'
   | 'NO_AUTORIZADO'
   | 'SIN_PERMISO'
   | 'NO_ENCONTRADO'
@@ -18,12 +29,16 @@ export interface DetalleError {
   readonly claveI18n?: string;
   readonly detalles?: Record<string, unknown>;
   readonly causa?: unknown;
+  readonly reintentable?: boolean;
+  readonly estadoHttp?: number;
 }
 
 export class AppError extends Error {
   readonly codigo: CodigoError;
   readonly claveI18n: string | undefined;
   readonly detalles: Record<string, unknown> | undefined;
+  readonly reintentable: boolean;
+  readonly estadoHttp: number | undefined;
 
   constructor(detalle: DetalleError) {
     super(detalle.mensaje, { cause: detalle.causa });
@@ -31,6 +46,8 @@ export class AppError extends Error {
     this.codigo = detalle.codigo;
     this.claveI18n = detalle.claveI18n;
     this.detalles = detalle.detalles;
+    this.reintentable = detalle.reintentable ?? false;
+    this.estadoHttp = detalle.estadoHttp;
   }
 
   static esAppError(valor: unknown): valor is AppError {

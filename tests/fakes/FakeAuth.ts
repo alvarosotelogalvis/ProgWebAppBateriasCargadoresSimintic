@@ -23,6 +23,18 @@ export class FakeAuth implements AuthPort {
     return this.cuenta?.roles ?? [];
   }
 
+  async inicializar(): Promise<void> {
+    return undefined;
+  }
+
+  sesionVigente(): boolean {
+    return this.cuenta !== null;
+  }
+
+  async iniciarSesion(): Promise<void> {
+    this.cuenta = CUENTA_ADMIN;
+  }
+
   async asegurarToken(): Promise<string> {
     return 'token-fake';
   }
@@ -35,7 +47,7 @@ export class FakeAuth implements AuthPort {
     this.cuenta = null;
   }
 
-  iniciarSesion(cuenta: CuentaUsuario = CUENTA_ADMIN): void {
+  simularLogin(cuenta: CuentaUsuario = CUENTA_ADMIN): void {
     this.cuenta = cuenta;
   }
 }
