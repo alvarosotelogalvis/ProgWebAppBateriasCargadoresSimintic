@@ -9,6 +9,8 @@ export const CLAVES_META = {
   webUrl: 'webUrl',
   listIds: 'listIds',
   driveId: 'driveId',
+  ultimaSyncEn: 'ultimaSyncEn',
+  ultimoCorrelationId: 'ultimoCorrelationId',
 } as const;
 
 export const CLAVES_CATALOGO = {
