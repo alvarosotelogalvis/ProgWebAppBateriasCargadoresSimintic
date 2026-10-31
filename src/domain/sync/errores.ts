@@ -1,59 +1,66 @@
-﻿import { AppError, type CodigoError } from '../../shared/errors';
+﻿/**
+ * Clasificación de errores de sincronización según la tabla de SDD §9.6.
+ * Es una función pura del dominio: no conoce HTTP ni Graph, solo la forma del fallo.
+ */
+export type ClaseError =
+  | 'RED'
+  | 'AUTH'
+  | 'SIN_PERMISO'
+  | 'CONFIGURACION'
+  | 'IDEMPOTENCIA'
+  | 'CONFLICTO'
+  | 'NO_REINTENTABLE'
+  | 'REINTENTABLE'
+  | 'SESION_SUBIDA_EXPIRADA';
 
-const NO_REINTENTABLES: Set<CodigoError> = new Set([
-  'AUTH_REQUERIDA',
-  'AUTH_SIN_ROL',
-  'AUTH_TENANT_INVALIDO',
-  'SP_SIN_PERMISO',
-  'SP_NO_ENCONTRADO',
-  'VALIDACION',
-  'VERSION_OBSOLETA',
-  'NO_AUTORIZADO',
-]);
-
-export function esNoReintentable(codigo: CodigoError): boolean {
-  return NO_REINTENTABLES.has(codigo);
+export interface EntradaClasificacionError {
+  readonly status?: number;
+  readonly esTimeout?: boolean;
+  /** `fetch` falló o `navigator.onLine` es false. */
+  readonly esRed?: boolean;
+  /** El 404 provino de la `uploadUrl` de una sesión de subida. */
+  readonly esSesionSubida?: boolean;
 }
 
-function reclasificar(original: AppError, codigo: CodigoError, reintentable: boolean): AppError {
-  return new AppError({
-    codigo,
-    mensaje: original.message,
-    claveI18n: original.claveI18n ?? `errores.codigo.${codigo}`,
-    reintentable,
-    ...(original.detalles === undefined ? {} : { detalles: original.detalles }),
-    ...(original.estadoHttp === undefined ? {} : { estadoHttp: original.estadoHttp }),
-    causa: original,
-  });
+/**
+ * Traduce un fallo a la clase de error que decide la acción del motor de sync.
+ * Precedencia: red → sesión de subida expirada → timeout → estado HTTP.
+ */
+export function clasificarError(entrada: EntradaClasificacionError): ClaseError {
+  if (entrada.esRed === true) return 'RED';
+  if (entrada.status === 404 && entrada.esSesionSubida === true) return 'SESION_SUBIDA_EXPIRADA';
+  if (entrada.esTimeout === true || entrada.status === 408) return 'REINTENTABLE';
+
+  switch (entrada.status) {
+    case 401:
+      return 'AUTH';
+    case 403:
+      return 'SIN_PERMISO';
+    case 404:
+      return 'CONFIGURACION';
+    case 409:
+      return 'IDEMPOTENCIA';
+    case 412:
+      return 'CONFLICTO';
+    case 413:
+      return 'NO_REINTENTABLE';
+    case 429:
+    case 503:
+    case 504:
+      return 'REINTENTABLE';
+    default:
+      if (entrada.status !== undefined && entrada.status >= 500) return 'REINTENTABLE';
+      if (entrada.status !== undefined && entrada.status >= 400) return 'NO_REINTENTABLE';
+      return 'REINTENTABLE';
+  }
 }
 
-export function clasificarError(error: unknown): AppError {
-  if (error instanceof AppError) {
-    if (error.codigo === 'AUTH_REQUERIDA' || error.codigo === 'SP_SIN_PERMISO') {
-      return error;
-    }
-    if (error.estadoHttp === 429) {
-      return reclasificar(error, 'SP_LIMITE', true);
-    }
-    if (error.estadoHttp !== undefined && error.estadoHttp >= 500) {
-      return reclasificar(error, 'SP_SERVIDOR', true);
-    }
-    if (error.estadoHttp === 404) {
-      return reclasificar(error, 'SP_NO_ENCONTRADO', false);
-    }
-    if (error.estadoHttp === 403) {
-      return reclasificar(error, 'SP_SIN_PERMISO', false);
-    }
-    return error;
-  }
+/** Un error reintentable se puede volver a intentar automáticamente dentro de la ejecución. */
+export function esReintentable(clase: ClaseError): boolean {
+  return clase === 'REINTENTABLE' || clase === 'SESION_SUBIDA_EXPIRADA';
+}
 
-  if (error instanceof TypeError && error.message.toLowerCase().includes('fetch')) {
-    return new AppError({
-      codigo: 'RED_SIN_CONEXION',
-      mensaje: 'Sin conexión',
-      reintentable: true,
-    });
-  }
-
-  return new AppError({ codigo: 'DESCONOCIDO', mensaje: String(error), reintentable: true });
+/** Un error de estas clases detiene la ejecución completa del sync. */
+export function debeAbortarSync(clase: ClaseError): boolean {
+  return clase === 'RED' || clase === 'AUTH' || clase === 'CONFIGURACION';
 }

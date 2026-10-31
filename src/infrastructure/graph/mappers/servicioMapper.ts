@@ -1,53 +1,173 @@
-﻿export interface ServicioRemoto {
-  readonly id?: string;
-  readonly fields: Record<string, unknown>;
+﻿import type { CamposServicio, Servicio } from '@/domain/servicio';
+
+import {
+  VALOR_COTIZACION_ESTADO,
+  VALOR_ESTADO,
+  VALOR_TIPO_EQUIPO,
+  codigoAValor,
+  cotizacionEstadoDesdeSharePoint,
+  estadoDesdeSharePoint,
+  tipoEquipoDesdeSharePoint,
+} from './choices';
+
+/** Columna interna de SharePoint para cada campo del dominio (Modelo de datos §2). */
+export const CAMPO_SP: Readonly<Partial<Record<keyof CamposServicio, string>>> = {
+  tipoEquipo: 'TipoEquipo',
+  estado: 'Estado',
+  fechaRecepcion: 'FechaRecepcion',
+  clienteId: 'ClienteLookupId',
+  numeroSolicitud: 'NumeroSolicitud',
+  marca: 'Marca',
+  referencia: 'Referencia',
+  serie: 'SerieEquipo',
+  diagnostico: 'Diagnostico',
+  observacionTecnica: 'ObservacionTecnica',
+  fechaSocializacionDF: 'FechaSocializacionDF',
+  cotizacionFechaEnvio: 'CotizacionFechaEnvio',
+  cotizacionValor: 'CotizacionValor',
+  cotizacionEstado: 'CotizacionEstado',
+  otDetalle: 'OTDetalle',
+  otCostoReparacion: 'OTCostoReparacion',
+  fechaEntrega: 'FechaEntrega',
+  proyeccionVidaUtil: 'ProyeccionVidaUtil',
+  facturaNumero: 'FacturaNumero',
+  facturaFecha: 'FacturaFecha',
+  anulacionMotivo: 'MotivoAnulacion',
+  anulacionFecha: 'FechaAnulacion',
+};
+
+const CAMPOS_FECHA = new Set<keyof CamposServicio>([
+  'fechaRecepcion',
+  'fechaSocializacionDF',
+  'cotizacionFechaEnvio',
+  'fechaEntrega',
+  'proyeccionVidaUtil',
+  'facturaFecha',
+  'anulacionFecha',
+]);
+
+const CAMPOS_NUMERO = new Set<keyof CamposServicio>([
+  'clienteId',
+  'numeroSolicitud',
+  'cotizacionValor',
+  'otCostoReparacion',
+]);
+
+/** Columnas que escribe Power Automate: la app nunca las envía (SDD §7.4). */
+export const COLUMNAS_SOLO_POWER_AUTOMATE = ['OTCorreoEnviado', 'AlertaVidaUtilNivel'] as const;
+
+export function fechaASharePoint(valor: string): string {
+  if (valor.includes('T')) return valor;
+  return `${valor}T00:00:00Z`;
 }
 
-/** Campos locales que se proyectan a la lista de SharePoint. */
-export interface ServicioMapeable {
-  readonly ServicioId?: unknown;
-  readonly ClienteId?: unknown;
-  readonly MarcaId?: unknown;
-  readonly TipoEquipo?: unknown;
-  readonly ModeloEquipo?: unknown;
-  readonly SerieEquipo?: unknown;
-  readonly DescripcionFalla?: unknown;
-  readonly Estado?: unknown;
-  readonly FechaRecepcion?: unknown;
-  readonly Observaciones?: unknown;
-  readonly TecnicoAsignado?: unknown;
+function valorASharePoint(campo: keyof CamposServicio, valor: unknown): unknown {
+  if (CAMPOS_FECHA.has(campo) && typeof valor === 'string') return fechaASharePoint(valor);
+  if (CAMPOS_NUMERO.has(campo)) {
+    const numero = Number(valor);
+    return Number.isFinite(numero) ? numero : undefined;
+  }
+  if (campo === 'estado') {
+    return typeof valor === 'string'
+      ? codigoAValor(valor as keyof typeof VALOR_ESTADO, VALOR_ESTADO)
+      : undefined;
+  }
+  if (campo === 'tipoEquipo') {
+    return typeof valor === 'string'
+      ? codigoAValor(valor as keyof typeof VALOR_TIPO_EQUIPO, VALOR_TIPO_EQUIPO)
+      : undefined;
+  }
+  if (campo === 'cotizacionEstado') {
+    return typeof valor === 'string'
+      ? codigoAValor(valor as keyof typeof VALOR_COTIZACION_ESTADO, VALOR_COTIZACION_ESTADO)
+      : undefined;
+  }
+  return valor;
 }
 
-export function aCamposRemotos(servicio: ServicioMapeable): Record<string, unknown> {
+/**
+ * Proyecta el dominio a columnas de SharePoint (SDD §7.4).
+ * Sin `camposSucios` envía el registro completo (creación); con ellos, solo esos campos.
+ * Siempre se envían `AppVersion`, `ActualizadoEnDispositivo` y `DispositivoId`.
+ */
+export function aCamposSP(
+  servicio: Servicio,
+  camposSucios?: readonly (keyof CamposServicio)[]
+): Record<string, unknown> {
   const campos: Record<string, unknown> = {};
 
-  if (servicio.ServicioId !== undefined) campos.ServicioId = servicio.ServicioId;
-  if (servicio.ClienteId !== undefined) campos.ClienteLookupId = servicio.ClienteId;
-  if (servicio.MarcaId !== undefined) campos.MarcaLookupId = servicio.MarcaId;
-  if (servicio.TipoEquipo !== undefined) campos.TipoEquipo = servicio.TipoEquipo;
-  if (servicio.ModeloEquipo !== undefined) campos.ModeloEquipo = servicio.ModeloEquipo;
-  if (servicio.SerieEquipo !== undefined) campos.SerieEquipo = servicio.SerieEquipo;
-  if (servicio.DescripcionFalla !== undefined) campos.DescripcionFalla = servicio.DescripcionFalla;
-  if (servicio.Estado !== undefined) campos.Estado = servicio.Estado;
-  if (servicio.FechaRecepcion !== undefined) campos.FechaRecepcion = servicio.FechaRecepcion;
-  if (servicio.Observaciones !== undefined) campos.Observaciones = servicio.Observaciones;
-  if (servicio.TecnicoAsignado !== undefined) campos.TecnicoAsignado = servicio.TecnicoAsignado;
+  if (camposSucios === undefined) {
+    campos.ServicioId = servicio.id;
+    campos.Title = servicio.codigo;
+    campos.CapturadoPor = servicio.capturadoPor;
+    campos.CapturadoPorNombre = servicio.capturadoPorNombre;
+    campos.CapturadoEn = servicio.creadoEn;
+    if (servicio.urlCarpetaAdjuntos !== undefined) {
+      campos.UrlCarpetaAdjuntos = servicio.urlCarpetaAdjuntos;
+    }
+  }
+
+  for (const [campo, columna] of Object.entries(CAMPO_SP)) {
+    if (columna === undefined) continue;
+    const clave = campo as keyof CamposServicio;
+    if (camposSucios !== undefined && !camposSucios.includes(clave)) continue;
+    const valor = servicio[clave];
+    if (valor === undefined) continue;
+    const convertido = valorASharePoint(clave, valor);
+    if (convertido !== undefined) campos[columna] = convertido;
+  }
+
+  campos.AppVersion = servicio.appVersion;
+  campos.ActualizadoEnDispositivo = servicio.actualizadoEn;
+  campos.DispositivoId = servicio.dispositivoId;
 
   return campos;
 }
 
-export function deCamposRemotos(campos: Record<string, unknown>): Record<string, unknown> {
-  return {
-    ServicioId: campos.ServicioId,
-    ClienteId: campos.ClienteLookupId,
-    MarcaId: campos.MarcaLookupId,
-    TipoEquipo: campos.TipoEquipo,
-    ModeloEquipo: campos.ModeloEquipo,
-    SerieEquipo: campos.SerieEquipo,
-    DescripcionFalla: campos.DescripcionFalla,
-    Estado: campos.Estado,
-    FechaRecepcion: campos.FechaRecepcion,
-    Observaciones: campos.Observaciones,
-    TecnicoAsignado: campos.TecnicoAsignado,
-  };
+function leerNumero(valor: unknown): number | undefined {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : undefined;
+}
+
+/**
+ * Proyecta los `fields` de SharePoint al dominio.
+ * Las fechas de solo fecha se leen como `yyyy-MM-dd`. Un `Estado` desconocido
+ * se degrada a `DESCONOCIDO`; un `TipoEquipo` desconocido se omite para conservar el local.
+ */
+export function deCamposSP(campos: Record<string, unknown>): Partial<CamposServicio> {
+  const resultado: Record<string, unknown> = {};
+
+  for (const [campo, columna] of Object.entries(CAMPO_SP)) {
+    if (columna === undefined) continue;
+    const clave = campo as keyof CamposServicio;
+    const valor = campos[columna] ?? (clave === 'clienteId' ? campos.ClienteId : undefined);
+    if (valor === undefined || valor === null) continue;
+
+    if (CAMPOS_FECHA.has(clave)) {
+      if (typeof valor === 'string' && valor.length >= 10) resultado[clave] = valor.slice(0, 10);
+      continue;
+    }
+    if (CAMPOS_NUMERO.has(clave)) {
+      const numero = leerNumero(valor);
+      if (numero !== undefined) resultado[clave] = numero;
+      continue;
+    }
+    if (clave === 'estado') {
+      resultado.estado = estadoDesdeSharePoint(valor);
+      continue;
+    }
+    if (clave === 'tipoEquipo') {
+      const tipo = tipoEquipoDesdeSharePoint(valor);
+      if (tipo !== undefined) resultado.tipoEquipo = tipo;
+      continue;
+    }
+    if (clave === 'cotizacionEstado') {
+      const estado = cotizacionEstadoDesdeSharePoint(valor);
+      if (estado !== undefined) resultado.cotizacionEstado = estado;
+      continue;
+    }
+    if (typeof valor === 'string') resultado[clave] = valor.trim();
+  }
+
+  return resultado as Partial<CamposServicio>;
 }

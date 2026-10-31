@@ -29,6 +29,14 @@ adopta [SemVer](https://semver.org/lang/es/).
 - Pruebas E2E de recepción offline, procesamiento de imágenes, accesibilidad (axe) y capturas
   visuales en 360, 768 y 1280 px comparadas contra línea base.
 - Script `npm run coverage` con umbrales de cobertura para `domain/` y `application/`.
+- Autenticación con Entra ID (spec 004): MSAL SPA + PKCE, validación de tenant y roles,
+  cuenta recordada sin conexión y modo de autenticación simulado para pruebas.
+- Configuración inicial guiada: bienvenida, inicio de sesión, descarga de catálogos y
+  configuración, reserva de almacenamiento y repetición desde Más sin borrar datos.
+- Mi cuenta, cambio de cuenta y cierre de sesión con advertencia de pendientes; permisos por rol.
+- Fundamentos de sincronización push (spec 005, en curso): clasificación de errores y backoff,
+  rutas y nombres de archivo deterministas, mapper de SharePoint con Choice y fechas,
+  subida simple y sesiones, Web Locks y persistencia de la intención de login.
 
 ### Cambiado
 
