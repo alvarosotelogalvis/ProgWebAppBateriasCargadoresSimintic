@@ -84,6 +84,7 @@ describe('SharePointGateway', () => {
       { id: 'l-mar', name: 'Marcas' },
       { id: 'l-conf', name: 'ConfiguracionApp' },
       { id: 'l-adj', name: 'ServiciosAdjuntos' },
+      { id: 'l-log', name: 'LogSincronizacion' },
     ]);
     const meta = crearMeta();
     const gateway = new SharePointGateway({
@@ -118,6 +119,7 @@ describe('SharePointGateway', () => {
       { id: 'l-mar', name: 'Marcas' },
       { id: 'l-conf', name: 'ConfiguracionApp' },
       { id: 'l-adj', name: 'ServiciosAdjuntos' },
+      { id: 'l-log', name: 'LogSincronizacion' },
     ]);
     servidor.use(
       http.get(`${BASE}/sites/site-1/lists/l-cli/items`, () =>
@@ -175,6 +177,7 @@ describe('SharePointGateway', () => {
       { id: 'l-mar', name: 'Marcas' },
       { id: 'l-conf', name: 'ConfiguracionApp' },
       { id: 'l-adj', name: 'ServiciosAdjuntos' },
+      { id: 'l-log', name: 'LogSincronizacion' },
     ]);
     servidor.use(
       http.get(`${BASE}/sites/site-1/lists/l-conf/items`, () =>

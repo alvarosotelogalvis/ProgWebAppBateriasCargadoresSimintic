@@ -1,12 +1,14 @@
 import type { Logger } from '@/application/ports/loggerPort';
 import type { MetaRepository } from '@/application/ports/metaRepository';
-import type { ArchivoRemoto, ServicioRemotoPush } from '@/application/ports/RemoteGatewayPush';
 import type {
-  Catalogos,
-  ClienteCatalogo,
-  RemoteGateway,
-  SitioResuelto,
-} from '@/application/ports/remoteGateway';
+  ArchivoRemoto,
+  EntradaLogSync,
+  RemoteGatewayPush,
+  ResultadoActualizacion,
+  ServicioRemotoPush,
+} from '@/application/ports/RemoteGatewayPush';
+import type { Catalogos, ClienteCatalogo, SitioResuelto } from '@/application/ports/remoteGateway';
+import { ConflictoError } from '@/application/sync/ConflictoError';
 import type { Entorno } from '@/shared/env';
 import { AppError } from '@/shared/errors';
 
@@ -26,6 +28,7 @@ const LISTAS_REQUERIDAS = [
   'Clientes',
   'Marcas',
   'ConfiguracionApp',
+  'LogSincronizacion',
   'ServiciosAdjuntos',
 ] as const;
 
@@ -35,9 +38,37 @@ interface ListaGraph {
   readonly displayName?: string;
 }
 
-interface ItemAdjuntoGraph extends ItemGraph {
+interface ItemPushGraph extends ItemGraph {
   readonly '@odata.etag'?: string;
+  readonly eTag?: string;
+  readonly webUrl?: string;
+  readonly lastModifiedDateTime?: string;
 }
+
+const leerEtag = (item: ItemPushGraph | undefined): string | undefined => {
+  if (!item) return undefined;
+  return item['@odata.etag'] ?? item.eTag;
+};
+
+const escaparOdata = (valor: string): string => valor.replace(/'/g, "''");
+
+const itemARemoto = (item: ItemPushGraph): ServicioRemotoPush => {
+  if (item.id === undefined) {
+    throw new AppError({
+      codigo: 'SP_SERVIDOR',
+      mensaje: 'SharePoint devolvió un ítem sin identificador.',
+      reintentable: true,
+    });
+  }
+  const eTag = leerEtag(item);
+  return {
+    id: String(item.id),
+    fields: item.fields ?? {},
+    ...(eTag ? { eTag } : {}),
+    ...(item.webUrl ? { webUrl: item.webUrl } : {}),
+    ...(item.lastModifiedDateTime ? { modificadoEn: item.lastModifiedDateTime } : {}),
+  };
+};
 
 export interface DepsSharePointGateway {
   readonly graph: GraphClient;
@@ -46,7 +77,7 @@ export interface DepsSharePointGateway {
   readonly logger: Logger;
 }
 
-export class SharePointGateway implements RemoteGateway {
+export class SharePointGateway implements RemoteGatewayPush {
   private sitio: SitioResuelto | undefined;
 
   constructor(private readonly deps: DepsSharePointGateway) {}
@@ -186,45 +217,51 @@ export class SharePointGateway implements RemoteGateway {
   // Operaciones de push (spec 005)
   async buscarServicioPorId(servicioId: string): Promise<ServicioRemotoPush | null> {
     const sitio = await this.obtenerSitio();
-    try {
-      const items: ItemGraph[] = [];
-      const iterador = this.deps.graph.paginar<ItemGraph>(
-        `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items?$filter=fields/ServicioId eq '${servicioId}'&$expand=fields($select=*)`
-      );
-      for await (const item of iterador) {
-        items.push(item);
-      }
-      const encontrado = items[0];
-      if (encontrado?.id !== undefined) {
-        return {
-          id: String(encontrado.id),
-          ...(encontrado.fields ? { fields: encontrado.fields } : { fields: {} }),
-        };
-      }
-      return null;
-    } catch {
-      return null;
+    const item = await this.buscarItemServicio(sitio, servicioId);
+    return item ? itemARemoto(item) : null;
+  }
+
+  private async buscarItemServicio(
+    sitio: SitioResuelto,
+    servicioId: string
+  ): Promise<ItemPushGraph | null> {
+    const iterador = this.deps.graph.paginar<ItemPushGraph>(
+      `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items?$filter=fields/ServicioId eq '${escaparOdata(
+        servicioId
+      )}'&$expand=fields($select=*)&$top=1`
+    );
+    for await (const item of iterador) {
+      if (item.id !== undefined) return item;
     }
+    return null;
   }
 
   async crearServicio(campos: Record<string, unknown>): Promise<ServicioRemotoPush> {
     const sitio = await this.obtenerSitio();
     try {
-      const respuesta = await this.deps.graph.enviar<ItemGraph>({
+      const respuesta = await this.deps.graph.enviar<ItemPushGraph>({
         metodo: 'POST',
         ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items`,
         cuerpo: { fields: campos },
       });
-      return {
-        ...(respuesta.datos.id !== undefined ? { id: String(respuesta.datos.id) } : {}),
+      if (respuesta.datos.id === undefined) {
+        throw new AppError({
+          codigo: 'SP_SERVIDOR',
+          mensaje: 'SharePoint no devolvió el ítem creado.',
+          reintentable: true,
+        });
+      }
+      return itemARemoto({
+        ...respuesta.datos,
         fields: respuesta.datos.fields ?? campos,
-      };
+      });
     } catch (error) {
+      // Carrera de idempotencia: el valor único ServicioId ya existe (SDD §9.2).
       if (error instanceof AppError && error.estadoHttp === 409) {
         const servicioId = campos.ServicioId;
         if (typeof servicioId === 'string') {
-          const encontrado = await this.buscarServicioPorId(servicioId);
-          if (encontrado) return encontrado;
+          const encontrado = await this.buscarItemServicio(sitio, servicioId);
+          if (encontrado) return itemARemoto(encontrado);
         }
       }
       throw error;
@@ -235,31 +272,55 @@ export class SharePointGateway implements RemoteGateway {
     itemId: string,
     campos: Record<string, unknown>,
     etag?: string
-  ): Promise<void> {
+  ): Promise<ResultadoActualizacion> {
     const sitio = await this.obtenerSitio();
     const cabeceras: Record<string, string> = {};
     if (etag) cabeceras['If-Match'] = etag;
-    await this.deps.graph.enviar({
-      metodo: 'PATCH',
-      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items/${itemId}/fields`,
-      cuerpo: campos,
-      cabeceras,
-    });
+
+    try {
+      const respuesta = await this.deps.graph.enviar<ItemPushGraph>({
+        metodo: 'PATCH',
+        ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items/${itemId}/fields`,
+        cuerpo: campos,
+        cabeceras,
+      });
+
+      const eTagRespuesta = leerEtag(respuesta.datos);
+      if (eTagRespuesta) return { eTag: eTagRespuesta };
+
+      // El endpoint de fields no siempre devuelve el eTag del ítem (spike S3):
+      // se relee para que el siguiente PATCH no falle con un eTag viejo.
+      const actual = await this.deps.graph.enviar<ItemPushGraph>({
+        metodo: 'GET',
+        ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items/${itemId}?$select=id,eTag,webUrl,lastModifiedDateTime`,
+      });
+      const eTag = leerEtag(actual.datos);
+      return eTag ? { eTag } : {};
+    } catch (error) {
+      if (error instanceof AppError && error.estadoHttp === 412) {
+        throw new ConflictoError(undefined, { itemId, campos: Object.keys(campos) });
+      }
+      throw error;
+    }
   }
 
   async listarAdjuntosDeServicio(servicioId: string): Promise<readonly ArchivoRemoto[]> {
     const sitio = await this.obtenerSitio();
     const items: ArchivoRemoto[] = [];
-    const iterador = this.deps.graph.paginar<ItemAdjuntoGraph>(
-      `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items?$filter=fields/ServicioId eq '${servicioId}'&$expand=fields($select=*)`
+    const iterador = this.deps.graph.paginar<ItemPushGraph>(
+      `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items?$filter=fields/ServicioId eq '${escaparOdata(
+        servicioId
+      )}'&$expand=fields($select=*)`
     );
     for await (const item of iterador) {
       if (item.id === undefined) continue;
       const nombre = item.fields?.NombreArchivo ?? item.fields?.Title;
+      const eTag = leerEtag(item);
       items.push({
         id: String(item.id),
         name: typeof nombre === 'string' ? nombre : '',
-        ...(item['@odata.etag'] ? { '@odata.etag': item['@odata.etag'] } : {}),
+        ...(eTag ? { eTag } : {}),
+        ...(item.webUrl ? { webUrl: item.webUrl } : {}),
       });
     }
     return items;
@@ -269,7 +330,7 @@ export class SharePointGateway implements RemoteGateway {
     const sitio = await this.obtenerSitio();
     await this.deps.graph.enviar({
       metodo: 'DELETE',
-      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items/${itemId}`,
+      ruta: `/drives/${sitio.driveId}/items/${itemId}`,
     });
   }
 
@@ -280,8 +341,33 @@ export class SharePointGateway implements RemoteGateway {
     const sitio = await this.obtenerSitio();
     await this.deps.graph.enviar({
       metodo: 'PATCH',
-      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.ServiciosAdjuntos}/items/${itemId}/fields`,
+      ruta: `/drives/${sitio.driveId}/items/${itemId}/listItem/fields`,
       cuerpo: metadatos,
+    });
+  }
+
+  async registrarLogSync(entrada: EntradaLogSync): Promise<void> {
+    const sitio = await this.obtenerSitio();
+    await this.deps.graph.enviar({
+      metodo: 'POST',
+      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.LogSincronizacion}/items`,
+      cuerpo: {
+        fields: {
+          Title: entrada.correlationId,
+          Usuario: entrada.usuario,
+          Dispositivo: entrada.dispositivo,
+          AppVersion: entrada.appVersion,
+          Inicio: entrada.inicio,
+          Fin: entrada.fin,
+          Resultado: entrada.resultado,
+          ServiciosSubidos: entrada.serviciosSubidos,
+          ArchivosSubidos: entrada.archivosSubidos,
+          ServiciosDescargados: entrada.serviciosDescargados,
+          Conflictos: entrada.conflictos,
+          Errores: entrada.errores,
+        },
+      },
+      timeoutMs: 10_000,
     });
   }
 }

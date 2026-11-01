@@ -1,4 +1,4 @@
-import { http, HttpResponse, type HttpHandler } from 'msw';
+import { http, HttpResponse, type HttpHandler, type JsonBodyType } from 'msw';
 
 export interface ItemEmulado {
   readonly id: string;
@@ -28,7 +28,7 @@ export interface OpcionesEmulador {
 
 export interface RespuestaEmulada {
   readonly status: number;
-  readonly body: unknown;
+  readonly body: JsonBodyType;
 }
 
 const HOST_POR_DEFECTO = 'contoso.sharepoint.com';
