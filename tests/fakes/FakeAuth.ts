@@ -1,4 +1,8 @@
-import type { AuthPort, OpcionesAsegurarToken } from '@/application/ports/authPort';
+import type {
+  AuthPort,
+  OpcionesAsegurarToken,
+  OpcionesIniciarSesion,
+} from '@/application/ports/authPort';
 import type { CuentaUsuario, Rol } from '@/domain/servicio';
 
 export const CUENTA_ADMIN: CuentaUsuario = {
@@ -10,6 +14,9 @@ export const CUENTA_ADMIN: CuentaUsuario = {
 
 export class FakeAuth implements AuthPort {
   private cuenta: CuentaUsuario | null;
+  readonly llamadas: string[] = [];
+  ultimaSesion: OpcionesIniciarSesion | undefined;
+  errorAsegurarToken: unknown;
 
   constructor(cuenta: CuentaUsuario | null = CUENTA_ADMIN) {
     this.cuenta = cuenta;
@@ -31,19 +38,25 @@ export class FakeAuth implements AuthPort {
     return this.cuenta !== null;
   }
 
-  async iniciarSesion(): Promise<void> {
+  async iniciarSesion(opciones: OpcionesIniciarSesion = {}): Promise<void> {
+    this.llamadas.push('iniciarSesion');
+    this.ultimaSesion = opciones;
     this.cuenta = CUENTA_ADMIN;
   }
 
   async asegurarToken(_opciones: OpcionesAsegurarToken): Promise<string> {
+    this.llamadas.push('asegurarToken');
+    if (this.errorAsegurarToken) throw this.errorAsegurarToken;
     return 'token-fake';
   }
 
   async cambiarCuenta(): Promise<void> {
+    this.llamadas.push('cambiarCuenta');
     this.cuenta = CUENTA_ADMIN;
   }
 
   async cerrarSesion(): Promise<void> {
+    this.llamadas.push('cerrarSesion');
     this.cuenta = null;
   }
 

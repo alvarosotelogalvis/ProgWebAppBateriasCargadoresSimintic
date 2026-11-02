@@ -1,4 +1,5 @@
 export interface Clock {
-  ahoraIso(): string
-  fechaHoyIso(): string
+  ahoraIso(): string;
+  ahoraMs(): number;
+  fechaHoyIso(): string;
 }

@@ -6,6 +6,10 @@ export class SystemClock implements Clock {
     return new Date().toISOString();
   }
 
+  ahoraMs(): number {
+    return Date.now();
+  }
+
   fechaHoyIso(): string {
     return fechaLocalHoy();
   }
