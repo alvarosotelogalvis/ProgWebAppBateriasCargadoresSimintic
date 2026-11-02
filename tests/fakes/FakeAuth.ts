@@ -1,4 +1,4 @@
-import type { AuthPort } from '@/application/ports/authPort';
+import type { AuthPort, OpcionesAsegurarToken } from '@/application/ports/authPort';
 import type { CuentaUsuario, Rol } from '@/domain/servicio';
 
 export const CUENTA_ADMIN: CuentaUsuario = {
@@ -35,7 +35,7 @@ export class FakeAuth implements AuthPort {
     this.cuenta = CUENTA_ADMIN;
   }
 
-  async asegurarToken(): Promise<string> {
+  async asegurarToken(_opciones: OpcionesAsegurarToken): Promise<string> {
     return 'token-fake';
   }
 
