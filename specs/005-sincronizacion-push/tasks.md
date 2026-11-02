@@ -32,19 +32,19 @@
 
 ### Pruebas
 
-- [ ] T011 [P] [HU-005-2] Integración de uploads: simple ≤ 4 MB; sesión por fragmentos de 3 200 KiB; reanudar desde `siguienteByte` tras reinicio; sesión expirada → nueva (T-11) — `src/infrastructure/graph/uploads.int.test.ts`
-- [ ] T012 [P] [HU-005-2] Integración del push: caso feliz con log (T-09); red caída a mitad de un archivo (T-10); 409 al crear → búsqueda (T-12); 412 → resolutor y los demás continúan (T-15, parte push); edición local durante la subida no se pierde; eliminar el adjunto remoto — `src/application/sync/SyncEngine.push.int.test.ts`
-- [ ] T013 [P] [HU-005-2] Integración de errores: 429 con `Retry-After` y 8 fallos → error manual (T-13); 401 → silent → redirect pedido y 403 no reintentable (T-14); 404 de lista → abortar con CONFIGURACION — `src/application/sync/SyncEngine.errores.int.test.ts`
+- [x] T011 [P] [HU-005-2] Integración de uploads: simple ≤ 4 MB; sesión por fragmentos de 3 200 KiB; reanudar desde `siguienteByte` tras reinicio; sesión expirada → nueva (T-11) — `src/infrastructure/graph/uploads.int.test.ts`
+- [x] T012 [P] [HU-005-2] Integración del push: caso feliz con log (T-09); red caída a mitad de un archivo (T-10); 409 al crear → búsqueda (T-12); 412 → resolutor y los demás continúan (T-15, parte push); edición local durante la subida no se pierde; eliminar el adjunto remoto — `src/application/sync/SyncEngine.push.int.test.ts`
+- [x] T013 [P] [HU-005-2] Integración de errores: 429 con `Retry-After` y 8 fallos → error manual (T-13); 401 → silent → redirect pedido y 403 no reintentable (T-14); 404 de lista → abortar con CONFIGURACION — `src/application/sync/SyncEngine.errores.int.test.ts`
 
 ### Implementación
 
-- [ ] T014 [HU-005-2] Ampliar el puerto `RemoteGateway` con las operaciones de push (SDD §4.3) y su `ConflictoError` — `src/application/ports/RemoteGateway.ts`
-- [ ] T015 [HU-005-2] `uploads.ts`: subida simple y upload session reanudable que persiste el avance tras cada fragmento (sin `Authorization` en `uploadUrl`) — `src/infrastructure/graph/uploads.ts`
-- [ ] T016 [HU-005-2] `sharepointGateway`: `buscarServicioPorId`, `crearServicio` (409 → búsqueda), `actualizarServicio` con `If-Match` (o el respaldo según S3), `actualizarMetadatosArchivo`, `eliminarArchivo` — `src/infrastructure/graph/sharepointGateway.ts`
-- [ ] T017 [HU-005-2] `pushServicio`: asegurar ítem → eliminar remotos marcados → subir adjuntos (concurrencia 2) → PATCH de los campos sucios con instantánea y fusión — `src/application/sync/pushServicio.ts`
-- [ ] T018 [HU-005-2] `SyncEngine` (push): precondiciones, orden, `proximoIntentoEn`, clasificación de errores, eventos, `AbortSignal`, puntos de extensión `despuesDelPush`/`alFinalizar`, resolutor de conflictos por defecto — `src/application/sync/SyncEngine.ts`, `eventosSync.ts`
-- [ ] T019 [P] [HU-005-2] `conLockSync` con Web Locks (T-17) + prueba — `src/infrastructure/sync/webLocks.ts`, `webLocks.int.test.ts`
-- [ ] T020 [HU-005-2] Composición del engine en el contenedor — `src/app/container.ts`
+- [x] T014 [HU-005-2] Ampliar el puerto `RemoteGateway` con las operaciones de push (SDD §4.3) y su `ConflictoError` — `src/application/ports/RemoteGateway.ts`
+- [x] T015 [HU-005-2] `uploads.ts`: subida simple y upload session reanudable que persiste el avance tras cada fragmento (sin `Authorization` en `uploadUrl`) — `src/infrastructure/graph/uploads.ts`
+- [x] T016 [HU-005-2] `sharepointGateway`: `buscarServicioPorId`, `crearServicio` (409 → búsqueda), `actualizarServicio` con `If-Match` (o el respaldo según S3), `actualizarMetadatosArchivo`, `eliminarArchivo` — `src/infrastructure/graph/sharepointGateway.ts`
+- [x] T017 [HU-005-2] `pushServicio`: asegurar ítem → eliminar remotos marcados → subir adjuntos (concurrencia 2) → PATCH de los campos sucios con instantánea y fusión — `src/application/sync/pushServicio.ts`
+- [x] T018 [HU-005-2] `SyncEngine` (push): precondiciones, orden, `proximoIntentoEn`, clasificación de errores, eventos, `AbortSignal`, puntos de extensión `despuesDelPush`/`alFinalizar`, resolutor de conflictos por defecto — `src/application/sync/SyncEngine.ts`, `eventosSync.ts`
+- [x] T019 [P] [HU-005-2] `conLockSync` con Web Locks (T-17) + prueba — `src/infrastructure/sync/webLocks.ts`, `webLocks.int.test.ts`
+- [x] T020 [HU-005-2] Composición del engine en el contenedor — `src/app/container.ts`
       **Punto de control**: T011–T013 en verde; una sincronización manual desde la consola de dev contra DEV crea los ítems y archivos esperados.
 
 ## Fase 4 — HU-005-1 Confirmar identidad y sincronizar (P1)

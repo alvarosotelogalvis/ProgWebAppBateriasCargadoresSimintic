@@ -2,14 +2,18 @@ import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
 import type { AuthPort } from '@/application/ports/authPort';
 import type { CatalogoRepository } from '@/application/ports/catalogoRepository';
 import type { Logger } from '@/application/ports/loggerPort';
+import type { MapeadorServicio } from '@/application/ports/mapeadorServicio';
 import type { MetaRepository } from '@/application/ports/metaRepository';
-import type { RemoteGateway } from '@/application/ports/remoteGateway';
+import type { RemoteGatewayPush } from '@/application/ports/RemoteGatewayPush';
 import type { ServicioRepository } from '@/application/ports/servicioRepository';
 import type { StoragePort } from '@/application/ports/storagePort';
+import type { Uploader } from '@/application/ports/UploaderPort';
 import type { CasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearCasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearCasosDeUso } from '@/application/servicios/casosDeUso';
 import { CLAVES_META } from '@/application/setup/claves';
+import { eventosSync, type EventBusSync } from '@/application/sync/eventosSync';
+import { MotorSync, type SyncEngine } from '@/application/sync/SyncEngine';
 import type { ConfigApp } from '@/domain/config';
 import { CONFIG_DEFECTO } from '@/domain/config';
 import { AdjuntoRepositoryDexie } from '@/infrastructure/db/adjuntoRepository';
@@ -26,21 +30,26 @@ import { SystemClock } from '@/infrastructure/reloj/systemClock';
 import { MsalAuthAdapter } from '@/infrastructure/auth/msalAuthAdapter';
 import { obtenerMsalInstance } from '@/infrastructure/auth/msalInstance';
 import { MockAuthAdapter } from '@/infrastructure/auth/mockAuthAdapter';
-import { crearGraphClient } from '@/infrastructure/graph/graphClient';
-import { MockRemoteGateway } from '@/infrastructure/graph/mockRemoteGateway';
+import { crearGraphClient, type GraphClient } from '@/infrastructure/graph/graphClient';
+import { MockRemoteGateway, crearMockUploader } from '@/infrastructure/graph/mockRemoteGateway';
 import { SharePointGateway } from '@/infrastructure/graph/sharepointGateway';
+import { crearGraphUploader } from '@/infrastructure/graph/uploads';
+import { VALOR_TIPO_ADJUNTO } from '@/infrastructure/graph/mappers/choices';
+import { aCamposSP, deCamposSP } from '@/infrastructure/graph/mappers/servicioMapper';
+import { conLockSync } from '@/infrastructure/sync/webLocks';
 import { obtenerEnv, type Entorno } from '@/shared/env';
 import { useSesionStore } from '@/shared/stores/sesionStore';
 
 export interface DependenciasContainer {
   db?: AppDB;
   auth?: AuthPort;
-  gateway?: RemoteGateway;
+  gateway?: RemoteGatewayPush;
   logger?: Logger;
   config?: ConfigApp;
   appVersion?: string;
   storage?: StoragePort;
   env?: Entorno;
+  uploader?: Uploader;
 }
 
 export interface Container {
@@ -50,9 +59,12 @@ export interface Container {
   catalogos: CatalogoRepository;
   meta: MetaRepository;
   auth: AuthPort;
-  gateway: RemoteGateway;
+  gateway: RemoteGatewayPush;
+  uploader: Uploader;
   logger: Logger;
   storage: StoragePort;
+  eventosSync: EventBusSync;
+  sync: SyncEngine;
   config: () => ConfigApp;
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
   casosAdjuntos: CasosDeUsoAdjuntos;
@@ -74,16 +86,25 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
   const auth = deps.auth ?? crearAuth(env, meta, logger);
   const config = deps.config ?? CONFIG_DEFECTO;
   const storage = deps.storage ?? new StorageNavegador();
+  const esMock = env.VITE_AUTH_MODE === 'mock';
+  const graph = crearGraphClient({ auth, logger, ids });
   const gateway =
     deps.gateway ??
-    (env.VITE_AUTH_MODE === 'mock'
+    (esMock
       ? new MockRemoteGateway()
       : new SharePointGateway({
-          graph: crearGraphClient({ auth, logger, ids }),
+          graph,
           env,
           meta,
           logger,
         }));
+  const uploader =
+    deps.uploader ?? (esMock ? crearMockUploader() : crearUploaderGraph(gateway, graph, auth));
+  const mapeador: MapeadorServicio = {
+    aCamposSP,
+    deCamposSP,
+    valorTipoAdjunto: (tipo) => VALOR_TIPO_ADJUNTO[tipo],
+  };
 
   await auth.inicializar();
   const cuenta = auth.cuentaActiva();
@@ -92,6 +113,8 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
   useSesionStore.getState().setCuenta(cuenta);
   useSesionStore.getState().setConfiguracionInicialCompleta(configuracionCompleta);
 
+  const appVersion =
+    deps.appVersion ?? (typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0');
   const depsServicios = {
     servicios,
     adjuntos,
@@ -102,8 +125,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     logger,
     meta,
     config: () => config,
-    appVersion:
-      deps.appVersion ?? (typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0'),
+    appVersion,
   };
 
   const casosDeUso = crearCasosDeUso(depsServicios);
@@ -111,6 +133,22 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     ...depsServicios,
     imageProcessor: new ImageProcessorCanvas(),
     storage,
+  });
+
+  const sync = new MotorSync({
+    servicios,
+    adjuntos,
+    remoto: gateway,
+    uploader,
+    mapeador,
+    meta,
+    logger,
+    clock,
+    config: () => config,
+    appVersion,
+    lock: conLockSync,
+    bus: eventosSync,
+    usuario: () => auth.cuentaActiva()?.correo,
   });
 
   return {
@@ -121,13 +159,34 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     meta,
     auth,
     gateway,
+    uploader,
     logger,
     storage,
+    eventosSync,
+    sync,
     config: () => config,
     casosDeUso,
     casosAdjuntos,
   };
 };
+
+function crearUploaderGraph(
+  gateway: RemoteGatewayPush,
+  graph: GraphClient,
+  auth: AuthPort
+): Uploader {
+  let actual: Uploader | undefined;
+
+  return {
+    async subir(archivo, ruta, opciones) {
+      if (!actual) {
+        const sitio = await gateway.resolverSitio();
+        actual = crearGraphUploader({ graph, auth, driveId: sitio.driveId });
+      }
+      return actual.subir(archivo, ruta, opciones);
+    },
+  };
+}
 
 function leerEntorno(): Entorno {
   const resultado = obtenerEnv();
