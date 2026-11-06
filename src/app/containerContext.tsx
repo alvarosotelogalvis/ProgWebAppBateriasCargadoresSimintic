@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { conectarSyncStore } from '@/features/sincronizacion/store/useSyncStore';
+
 import { crearContainer, type Container } from './container';
 
 const Contexto = createContext<Container | null>(null);
@@ -29,6 +31,9 @@ export function ContainerProvider({ children }: Props): React.JSX.Element {
       vigente = false;
     };
   }, []);
+
+  // El progreso del sync se registra aunque el usuario salga de la pantalla (T027).
+  useEffect(() => (container ? conectarSyncStore(container.eventosSync) : undefined), [container]);
 
   if (error) {
     return (

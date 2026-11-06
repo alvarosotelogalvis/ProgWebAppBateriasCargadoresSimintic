@@ -1,6 +1,6 @@
 # Spec 005 — Sincronización: subida (push)
 
-- **Estado**: Aprobada
+- **Estado**: En implementación
 - **Fecha**: 2026-10-21 · **Rama**: `feature/005-sincronizacion-push`
 - **Fase**: F5 (`docs/07`) · **Depende de**: 003 (recepción y adjuntos), 004 (autenticación y configuración inicial)
 - **Fuentes**: PRD [HU-09; RF-09, RF-10, RF-16, RF-23, RF-24; RNF-01, RNF-02, RNF-11, RNF-15] · ADR [0006, 0009, 0010, 0011, 0017] · Modelo de datos [§2, §3.2, §6.3, §6.4]
