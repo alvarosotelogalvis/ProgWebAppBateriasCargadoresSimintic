@@ -17,10 +17,10 @@ export function BarraSuperior(): React.JSX.Element {
         <h1 className={styles.titulo!}>{t('navegacion:inicio')}</h1>
         <div className={styles.indicadores!}>
           <IndicadorConexion
-            etiquetaEnLinea={t('conexion:enLinea', 'En linea')}
-            etiquetaSinConexion={t('conexion:sinConexion', 'Sin conexion')}
+            etiquetaEnLinea={t('conexion:enLinea')}
+            etiquetaSinConexion={t('conexion:sinConexion')}
           />
-          <ContadorPendientes etiqueta={t('navegacion:pendientes', 'pendientes')} />
+          <ContadorPendientes etiqueta={t('conexion:pendientes')} />
         </div>
       </div>
     </header>

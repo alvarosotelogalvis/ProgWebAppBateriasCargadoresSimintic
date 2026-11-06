@@ -8,13 +8,37 @@ import { sincronizarContadorPendientes } from './sincronizarContadorPendientes';
 
 export const dbApp = new AppDB();
 
-const contarPendientes = async (db: AppDB): Promise<number> => {
+const listarPendientes = async (db: AppDB): Promise<Servicio[]> => {
   const servicios = await db.servicios
     .where('syncState')
     .anyOf('pending', 'error', 'conflict')
     .toArray();
-  return servicios.filter((servicio) => servicio.estado !== 'BORRADOR').length;
+  return servicios.filter((servicio) => servicio.estado !== 'BORRADOR');
 };
+
+const contarPendientes = async (db: AppDB): Promise<number> => (await listarPendientes(db)).length;
+
+export interface ResumenAntiguedadPendientes {
+  readonly cantidad: number;
+  /** `actualizadoEn` del pendiente más antiguo. */
+  readonly masAntiguoEn?: string;
+}
+
+export const calcularAntiguedadPendientes = async (
+  db: AppDB
+): Promise<ResumenAntiguedadPendientes> => {
+  const pendientes = await listarPendientes(db);
+  const masAntiguo = pendientes.reduce<string | undefined>(
+    (min, s) => (min === undefined || s.actualizadoEn < min ? s.actualizadoEn : min),
+    undefined
+  );
+  return { cantidad: pendientes.length, ...(masAntiguo ? { masAntiguoEn: masAntiguo } : {}) };
+};
+
+const SIN_PENDIENTES: ResumenAntiguedadPendientes = { cantidad: 0 };
+
+export const useAntiguedadPendientes = (db: AppDB = dbApp): ResumenAntiguedadPendientes =>
+  useLiveQuery(() => calcularAntiguedadPendientes(db), [db], SIN_PENDIENTES) ?? SIN_PENDIENTES;
 
 export interface ItemColaSync {
   readonly id: string;

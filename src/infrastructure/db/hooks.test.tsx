@@ -6,7 +6,7 @@ import { servicioBuilder } from '../../../tests/builders/servicioBuilder';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import { useUiStore } from '@/shared/stores/uiStore';
 import type { AppDB } from './dexie';
-import { calcularColaSync, usePendientes } from './hooks';
+import { calcularAntiguedadPendientes, calcularColaSync, usePendientes } from './hooks';
 
 let db: AppDB;
 
@@ -79,5 +79,28 @@ describe('calcularColaSync', () => {
     expect(cola.enCola.map((i) => i.id)).toEqual(['p']);
     expect(cola.conError.map((i) => i.id)).toEqual(['e']);
     expect(cola.conflictos.map((i) => i.id)).toEqual(['c']);
+  });
+});
+
+describe('calcularAntiguedadPendientes', () => {
+  it('devuelve la cantidad y la fecha del pendiente más antiguo, sin borradores', async () => {
+    expect(await calcularAntiguedadPendientes(db)).toEqual({ cantidad: 0 });
+
+    const guardar = (id: string, actualizadoEn: string, borrador = false) => {
+      const builder = servicioBuilder().conId(id);
+      return db.servicios.put({
+        ...(borrador ? builder.borrador() : builder.recibido()).construir(),
+        syncState: 'pending',
+        actualizadoEn,
+      });
+    };
+    await guardar('a', '2026-11-05T10:00:00.000Z');
+    await guardar('b', '2026-11-04T10:00:00.000Z');
+    await guardar('c', '2026-11-01T10:00:00.000Z', true);
+
+    expect(await calcularAntiguedadPendientes(db)).toEqual({
+      cantidad: 2,
+      masAntiguoEn: '2026-11-04T10:00:00.000Z',
+    });
   });
 });

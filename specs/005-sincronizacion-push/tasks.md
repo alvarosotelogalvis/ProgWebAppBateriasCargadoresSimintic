@@ -69,9 +69,9 @@
 
 ## Fase 6 — HU-005-4 Recordatorios y aviso de conexión (P2)
 
-- [ ] T030 [P] [HU-005-4] Conectar `IndicadorConexion` y `ContadorPendientes` (creados en la 001) a los datos reales de pendientes, y el badge numérico del acceso "Sincronizar" en el `QuickActionGrid` y en la `ResponsiveNav` — `src/shared/ui/`, `src/features/inicio/`
-- [ ] T031 [P] [HU-005-4] `useAvisoConexion` (evento `online` + sesión vigente + máx. 1 cada 30 min) — `src/features/sincronizacion/hooks/useAvisoConexion.ts`
-- [ ] T032 [P] [HU-005-4] `RecordatorioPendientes` en Inicio (`RecordatorioPendientesHoras`) — `src/features/inicio/components/RecordatorioPendientes.tsx`
+- [x] T030 [P] [HU-005-4] Conectar `IndicadorConexion` y `ContadorPendientes` (creados en la 001) a los datos reales de pendientes, y el badge numérico del acceso "Sincronizar" en el `QuickActionGrid` y en la `ResponsiveNav` — `src/shared/ui/`, `src/features/inicio/`
+- [x] T031 [P] [HU-005-4] `useAvisoConexion` (evento `online` + sesión vigente + máx. 1 cada 30 min) — `src/features/sincronizacion/hooks/useAvisoConexion.ts`
+- [x] T032 [P] [HU-005-4] `RecordatorioPendientes` en Inicio (`RecordatorioPendientesHoras`) — `src/features/inicio/components/RecordatorioPendientes.tsx`
 
 ## Fase 7 — HU-005-5 Versión mínima y bitácora (P2)
 

@@ -16,6 +16,19 @@ export interface ItemNav {
   readonly badge?: number;
 }
 
+function IconoConBadge({ item }: { readonly item: ItemNav }): React.JSX.Element {
+  return (
+    <span className={styles.iconoEnvuelto!}>
+      <Icon nombre={item.icono} tamano={24} />
+      {typeof item.badge === 'number' && item.badge > 0 ? (
+        <span className={styles.badge!} aria-hidden="true">
+          {item.badge}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 interface Props {
   readonly items: readonly ItemNav[];
   readonly etiquetaDe: (clave: string) => string;
@@ -46,14 +59,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
               >
                 {({ isActive }) => (
                   <>
-                    <span className={styles.iconoEnvuelto!}>
-                      <Icon nombre={item.icono} tamano={24} />
-                      {typeof item.badge === 'number' && item.badge > 0 ? (
-                        <span className={styles.badge!} aria-hidden="true">
-                          {item.badge}
-                        </span>
-                      ) : null}
-                    </span>
+                    <IconoConBadge item={item} />
                     <span className={styles.etiqueta!}>{etiquetaDe(item.etiquetaKey)}</span>
                     {isActive ? <span className={styles.soloLectores!}>Pagina actual</span> : null}
                   </>
@@ -79,7 +85,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
                   `${styles.enlaceRiel!} ${isActive ? styles.activo! : ''}`
                 }
               >
-                <Icon nombre={item.icono} tamano={24} />
+                <IconoConBadge item={item} />
                 <span className={styles.etiquetaRiel!}>{etiquetaDe(item.etiquetaKey)}</span>
               </NavLink>
             </li>
@@ -101,7 +107,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
                 `${styles.enlaceLateral!} ${isActive ? styles.activo! : ''}`
               }
             >
-              <Icon nombre={item.icono} tamano={24} />
+              <IconoConBadge item={item} />
               <span>{etiquetaDe(item.etiquetaKey)}</span>
             </NavLink>
           </li>
@@ -117,7 +123,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
                     `${styles.enlaceLateral!} ${isActive ? styles.activo! : ''}`
                   }
                 >
-                  <Icon nombre={item.icono} tamano={24} />
+                  <IconoConBadge item={item} />
                   <span>{etiquetaDe(item.etiquetaKey)}</span>
                 </NavLink>
               </li>

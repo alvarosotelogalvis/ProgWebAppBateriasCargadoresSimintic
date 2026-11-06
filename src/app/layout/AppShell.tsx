@@ -5,6 +5,8 @@ import { GradientBackground } from '@/shared/ui/GradientBackground';
 import { ResponsiveNav, type ItemNav } from '@/shared/ui/ResponsiveNav';
 import { Toast } from '@/shared/ui/Toast';
 import { AvisoActualizacion } from '@/features/actualizacion/AvisoActualizacion';
+import { AvisoConexion } from '@/features/sincronizacion/components/AvisoConexion';
+import { usePendientes } from '@/infrastructure/db/hooks';
 
 import { BarraSuperior } from '@/app/layout/BarraSuperior';
 import { BotonNuevo } from '@/app/layout/BotonNuevo';
@@ -60,6 +62,11 @@ const ITEMS_NAV: readonly ItemNav[] = [
 
 export function AppShell(): React.JSX.Element {
   const { t } = useTranslation(['navegacion', 'comun']);
+  // Mantiene el contador global de pendientes al día en toda la app (T030, ES-005-23).
+  const pendientes = usePendientes();
+  const items = ITEMS_NAV.map((item) =>
+    item.id === 'sincronizar' ? { ...item, badge: pendientes } : item
+  );
 
   return (
     <GradientBackground variante="suave">
@@ -67,11 +74,12 @@ export function AppShell(): React.JSX.Element {
         <BarraSuperior />
         <div className={styles.cuerpo!}>
           <ResponsiveNav
-            items={ITEMS_NAV}
+            items={items}
             etiquetaDe={(clave) => t(clave.startsWith('navegacion:') ? clave.slice(11) : clave)}
           />
           <main className={styles.contenido!} id="contenido-principal">
             <AvisoActualizacion />
+            <AvisoConexion />
             <Outlet />
           </main>
         </div>

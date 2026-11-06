@@ -95,5 +95,11 @@
     "conflictos": "En conflicto",
     "ocupado": "Ya hay una sincronización en curso en otra ventana de la app. Espera a que termine.",
     "cerrar": "CERRAR"
+  },
+  "avisoConexion": {
+    "mensaje_one": "Tienes {{count}} pendiente. ¿Sincronizar ahora?",
+    "mensaje_other": "Tienes {{count}} pendientes. ¿Sincronizar ahora?",
+    "sincronizar": "SINCRONIZAR AHORA",
+    "ahoraNo": "Ahora no"
   }
 }

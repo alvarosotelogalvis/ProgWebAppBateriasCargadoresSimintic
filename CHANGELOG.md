@@ -13,9 +13,14 @@ adopta [SemVer](https://semver.org/lang/es/).
   % sincronizado y segmentos En cola · Con error · Conflictos, mensajes de error por código,
   acción "Reintentar" (reinicia los intentos) y resumen al terminar o si otra ventana ya sincroniza.
 - Componentes del sistema de diseño: `BarList`, `DonutProgress` y `Chip`.
+- Recordatorios de sincronización: contador de pendientes siempre al día en la barra superior,
+  badge en "Sincronizar" (navegación e Inicio), aviso "¿Sincronizar ahora?" al volver la conexión
+  (máx. 1 cada 30 min, nunca sincroniza solo) y recordatorio en Inicio de pendientes antiguos.
 
 ### Corregido
 
+- Modo demo (`VITE_AUTH_MODE=mock`): "Confirmar" no sincronizaba porque la cuenta simulada no
+  registraba la hora del login.
 - Plurales de i18n en `sync.json` (formato `_one`/`_other` de i18next 23).
 - Tokens CSS inexistentes (`--text-title`, `--peso-medium`) en la pantalla de sincronización.
 
