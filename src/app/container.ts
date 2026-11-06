@@ -22,6 +22,7 @@ import {
   calcularResumenPendientes,
   type ResumenPendientes,
 } from '@/application/sync/resumenPendientes';
+import { sesionSyncVigente } from '@/application/sync/avisosSync';
 import { reintentarServicio } from '@/application/sync/reintentarServicio';
 import { MotorSync, type SyncEngine } from '@/application/sync/SyncEngine';
 import type { ConfigApp } from '@/domain/config';
@@ -80,6 +81,7 @@ export interface Container {
   confirmarIdentidad: ConfirmarIdentidad;
   resumenPendientes: () => Promise<ResumenPendientes>;
   reintentarServicio: (servicioId: string) => Promise<boolean>;
+  sesionSyncVigente: () => Promise<boolean>;
   config: () => ConfigApp;
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
   casosAdjuntos: CasosDeUsoAdjuntos;
@@ -194,6 +196,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     confirmarIdentidad,
     resumenPendientes: () => calcularResumenPendientes({ servicios, adjuntos }),
     reintentarServicio: (servicioId) => reintentarServicio(servicios, servicioId),
+    sesionSyncVigente: () => sesionSyncVigente({ auth, meta, clock, config: () => config }),
     config: () => config,
     casosDeUso,
     casosAdjuntos,
