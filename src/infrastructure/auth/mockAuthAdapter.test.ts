@@ -33,7 +33,11 @@ describe('MockAuthAdapter', () => {
     const confirmar = crearConfirmarIdentidad({
       auth,
       meta: metaVacia,
-      clock: { ahoraMs: () => Date.now(), ahoraIso: () => new Date().toISOString() },
+      clock: {
+        ahoraMs: () => Date.now(),
+        ahoraIso: () => new Date().toISOString(),
+        fechaHoyIso: () => new Date().toISOString().slice(0, 10),
+      },
       config: () => CONFIG_DEFECTO,
       intencion,
     });
