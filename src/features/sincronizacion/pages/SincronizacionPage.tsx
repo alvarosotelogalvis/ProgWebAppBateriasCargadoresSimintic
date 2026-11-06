@@ -4,12 +4,16 @@ import { useSearchParams } from 'react-router-dom';
 
 import { useContainer } from '@/app/containerContext';
 import type { ResumenPendientes } from '@/application/sync/resumenPendientes';
+import { esVersionMinimaSuficiente } from '@/domain/sync/version';
 import { useColaSync } from '@/infrastructure/db/hooks';
+import { buscarActualizacion } from '@/infrastructure/pwa/registerSW';
+import { AppError } from '@/shared/errors';
 import { useBreakpoint } from '@/shared/hooks/useBreakpoint';
 import { useOnline } from '@/shared/hooks/useOnline';
 import { useSesionStore } from '@/shared/stores/sesionStore';
 import { Banner } from '@/shared/ui/Banner';
 import { Card } from '@/shared/ui/Card';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 
 import { ConfirmacionCuenta } from '../components/ConfirmacionCuenta';
 import { ProgresoSync } from '../components/ProgresoSync';
@@ -27,7 +31,7 @@ function nuevoCorrelationId(): string {
 }
 
 export function SincronizacionPage(): React.JSX.Element {
-  const { t } = useTranslation('sync');
+  const { t } = useTranslation(['sync', 'errores']);
   const container = useContainer();
   const enLinea = useOnline();
   const breakpoint = useBreakpoint();
@@ -37,6 +41,14 @@ export function SincronizacionPage(): React.JSX.Element {
   const [sincronizando, setSincronizando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cancelando, setCancelando] = useState(false);
+  const configuracionCompleta = useSesionStore((estado) => estado.configuracionInicialCompleta);
+  // Sin configuración inicial, la versión mínima es solo el valor por defecto: no se bloquea aún.
+  const [versionObsoleta, setVersionObsoleta] = useState(
+    () =>
+      configuracionCompleta &&
+      !esVersionMinimaSuficiente(container.appVersion, container.config().versionMinimaApp)
+  );
+  const [busqueda, setBusqueda] = useState<'inactiva' | 'buscando' | 'hecha'>('inactiva');
   const enCurso = useRef(false);
   const controlador = useRef<AbortController | null>(null);
   const cola = useColaSync();
@@ -63,7 +75,7 @@ export function SincronizacionPage(): React.JSX.Element {
   }, [recargarResumen]);
 
   const confirmar = useCallback(async () => {
-    if (!enLinea || enCurso.current) return;
+    if (!enLinea || enCurso.current || versionObsoleta) return;
 
     enCurso.current = true;
     setSincronizando(true);
@@ -95,8 +107,14 @@ export function SincronizacionPage(): React.JSX.Element {
       // El bus ya lo registra; se aplica también aquí por si no está conectado.
       useSyncStore.getState().aplicar({ tipo: 'fin', resumen: final });
       await recargarResumen();
-    } catch {
-      setError(t('errores.desconocido'));
+    } catch (causa) {
+      if (causa instanceof AppError && causa.codigo === 'VERSION_OBSOLETA') {
+        setVersionObsoleta(true);
+      } else if (causa instanceof AppError) {
+        setError(t(`errores:codigo.${causa.codigo}`, { defaultValue: t('errores.desconocido') }));
+      } else {
+        setError(t('errores.desconocido'));
+      }
     } finally {
       if (useSyncStore.getState().sincronizando) useSyncStore.setState({ sincronizando: false });
       controlador.current = null;
@@ -104,7 +122,16 @@ export function SincronizacionPage(): React.JSX.Element {
       setCancelando(false);
       setSincronizando(false);
     }
-  }, [container, enLinea, recargarResumen, resumen, t]);
+  }, [container, enLinea, recargarResumen, resumen, t, versionObsoleta]);
+
+  const buscar = useCallback(async () => {
+    setBusqueda('buscando');
+    try {
+      await buscarActualizacion();
+    } finally {
+      setBusqueda('hecha');
+    }
+  }, []);
 
   const cancelar = useCallback(() => {
     if (!controlador.current) return;
@@ -142,6 +169,21 @@ export function SincronizacionPage(): React.JSX.Element {
 
       {error ? <Banner tipo="peligro">{error}</Banner> : null}
 
+      {versionObsoleta ? (
+        <Banner
+          tipo="advertencia"
+          accion={
+            <PrimaryButton isDisabled={busqueda === 'buscando'} onPress={() => void buscar()}>
+              {busqueda === 'buscando'
+                ? t('versionObsoleta.buscando')
+                : t('versionObsoleta.buscar')}
+            </PrimaryButton>
+          }
+        >
+          {busqueda === 'hecha' ? t('versionObsoleta.buscada') : t('versionObsoleta.mensaje')}
+        </Banner>
+      ) : null}
+
       <div className={styles.contenido!}>
         <div className={styles.progreso!}>
           <ConfirmacionCuenta
@@ -149,6 +191,7 @@ export function SincronizacionPage(): React.JSX.Element {
             resumen={resumen}
             enLinea={enLinea}
             sincronizando={sincronizando}
+            bloqueado={versionObsoleta}
             onConfirmar={() => void confirmar()}
             onOtraCuenta={usarOtraCuenta}
           />

@@ -6,7 +6,10 @@ import '@/shared/i18n';
 
 import * as containerContext from '@/app/containerContext';
 import type { ResumenPendientes } from '@/application/sync/resumenPendientes';
+import { CONFIG_DEFECTO } from '@/domain/config';
 import type { CuentaUsuario } from '@/domain/servicio';
+import { buscarActualizacion } from '@/infrastructure/pwa/registerSW';
+import { AppError } from '@/shared/errors';
 import { useBreakpoint } from '@/shared/hooks/useBreakpoint';
 import { useOnline } from '@/shared/hooks/useOnline';
 import { useSesionStore } from '@/shared/stores/sesionStore';
@@ -35,6 +38,9 @@ const COLA: ColaSync = {
   conflictos: [],
 };
 
+vi.mock('@/infrastructure/pwa/registerSW', () => ({
+  buscarActualizacion: vi.fn(async () => undefined),
+}));
 vi.mock('@/infrastructure/db/hooks', () => ({ useColaSync: vi.fn(() => COLA) }));
 
 vi.mock('@/app/containerContext', () => ({ useContainer: vi.fn() }));
@@ -74,6 +80,7 @@ const RESUMEN_OK: ResumenSync = {
 function crearContenedor(
   opciones: {
     resumen?: ResumenPendientes;
+    versionMinimaApp?: string;
     sincronizar?: (o: { signal: AbortSignal }) => Promise<ResumenSync>;
   } = {}
 ) {
@@ -86,6 +93,8 @@ function crearContenedor(
     resumenPendientes: vi.fn(async () => opciones.resumen ?? RESUMEN),
     confirmarIdentidad,
     reintentarServicio,
+    appVersion: '0.1.0',
+    config: () => ({ ...CONFIG_DEFECTO, versionMinimaApp: opciones.versionMinimaApp ?? '0.1.0' }),
     sync: { sincronizar, on: vi.fn(() => () => undefined) },
     eventosSync: { suscribir: vi.fn(() => () => undefined) },
   };
@@ -240,5 +249,39 @@ describe('SincronizacionPage', () => {
 
     await waitFor(() => expect(reintentarServicio).toHaveBeenCalledWith('e1'));
     await waitFor(() => expect(contenedor.resumenPendientes).toHaveBeenCalledTimes(2));
+  });
+
+  it('bloquea la sincronización si la versión es menor que la mínima (ES-005-24)', async () => {
+    const { sincronizar } = crearContenedor({ versionMinimaApp: '0.2.0' });
+    renderPagina();
+
+    expect(await screen.findByText(/Actualiza la app para sincronizar/)).toBeInTheDocument();
+    const confirmar = screen.getByRole('button', { name: /Confirmar como ana@empresa.com/i });
+    expect(confirmar).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'BUSCAR ACTUALIZACIÓN' }));
+    await waitFor(() => expect(buscarActualizacion).toHaveBeenCalled());
+    expect(
+      await screen.findByText('Si hay una versión nueva, aparecerá el aviso para actualizar.')
+    ).toBeInTheDocument();
+    expect(sincronizar).not.toHaveBeenCalled();
+  });
+
+  it('muestra el bloqueo si el motor detecta la versión obsoleta al refrescar la configuración', async () => {
+    crearContenedor({
+      sincronizar: async () => {
+        throw new AppError({
+          codigo: 'VERSION_OBSOLETA',
+          mensaje: 'Actualiza la app para sincronizar.',
+          reintentable: false,
+        });
+      },
+    });
+    renderPagina();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Confirmar como ana@empresa.com/i }));
+
+    expect(await screen.findByText(/Actualiza la app para sincronizar/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Confirmar como ana@empresa.com/i })).toBeDisabled();
   });
 });

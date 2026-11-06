@@ -1,3 +1,3 @@
 export interface IdGenerator {
-  siguiente(): string
+  siguiente(): string;
 }

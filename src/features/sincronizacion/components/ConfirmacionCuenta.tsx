@@ -17,6 +17,8 @@ interface Props {
   readonly resumen: ResumenPendientes | null;
   readonly enLinea: boolean;
   readonly sincronizando: boolean;
+  /** Bloquea la confirmación (p. ej. versión obsoleta, ES-005-24). */
+  readonly bloqueado?: boolean;
   readonly onConfirmar: () => void;
   readonly onOtraCuenta: () => void;
 }
@@ -34,12 +36,14 @@ export function ConfirmacionCuenta({
   resumen,
   enLinea,
   sincronizando,
+  bloqueado = false,
   onConfirmar,
   onOtraCuenta,
 }: Props): React.JSX.Element {
   const { t } = useTranslation('sync');
   const hayPendientes = resumen ? resumen.servicios > 0 || resumen.archivos > 0 : true;
-  const deshabilitado = !enLinea || sincronizando || (resumen !== null && !hayPendientes);
+  const deshabilitado =
+    bloqueado || !enLinea || sincronizando || (resumen !== null && !hayPendientes);
 
   return (
     <Card fill className={styles.tarjeta!}>

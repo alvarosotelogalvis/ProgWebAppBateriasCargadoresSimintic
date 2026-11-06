@@ -75,8 +75,8 @@
 
 ## Fase 7 — HU-005-5 Versión mínima y bitácora (P2)
 
-- [ ] T033 [HU-005-5] Bloqueo por `VersionMinimaApp` en la pantalla y en las precondiciones del engine, con el botón "Buscar actualización" (`registration.update()`) — `src/features/sincronizacion/pages/SincronizacionPage.tsx`
-- [ ] T034 [HU-005-5] `registrarLogSync` best-effort (Modelo §6.4, errores truncados) — `src/infrastructure/graph/sharepointGateway.ts`
+- [x] T033 [HU-005-5] Bloqueo por `VersionMinimaApp` en la pantalla y en las precondiciones del engine, con el botón "Buscar actualización" (`registration.update()`) — `src/features/sincronizacion/pages/SincronizacionPage.tsx`
+- [x] T034 [HU-005-5] `registrarLogSync` best-effort (Modelo §6.4, errores truncados) — `src/infrastructure/graph/sharepointGateway.ts`
 
 ## Fase 8 — Cierre
 

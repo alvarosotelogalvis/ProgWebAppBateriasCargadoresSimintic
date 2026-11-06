@@ -17,8 +17,16 @@ adopta [SemVer](https://semver.org/lang/es/).
   badge en "Sincronizar" (navegación e Inicio), aviso "¿Sincronizar ahora?" al volver la conexión
   (máx. 1 cada 30 min, nunca sincroniza solo) y recordatorio en Inicio de pendientes antiguos.
 
+- Bloqueo de la sincronización por `VersionMinimaApp` con el botón "Buscar actualización"; la
+  configuración remota se vuelve a leer antes de cada sincronización (si falla, se usa la copia
+  local).
+
 ### Corregido
 
+- La app ignoraba la configuración descargada de SharePoint (`ConfiguracionApp`) y usaba siempre
+  los valores por defecto, lo que bloqueaba la sincronización por versión mínima.
+- Bitácora de sincronización: `Inicio` registraba la hora de fin y `Errores` podía quedar como JSON
+  inválido al recortarse a 4000 caracteres.
 - Modo demo (`VITE_AUTH_MODE=mock`): "Confirmar" no sincronizaba porque la cuenta simulada no
   registraba la hora del login.
 - Plurales de i18n en `sync.json` (formato `_one`/`_other` de i18next 23).

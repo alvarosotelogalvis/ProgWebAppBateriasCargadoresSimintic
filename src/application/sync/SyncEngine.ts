@@ -15,6 +15,7 @@ import {
   puedeReintentarAutomaticamente,
   proximoIntento,
 } from '@/domain/sync/backoff';
+import { resumirErroresLog, type ErrorBitacora } from '@/domain/sync/bitacora';
 import { clasificarError, type ClaseError } from '@/domain/sync/errores';
 import { esVersionMinimaSuficiente } from '@/domain/sync/version';
 import { AppError } from '@/shared/errors';
@@ -41,6 +42,8 @@ export interface DepsSyncEngine {
   readonly config: () => ConfigApp;
   readonly appVersion: string;
   readonly lock: LockSync;
+  /** Relee `ConfiguracionApp` antes de comprobar la versión mínima (SDD §9.2). Best-effort. */
+  readonly refrescarConfig?: () => Promise<void>;
   readonly resolutorConflictos?: ResolutorConflictos;
   readonly bus?: EventBusSync;
   readonly usuario?: () => string | undefined;
@@ -179,6 +182,15 @@ export class MotorSync implements SyncEngine {
       });
     }
 
+    if (this.deps.refrescarConfig) {
+      try {
+        await this.deps.refrescarConfig();
+      } catch (error) {
+        // Si no se puede leer la configuración remota se sigue con la copia en caché.
+        this.deps.logger.warn('sync.config.refresco.fallo', { mensaje: mensajeDe(error) });
+      }
+    }
+
     const config = this.deps.config();
     if (!esVersionMinimaSuficiente(this.deps.appVersion, config.versionMinimaApp)) {
       throw new AppError({
@@ -193,12 +205,13 @@ export class MotorSync implements SyncEngine {
 
   private async ejecutar(correlationId: string, signal: AbortSignal): Promise<ResumenSync> {
     const ahora = this.deps.clock.ahoraIso();
+    const inicio = ahora;
     const pendientes = await this.listarParaProcesar(ahora);
 
     this.bus.emitir({ tipo: 'inicio', correlationId, total: pendientes.length });
 
     const acumulado = { subidos: 0, archivos: 0, errores: 0, conflictos: 0 };
-    const erroresResumen: Array<{ servicioId: string; codigo: string; mensaje: string }> = [];
+    const erroresResumen: ErrorBitacora[] = [];
     let abortado = false;
 
     for (const referencia of pendientes) {
@@ -310,7 +323,7 @@ export class MotorSync implements SyncEngine {
     const resumen = this.resumir(acumulado, abortado);
     await this.actualizarMeta(correlationId);
     await this.ejecutarExtension(this.deps.despuesDelPush, { correlationId, resumen });
-    await this.registrarLog(correlationId, resumen, erroresResumen);
+    await this.registrarLog(correlationId, inicio, resumen, erroresResumen);
     await this.ejecutarExtension(this.deps.alFinalizar, { correlationId, resumen });
 
     this.bus.emitir({ tipo: 'fin', resumen });
@@ -458,8 +471,9 @@ export class MotorSync implements SyncEngine {
 
   private async registrarLog(
     correlationId: string,
+    inicio: string,
     resumen: ResumenSync,
-    errores: ReadonlyArray<{ servicioId: string; codigo: string; mensaje: string }>
+    errores: readonly ErrorBitacora[]
   ): Promise<void> {
     const registrar = this.deps.remoto.registrarLogSync;
     if (!registrar) return;
@@ -476,14 +490,14 @@ export class MotorSync implements SyncEngine {
       usuario: this.deps.usuario?.() ?? '',
       dispositivo,
       appVersion: this.deps.appVersion,
-      inicio: this.deps.clock.ahoraIso(),
+      inicio,
       fin: this.deps.clock.ahoraIso(),
       resultado: resumen.resultado,
       serviciosSubidos: resumen.subidos,
       archivosSubidos: resumen.archivos,
       serviciosDescargados: 0,
       conflictos: resumen.conflictos,
-      errores: JSON.stringify(errores).slice(0, 4000),
+      errores: resumirErroresLog(errores),
     };
 
     try {

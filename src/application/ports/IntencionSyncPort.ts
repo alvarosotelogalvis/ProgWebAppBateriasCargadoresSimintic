@@ -1,5 +1,9 @@
 ﻿export interface IntencionSync {
-  readonly cuenta: { readonly username: string; readonly nombre?: string; readonly homeAccountId?: string };
+  readonly cuenta: {
+    readonly username: string;
+    readonly nombre?: string;
+    readonly homeAccountId?: string;
+  };
   readonly timestamp: number;
   readonly returnUrl?: string;
 }

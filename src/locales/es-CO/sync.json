@@ -101,5 +101,11 @@
     "mensaje_other": "Tienes {{count}} pendientes. ¿Sincronizar ahora?",
     "sincronizar": "SINCRONIZAR AHORA",
     "ahoraNo": "Ahora no"
+  },
+  "versionObsoleta": {
+    "mensaje": "Actualiza la app para sincronizar. Tus datos siguen guardados en este dispositivo y puedes seguir registrando servicios.",
+    "buscar": "BUSCAR ACTUALIZACIÓN",
+    "buscando": "Buscando…",
+    "buscada": "Si hay una versión nueva, aparecerá el aviso para actualizar."
   }
 }
