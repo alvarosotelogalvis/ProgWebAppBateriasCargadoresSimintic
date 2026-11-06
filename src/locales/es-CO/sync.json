@@ -1,4 +1,4 @@
-﻿{
+{
   "titulo": "Sincronizar",
   "tituloPagina": "Sincronización",
   "confirmarCuenta": {
@@ -13,8 +13,8 @@
     "confirmando": "Sincronizando…",
     "usarOtraCuenta": "USAR OTRA CUENTA",
     "subiran": "Se subirán",
-    "archivos": "{{count}} archivo",
-    "archivos_plural": "{{count}} archivos",
+    "archivos_one": "{{count}} archivo",
+    "archivos_other": "{{count}} archivos",
     "sinArchivos": "Sin archivos"
   },
   "resumen": {
@@ -45,5 +45,55 @@
     "tenantInvalido": "La cuenta pertenece a otra organización",
     "sinRol": "La cuenta no tiene un rol habilitado para sincronizar"
   },
-  "sinConexion": "Sin conexión. Tus datos están seguros en este dispositivo"
+  "sinConexion": "Sin conexión. Tus datos están seguros en este dispositivo",
+  "progreso": {
+    "titulo": "Progreso",
+    "etiquetaLista": "Avance por servicio y archivo",
+    "archivoDe": "Archivo {{actual}} de {{total}}",
+    "cancelar": "CANCELAR",
+    "cancelando": "Cancelando…",
+    "estado": {
+      "enCola": "En cola",
+      "subiendo": "Subiendo",
+      "listo": "Listo",
+      "error": "Con error",
+      "conflicto": "Conflicto"
+    }
+  },
+  "cola": {
+    "titulo": "Estado de la sincronización",
+    "donut": "Sincronizado",
+    "donutEnCurso": "Avance de la sincronización",
+    "sincronizados": "{{sincronizados}} de {{total}} registros sincronizados",
+    "segmentos": {
+      "etiqueta": "Filtrar la cola",
+      "enCola": "En cola",
+      "conError": "Con error",
+      "conflictos": "Conflictos"
+    },
+    "vacio": {
+      "enCola": "No hay registros en cola",
+      "conError": "No hay registros con error",
+      "conflictos": "No hay conflictos"
+    },
+    "reintentar": "REINTENTAR",
+    "reintentarServicio": "Reintentar {{codigo}}",
+    "intentos_one": "{{count}} intento",
+    "intentos_other": "{{count}} intentos",
+    "conflictoDetalle": "Se resolverá al descargar los cambios de SharePoint"
+  },
+  "resumenFinal": {
+    "titulo": "Resumen de la sincronización",
+    "resultado": {
+      "OK": "Sincronización completa",
+      "Parcial": "Sincronización parcial",
+      "Error": "No se pudo sincronizar"
+    },
+    "subidos": "Registros subidos",
+    "archivos": "Archivos subidos",
+    "errores": "Con error",
+    "conflictos": "En conflicto",
+    "ocupado": "Ya hay una sincronización en curso en otra ventana de la app. Espera a que termine.",
+    "cerrar": "CERRAR"
+  }
 }
