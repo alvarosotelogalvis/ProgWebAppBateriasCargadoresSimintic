@@ -4,9 +4,9 @@
 
 .titulo {
   margin: 0;
-  color: var(--text-title);
+  color: var(--text-primary);
   font-size: var(--texto-lg);
-  font-weight: var(--peso-medium);
+  font-weight: var(--peso-medio);
   text-align: center;
 }
 
