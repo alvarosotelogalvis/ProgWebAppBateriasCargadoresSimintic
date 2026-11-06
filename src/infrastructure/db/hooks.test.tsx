@@ -6,7 +6,7 @@ import { servicioBuilder } from '../../../tests/builders/servicioBuilder';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import { useUiStore } from '@/shared/stores/uiStore';
 import type { AppDB } from './dexie';
-import { usePendientes } from './hooks';
+import { calcularColaSync, usePendientes } from './hooks';
 
 let db: AppDB;
 
@@ -53,5 +53,31 @@ describe('usePendientes', () => {
 
     await waitFor(() => expect(result.current).toBe(0));
     expect(useUiStore.getState().pendientes).toBe(0);
+  });
+});
+
+describe('calcularColaSync', () => {
+  it('agrupa por estado de sync, excluye borradores y cuenta los sincronizados', async () => {
+    const guardar = (id: string, syncState: 'pending' | 'error' | 'conflict' | 'synced') =>
+      db.servicios.put({
+        ...servicioBuilder().conId(id).recibido().construir(),
+        syncState,
+      });
+    await guardar('p', 'pending');
+    await guardar('e', 'error');
+    await guardar('c', 'conflict');
+    await guardar('s', 'synced');
+    await db.servicios.put({
+      ...servicioBuilder().conId('b').borrador().construir(),
+      syncState: 'pending',
+    });
+
+    const cola = await calcularColaSync(db);
+
+    expect(cola.total).toBe(4);
+    expect(cola.sincronizados).toBe(1);
+    expect(cola.enCola.map((i) => i.id)).toEqual(['p']);
+    expect(cola.conError.map((i) => i.id)).toEqual(['e']);
+    expect(cola.conflictos.map((i) => i.id)).toEqual(['c']);
   });
 });

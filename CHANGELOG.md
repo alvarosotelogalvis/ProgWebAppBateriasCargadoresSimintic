@@ -9,6 +9,16 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Sincronización (spec 005): progreso por servicio y archivo con cancelación ordenada, cola con
+  % sincronizado y segmentos En cola · Con error · Conflictos, mensajes de error por código,
+  acción "Reintentar" (reinicia los intentos) y resumen al terminar o si otra ventana ya sincroniza.
+- Componentes del sistema de diseño: `BarList`, `DonutProgress` y `Chip`.
+
+### Corregido
+
+- Plurales de i18n en `sync.json` (formato `_one`/`_other` de i18next 23).
+- Tokens CSS inexistentes (`--text-title`, `--peso-medium`) en la pantalla de sincronización.
+
 - Recepción offline (spec 003): formulario con autoguardado, validación y catálogos de cliente/marca,
   detección de serie duplicada, lista filtrable y pantalla de detalle.
 - Adjuntos de ingreso: puertos `ImageProcessor` y `StoragePort`, procesamiento de imágenes en

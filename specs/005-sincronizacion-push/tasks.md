@@ -63,9 +63,9 @@
 
 ## Fase 5 — HU-005-3 Progreso, errores y reintentos (P1)
 
-- [ ] T027 [HU-005-3] `useSyncStore` (Zustand) suscrito a los eventos del engine — `src/features/sincronizacion/store/useSyncStore.ts`
-- [ ] T028 [P] [HU-005-3] `ProgresoSync` (`BarList` por servicio y archivo), `SecondaryButton` "CANCELAR" — `src/features/sincronizacion/components/ProgresoSync.tsx`
-- [ ] T029 [P] [HU-005-3] `ResumenCola` según la referencia 07 (`DonutProgress` + `SegmentedControl` En cola · Con error · Conflictos + `ListRow` con el punto de sync), `ListaErrores` (mensaje por código + "REINTENTAR" → `intentos=0`) y `ResumenSyncDialog` (`ResponsiveDialog`) — `src/features/sincronizacion/components/`
+- [x] T027 [HU-005-3] `useSyncStore` (Zustand) suscrito a los eventos del engine — `src/features/sincronizacion/store/useSyncStore.ts`
+- [x] T028 [P] [HU-005-3] `ProgresoSync` (`BarList` por servicio y archivo), `SecondaryButton` "CANCELAR" — `src/features/sincronizacion/components/ProgresoSync.tsx`
+- [x] T029 [P] [HU-005-3] `ResumenCola` según la referencia 07 (`DonutProgress` + `SegmentedControl` En cola · Con error · Conflictos + `ListRow` con el punto de sync), `ListaErrores` (mensaje por código + "REINTENTAR" → `intentos=0`) y `ResumenSyncDialog` (`ResponsiveDialog`) — `src/features/sincronizacion/components/`
 
 ## Fase 6 — HU-005-4 Recordatorios y aviso de conexión (P2)
 

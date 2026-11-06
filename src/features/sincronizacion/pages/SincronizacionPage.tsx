@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { useContainer } from '@/app/containerContext';
 import type { ResumenPendientes } from '@/application/sync/resumenPendientes';
+import { useColaSync } from '@/infrastructure/db/hooks';
 import { useBreakpoint } from '@/shared/hooks/useBreakpoint';
 import { useOnline } from '@/shared/hooks/useOnline';
 import { useSesionStore } from '@/shared/stores/sesionStore';
@@ -11,6 +12,10 @@ import { Banner } from '@/shared/ui/Banner';
 import { Card } from '@/shared/ui/Card';
 
 import { ConfirmacionCuenta } from '../components/ConfirmacionCuenta';
+import { ProgresoSync } from '../components/ProgresoSync';
+import { ResumenCola } from '../components/ResumenCola';
+import { ResumenSyncDialog } from '../components/ResumenSyncDialog';
+import { porcentajeEjecucion, useSyncStore } from '../store/useSyncStore';
 
 import styles from './SincronizacionPage.module.css';
 
@@ -31,23 +36,31 @@ export function SincronizacionPage(): React.JSX.Element {
   const [resumen, setResumen] = useState<ResumenPendientes | null>(null);
   const [sincronizando, setSincronizando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cancelando, setCancelando] = useState(false);
   const enCurso = useRef(false);
+  const controlador = useRef<AbortController | null>(null);
+  const cola = useColaSync();
+  const filas = useSyncStore((estado) => estado.filas);
+  const total = useSyncStore((estado) => estado.total);
+  const resumenFinal = useSyncStore((estado) => estado.resumen);
+  const limpiarResumen = useSyncStore((estado) => estado.limpiarResumen);
   const reanudado = useRef(false);
   const reanudar = searchParams.get('reanudar') === '1';
   const expandido = breakpoint === 'expandido' || breakpoint === 'amplio';
 
-  useEffect(() => {
-    let vigente = true;
-    void container
-      .resumenPendientes()
-      .then((nuevo) => {
-        if (vigente) setResumen(nuevo);
-      })
-      .catch(() => undefined);
-    return () => {
-      vigente = false;
-    };
+  const recargarResumen = useCallback(async (): Promise<ResumenPendientes | null> => {
+    try {
+      const nuevo = await container.resumenPendientes();
+      setResumen(nuevo);
+      return nuevo;
+    } catch {
+      return null;
+    }
   }, [container]);
+
+  useEffect(() => {
+    void recargarResumen();
+  }, [recargarResumen]);
 
   const confirmar = useCallback(async () => {
     if (!enLinea || enCurso.current) return;
@@ -65,16 +78,47 @@ export function SincronizacionPage(): React.JSX.Element {
         return;
       }
 
-      const controlador = new AbortController();
-      await container.sync.sincronizar({ correlationId, signal: controlador.signal });
-      setResumen(await container.resumenPendientes());
+      const pendientes = (await recargarResumen()) ?? resumen;
+      useSyncStore.getState().preparar(
+        (pendientes?.porServicio ?? []).map(({ servicioId, codigo, archivos }) => ({
+          servicioId,
+          codigo,
+          archivos,
+        }))
+      );
+
+      controlador.current = new AbortController();
+      const final = await container.sync.sincronizar({
+        correlationId,
+        signal: controlador.current.signal,
+      });
+      // El bus ya lo registra; se aplica también aquí por si no está conectado.
+      useSyncStore.getState().aplicar({ tipo: 'fin', resumen: final });
+      await recargarResumen();
     } catch {
       setError(t('errores.desconocido'));
     } finally {
+      if (useSyncStore.getState().sincronizando) useSyncStore.setState({ sincronizando: false });
+      controlador.current = null;
       enCurso.current = false;
+      setCancelando(false);
       setSincronizando(false);
     }
-  }, [container, enLinea, t]);
+  }, [container, enLinea, recargarResumen, resumen, t]);
+
+  const cancelar = useCallback(() => {
+    if (!controlador.current) return;
+    setCancelando(true);
+    controlador.current.abort();
+  }, []);
+
+  const reintentar = useCallback(
+    async (servicioId: string) => {
+      await container.reintentarServicio(servicioId);
+      await recargarResumen();
+    },
+    [container, recargarResumen]
+  );
 
   const usarOtraCuenta = useCallback(() => {
     setError(null);
@@ -99,25 +143,37 @@ export function SincronizacionPage(): React.JSX.Element {
       {error ? <Banner tipo="peligro">{error}</Banner> : null}
 
       <div className={styles.contenido!}>
-        <ConfirmacionCuenta
-          cuenta={cuenta}
-          resumen={resumen}
-          enLinea={enLinea}
-          sincronizando={sincronizando}
-          onConfirmar={() => void confirmar()}
-          onOtraCuenta={usarOtraCuenta}
-        />
-
         <div className={styles.progreso!}>
+          <ConfirmacionCuenta
+            cuenta={cuenta}
+            resumen={resumen}
+            enLinea={enLinea}
+            sincronizando={sincronizando}
+            onConfirmar={() => void confirmar()}
+            onOtraCuenta={usarOtraCuenta}
+          />
+
           {sincronizando ? (
-            <Card fill>
-              <p className={styles.estado!} role="status">
-                {t('estados.subiendo')}
-              </p>
-            </Card>
+            filas.length > 0 ? (
+              <ProgresoSync filas={filas} cancelando={cancelando} onCancelar={cancelar} />
+            ) : (
+              <Card fill>
+                <p className={styles.estado!} role="status">
+                  {t('estados.subiendo')}
+                </p>
+              </Card>
+            )
           ) : null}
         </div>
+
+        <ResumenCola
+          cola={cola}
+          porcentajeEnCurso={sincronizando ? porcentajeEjecucion({ total, filas }) : null}
+          onReintentar={(servicioId) => void reintentar(servicioId)}
+        />
       </div>
+
+      <ResumenSyncDialog resumen={resumenFinal} onCerrar={limpiarResumen} />
     </div>
   );
 }

@@ -11,7 +11,31 @@ import { useBreakpoint } from '@/shared/hooks/useBreakpoint';
 import { useOnline } from '@/shared/hooks/useOnline';
 import { useSesionStore } from '@/shared/stores/sesionStore';
 
+import type { ResumenSync } from '@/application/sync/eventosSync';
+import type { ColaSync } from '@/infrastructure/db/hooks';
+
+import { useSyncStore } from '../store/useSyncStore';
+
 import { SincronizacionPage } from './SincronizacionPage';
+
+const COLA: ColaSync = {
+  total: 4,
+  sincronizados: 3,
+  enCola: [],
+  conError: [
+    {
+      id: 'e1',
+      codigo: 'BAT-9',
+      descripcion: '',
+      syncState: 'error',
+      intentos: 8,
+      ultimoError: { codigo: 'SP_SIN_PERMISO', mensaje: '403', en: '2026-11-06T10:00:00Z' },
+    },
+  ],
+  conflictos: [],
+};
+
+vi.mock('@/infrastructure/db/hooks', () => ({ useColaSync: vi.fn(() => COLA) }));
 
 vi.mock('@/app/containerContext', () => ({ useContainer: vi.fn() }));
 vi.mock('@/shared/hooks/useOnline', () => ({ useOnline: vi.fn(() => true) }));
@@ -39,26 +63,35 @@ const RESUMEN: ResumenPendientes = {
   ],
 };
 
-function crearContenedor(opciones: { resumen?: ResumenPendientes } = {}) {
+const RESUMEN_OK: ResumenSync = {
+  subidos: 3,
+  archivos: 11,
+  errores: 0,
+  conflictos: 0,
+  resultado: 'OK',
+};
+
+function crearContenedor(
+  opciones: {
+    resumen?: ResumenPendientes;
+    sincronizar?: (o: { signal: AbortSignal }) => Promise<ResumenSync>;
+  } = {}
+) {
   const confirmarIdentidad = vi.fn(async () => ({ ok: true, token: 'token', cuenta: CUENTA }));
-  const sincronizar = vi.fn(async () => ({
-    subidos: 3,
-    archivos: 11,
-    errores: 0,
-    conflictos: 0,
-    resultado: 'OK' as const,
-  }));
+  const sincronizar = vi.fn(opciones.sincronizar ?? (async () => RESUMEN_OK));
+  const reintentarServicio = vi.fn(async () => true);
 
   const contenedor = {
     auth: { cuentaActiva: () => CUENTA },
     resumenPendientes: vi.fn(async () => opciones.resumen ?? RESUMEN),
     confirmarIdentidad,
+    reintentarServicio,
     sync: { sincronizar, on: vi.fn(() => () => undefined) },
     eventosSync: { suscribir: vi.fn(() => () => undefined) },
   };
 
   vi.mocked(containerContext.useContainer).mockReturnValue(contenedor as never);
-  return { confirmarIdentidad, sincronizar, contenedor };
+  return { confirmarIdentidad, sincronizar, reintentarServicio, contenedor };
 }
 
 function renderPagina() {
@@ -71,6 +104,7 @@ function renderPagina() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  useSyncStore.getState().reiniciar();
   vi.mocked(useOnline).mockReturnValue(true);
   vi.mocked(useBreakpoint).mockReturnValue('compacto');
   useSesionStore.setState({
@@ -149,5 +183,62 @@ describe('SincronizacionPage', () => {
       'data-layout',
       'expandido'
     );
+  });
+
+  it('muestra el progreso con la cola preparada y permite cancelar (ES-005-14, ES-005-15)', async () => {
+    let señal: AbortSignal | undefined;
+    let terminar: (r: ResumenSync) => void = () => undefined;
+    crearContenedor({
+      sincronizar: ({ signal }) => {
+        señal = signal;
+        useSyncStore
+          .getState()
+          .aplicar({ tipo: 'inicio', correlationId: 'c', total: RESUMEN.servicios });
+        return new Promise<ResumenSync>((resolve) => {
+          terminar = resolve;
+        });
+      },
+    });
+    renderPagina();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Confirmar como ana@empresa.com/i }));
+
+    expect(await screen.findByRole('progressbar', { name: 'CAR-1-NV4520' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: /Avance de la sincronización: 0%/ })
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'CANCELAR' }));
+    expect(señal?.aborted).toBe(true);
+    expect(screen.getByRole('button', { name: 'Cancelando…' })).toBeDisabled();
+
+    terminar({ ...RESUMEN_OK, subidos: 1, archivos: 5, resultado: 'Parcial' });
+    expect(await screen.findByText('Sincronización parcial')).toBeInTheDocument();
+  });
+
+  it('muestra el resumen al terminar y lo cierra (ES-005-19)', async () => {
+    crearContenedor();
+    renderPagina();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Confirmar como ana@empresa.com/i }));
+
+    expect(await screen.findByText('Sincronización completa')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'CERRAR' }));
+    await waitFor(() => expect(useSyncStore.getState().resumen).toBeNull());
+  });
+
+  it('reintenta un servicio con error y recalcula los pendientes (ES-005-17)', async () => {
+    const { reintentarServicio, contenedor } = crearContenedor();
+    renderPagina();
+
+    fireEvent.click(await screen.findByRole('radio', { name: /Con error/ }));
+    expect(
+      screen.getByText('Tu cuenta no tiene permiso en el sitio de SharePoint.')
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar BAT-9' }));
+
+    await waitFor(() => expect(reintentarServicio).toHaveBeenCalledWith('e1'));
+    await waitFor(() => expect(contenedor.resumenPendientes).toHaveBeenCalledTimes(2));
   });
 });

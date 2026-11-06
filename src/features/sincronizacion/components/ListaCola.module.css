@@ -1,0 +1,59 @@
+.lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2) var(--espacio-3);
+  padding-block: var(--espacio-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.fila:last-child {
+  border-bottom: 0;
+}
+
+.textos {
+  display: flex;
+  flex: 1 1 12rem;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  min-width: 0;
+}
+
+.codigo {
+  color: var(--text-primary);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+}
+
+.descripcion {
+  color: var(--text-secondary);
+  font-size: var(--texto-sm);
+}
+
+.mensaje {
+  color: var(--sync-error);
+  font-size: var(--texto-sm);
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.vacio {
+  margin: 0;
+  padding-block: var(--espacio-4);
+  color: var(--text-secondary);
+  font-size: var(--texto-sm);
+  text-align: center;
+}

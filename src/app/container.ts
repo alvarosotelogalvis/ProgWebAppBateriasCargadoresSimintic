@@ -22,6 +22,7 @@ import {
   calcularResumenPendientes,
   type ResumenPendientes,
 } from '@/application/sync/resumenPendientes';
+import { reintentarServicio } from '@/application/sync/reintentarServicio';
 import { MotorSync, type SyncEngine } from '@/application/sync/SyncEngine';
 import type { ConfigApp } from '@/domain/config';
 import { CONFIG_DEFECTO } from '@/domain/config';
@@ -78,6 +79,7 @@ export interface Container {
   intencionSync: IntencionSyncPort;
   confirmarIdentidad: ConfirmarIdentidad;
   resumenPendientes: () => Promise<ResumenPendientes>;
+  reintentarServicio: (servicioId: string) => Promise<boolean>;
   config: () => ConfigApp;
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
   casosAdjuntos: CasosDeUsoAdjuntos;
@@ -191,6 +193,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     intencionSync,
     confirmarIdentidad,
     resumenPendientes: () => calcularResumenPendientes({ servicios, adjuntos }),
+    reintentarServicio: (servicioId) => reintentarServicio(servicios, servicioId),
     config: () => config,
     casosDeUso,
     casosAdjuntos,

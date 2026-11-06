@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 
+import type { Servicio } from '@/domain/servicio';
+
 import { AppDB } from './dexie';
 import { sincronizarContadorPendientes } from './sincronizarContadorPendientes';
 
@@ -13,6 +15,60 @@ const contarPendientes = async (db: AppDB): Promise<number> => {
     .toArray();
   return servicios.filter((servicio) => servicio.estado !== 'BORRADOR').length;
 };
+
+export interface ItemColaSync {
+  readonly id: string;
+  readonly codigo: string;
+  readonly descripcion: string;
+  readonly syncState: Servicio['syncState'];
+  readonly intentos: number;
+  readonly ultimoError?: Servicio['ultimoError'];
+}
+
+export interface ColaSync {
+  readonly total: number;
+  readonly sincronizados: number;
+  readonly enCola: readonly ItemColaSync[];
+  readonly conError: readonly ItemColaSync[];
+  readonly conflictos: readonly ItemColaSync[];
+}
+
+const COLA_VACIA: ColaSync = {
+  total: 0,
+  sincronizados: 0,
+  enCola: [],
+  conError: [],
+  conflictos: [],
+};
+
+const aItemCola = (servicio: Servicio): ItemColaSync => ({
+  id: servicio.id,
+  codigo: servicio.codigo,
+  descripcion: [servicio.clienteNombre, servicio.marca].filter(Boolean).join(' · '),
+  syncState: servicio.syncState,
+  intentos: servicio.intentos,
+  ...(servicio.ultimoError ? { ultimoError: servicio.ultimoError } : {}),
+});
+
+/** Cola de sincronización para la pantalla de Sincronización (referencia 07). */
+export const calcularColaSync = async (db: AppDB): Promise<ColaSync> => {
+  const servicios = (await db.servicios.toArray()).filter((s) => s.estado !== 'BORRADOR');
+  const porEstado = (...estados: Servicio['syncState'][]) =>
+    servicios
+      .filter((s) => estados.includes(s.syncState))
+      .sort((a, b) => a.actualizadoEn.localeCompare(b.actualizadoEn))
+      .map(aItemCola);
+  return {
+    total: servicios.length,
+    sincronizados: servicios.filter((s) => s.syncState === 'synced').length,
+    enCola: porEstado('pending', 'syncing', 'local'),
+    conError: porEstado('error'),
+    conflictos: porEstado('conflict'),
+  };
+};
+
+export const useColaSync = (db: AppDB = dbApp): ColaSync =>
+  useLiveQuery(() => calcularColaSync(db), [db], COLA_VACIA) ?? COLA_VACIA;
 
 export const useServicios = (db: AppDB = dbApp) =>
   useLiveQuery(() => db.servicios.orderBy('actualizadoEn').reverse().toArray(), [db], []);
