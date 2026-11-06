@@ -202,4 +202,60 @@ describe('SharePointGateway', () => {
       MaxFotosIngreso: '5',
     });
   });
+
+  it('registra la bitácora en LogSincronizacion con las columnas del Modelo §6.4 (T034)', async () => {
+    registrarSitio([
+      { id: 'l-serv', name: 'Servicios' },
+      { id: 'l-cli', name: 'Clientes' },
+      { id: 'l-mar', name: 'Marcas' },
+      { id: 'l-conf', name: 'ConfiguracionApp' },
+      { id: 'l-adj', name: 'ServiciosAdjuntos' },
+      { id: 'l-log', name: 'LogSincronizacion' },
+    ]);
+    let cuerpo: unknown;
+    servidor.use(
+      http.post(`${BASE}/sites/site-1/lists/l-log/items`, async ({ request }) => {
+        cuerpo = await request.json();
+        return HttpResponse.json({ id: '1' }, { status: 201 });
+      })
+    );
+    const gateway = new SharePointGateway({
+      graph: crearCliente(),
+      env: entorno,
+      meta: crearMeta(),
+      logger,
+    });
+
+    await gateway.registrarLogSync({
+      correlationId: 'corr-1',
+      usuario: 'ana@empresa.com',
+      dispositivo: 'disp-1/Android',
+      appVersion: '0.1.0',
+      inicio: '2026-11-06T10:00:00.000Z',
+      fin: '2026-11-06T10:01:00.000Z',
+      resultado: 'Parcial',
+      serviciosSubidos: 2,
+      archivosSubidos: 5,
+      serviciosDescargados: 0,
+      conflictos: 1,
+      errores: '[]',
+    });
+
+    expect(cuerpo).toEqual({
+      fields: {
+        Title: 'corr-1',
+        Usuario: 'ana@empresa.com',
+        Dispositivo: 'disp-1/Android',
+        AppVersion: '0.1.0',
+        Inicio: '2026-11-06T10:00:00.000Z',
+        Fin: '2026-11-06T10:01:00.000Z',
+        Resultado: 'Parcial',
+        ServiciosSubidos: 2,
+        ArchivosSubidos: 5,
+        ServiciosDescargados: 0,
+        Conflictos: 1,
+        Errores: '[]',
+      },
+    });
+  });
 });

@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
@@ -163,5 +164,26 @@ describe('MotorSync · errores', () => {
     const error = entorno.eventos.find((evento) => evento.tipo === 'servicio:error');
     expect(error).toMatchObject({ clase: 'CONFIGURACION' });
     expect(entorno.emulador.logs()[0]?.fields).toMatchObject({ Resultado: 'Error' });
+  });
+
+  it('un fallo de la bitácora no cambia el resultado del sync (ES-005-25)', async () => {
+    const entorno = await crear({ dormir: async () => undefined });
+    const servicio = servicioPendiente('00000000-0000-4000-8000-000000000631');
+    await entorno.servicios.guardar(servicio);
+
+    let intentosLog = 0;
+    servidor.use(
+      http.post('*/lists/l-log/items', () => {
+        intentosLog += 1;
+        return HttpResponse.json({ error: { code: 'generalException' } }, { status: 500 });
+      })
+    );
+
+    const resumen = await entorno.sincronizar();
+
+    expect(intentosLog).toBeGreaterThan(0);
+    expect(resumen).toMatchObject({ subidos: 1, errores: 0, resultado: 'OK' });
+    expect((await entorno.servicios.obtener(servicio.id))?.syncState).toBe('synced');
+    expect(entorno.emulador.logs()).toHaveLength(0);
   });
 });
