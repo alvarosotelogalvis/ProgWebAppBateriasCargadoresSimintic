@@ -22,6 +22,9 @@ import { EmptyState } from '@/shared/ui/EmptyState';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { ListRow } from '@/shared/ui/ListRow';
 import { Icon } from '@/shared/ui/Icon';
+import { BarList } from '@/shared/ui/BarList';
+import { DonutProgress } from '@/shared/ui/DonutProgress';
+import { Chip } from '@/shared/ui/Chip';
 
 export function CatalogoUiPage(): React.JSX.Element {
   const { t } = useTranslation('tecnico');
@@ -159,6 +162,27 @@ export function CatalogoUiPage(): React.JSX.Element {
         <ListRow icono="servicios" etiqueta="Fila de lista" descripcion="Descripcion secundaria" />
         <EmptyState titulo="Estado vacio" descripcion="Descripcion del estado vacio" />
         <Skeleton lineas={3} />
+      </Card>
+
+      <Card fill>
+        <h3>Progreso y chips</h3>
+        <BarList
+          etiqueta="Progreso de sincronizacion"
+          items={[
+            { id: 'a', etiqueta: 'CAR-1-NV4520', valor: 42, detalle: 'foto 3/5' },
+            { id: 'b', etiqueta: 'BAT-7-X99', valor: 100 },
+            { id: 'c', etiqueta: 'BAT-8-Y10', valor: 8, tono: 'accent' },
+          ]}
+        />
+        <div className="fila">
+          <DonutProgress valor={68} etiqueta="Sincronizado" />
+          <div className="fila">
+            <Chip tono="account">ESTE DISPOSITIVO</Chip>
+            <Icon nombre="avanzar" tamano={20} />
+            <Chip tono="account">SHAREPOINT</Chip>
+            <Chip tono="tag">Etiqueta</Chip>
+          </div>
+        </div>
       </Card>
 
       <Card fill>

@@ -28,7 +28,7 @@ const ITEMS_NAV: readonly ItemNav[] = [
   },
   {
     id: 'sincronizar',
-    ruta: '/sincronizar',
+    ruta: '/sincronizacion',
     icono: 'sincronizar',
     etiquetaKey: 'navegacion:sincronizar',
     grupo: 'principal',

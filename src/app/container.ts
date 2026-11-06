@@ -1,6 +1,7 @@
 import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
 import type { AuthPort } from '@/application/ports/authPort';
 import type { CatalogoRepository } from '@/application/ports/catalogoRepository';
+import type { IntencionSyncPort } from '@/application/ports/IntencionSyncPort';
 import type { Logger } from '@/application/ports/loggerPort';
 import type { MapeadorServicio } from '@/application/ports/mapeadorServicio';
 import type { MetaRepository } from '@/application/ports/metaRepository';
@@ -12,7 +13,15 @@ import type { CasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearCasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearCasosDeUso } from '@/application/servicios/casosDeUso';
 import { CLAVES_META } from '@/application/setup/claves';
+import {
+  crearConfirmarIdentidad,
+  type ConfirmarIdentidad,
+} from '@/application/sync/confirmarIdentidad';
 import { eventosSync, type EventBusSync } from '@/application/sync/eventosSync';
+import {
+  calcularResumenPendientes,
+  type ResumenPendientes,
+} from '@/application/sync/resumenPendientes';
 import { MotorSync, type SyncEngine } from '@/application/sync/SyncEngine';
 import type { ConfigApp } from '@/domain/config';
 import { CONFIG_DEFECTO } from '@/domain/config';
@@ -37,6 +46,7 @@ import { crearGraphUploader } from '@/infrastructure/graph/uploads';
 import { VALOR_TIPO_ADJUNTO } from '@/infrastructure/graph/mappers/choices';
 import { aCamposSP, deCamposSP } from '@/infrastructure/graph/mappers/servicioMapper';
 import { conLockSync } from '@/infrastructure/sync/webLocks';
+import { IntencionSyncSessionStorage } from '@/infrastructure/sync/intencionSync';
 import { obtenerEnv, type Entorno } from '@/shared/env';
 import { useSesionStore } from '@/shared/stores/sesionStore';
 
@@ -65,6 +75,9 @@ export interface Container {
   storage: StoragePort;
   eventosSync: EventBusSync;
   sync: SyncEngine;
+  intencionSync: IntencionSyncPort;
+  confirmarIdentidad: ConfirmarIdentidad;
+  resumenPendientes: () => Promise<ResumenPendientes>;
   config: () => ConfigApp;
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
   casosAdjuntos: CasosDeUsoAdjuntos;
@@ -105,6 +118,17 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     deCamposSP,
     valorTipoAdjunto: (tipo) => VALOR_TIPO_ADJUNTO[tipo],
   };
+
+  const intencionSync = new IntencionSyncSessionStorage();
+  const confirmarIdentidad = crearConfirmarIdentidad({
+    auth,
+    meta,
+    clock,
+    config: () => config,
+    intencion: intencionSync,
+    // En modo mock la cuenta simulada no pertenece al tenant real de Entra ID.
+    ...(esMock ? {} : { tenantId: env.VITE_ENTRA_TENANT_ID }),
+  });
 
   await auth.inicializar();
   const cuenta = auth.cuentaActiva();
@@ -164,6 +188,9 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     storage,
     eventosSync,
     sync,
+    intencionSync,
+    confirmarIdentidad,
+    resumenPendientes: () => calcularResumenPendientes({ servicios, adjuntos }),
     config: () => config,
     casosDeUso,
     casosAdjuntos,

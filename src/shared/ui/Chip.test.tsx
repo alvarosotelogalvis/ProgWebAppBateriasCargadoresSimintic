@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 import { Chip } from './Chip';
 
+vi.mock('@/shared/ui/Icon', () => ({
+  Icon: () => <svg aria-hidden="true" />,
+}));
+
 describe('Chip', () => {
   it('muestra el texto y el tono solicitado', () => {
     render(<Chip tono="account">ESTE DISPOSITIVO</Chip>);

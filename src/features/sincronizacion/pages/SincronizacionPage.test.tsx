@@ -16,6 +16,9 @@ import { SincronizacionPage } from './SincronizacionPage';
 vi.mock('@/app/containerContext', () => ({ useContainer: vi.fn() }));
 vi.mock('@/shared/hooks/useOnline', () => ({ useOnline: vi.fn(() => true) }));
 vi.mock('@/shared/hooks/useBreakpoint', () => ({ useBreakpoint: vi.fn(() => 'compacto') }));
+vi.mock('@/shared/ui/Icon', () => ({
+  Icon: () => <svg aria-hidden="true" />,
+}));
 
 const CUENTA: CuentaUsuario = {
   id: 'u1',

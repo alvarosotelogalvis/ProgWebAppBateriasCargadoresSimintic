@@ -13,8 +13,8 @@ export interface DepsConfirmarIdentidad {
   readonly clock: Clock;
   readonly config: () => ConfigApp;
   readonly intencion: IntencionSyncPort;
-  /** Tenant de Entra ID esperado (VITE_ENTRA_TENANT_ID). */
-  readonly tenantId: string;
+  /** Tenant de Entra ID esperado (VITE_ENTRA_TENANT_ID). Si falta, no se valida. */
+  readonly tenantId?: string;
 }
 
 export type MotivoSinIdentidad = 'REDIRECT_EN_CURSO' | 'TENANT_INVALIDO' | 'SIN_ROL' | 'CANCELADO';
@@ -76,7 +76,11 @@ export function crearConfirmarIdentidad(deps: DepsConfirmarIdentidad): Confirmar
       return REDIRECT;
     }
 
-    if (cuenta.tenantId && cuenta.tenantId.toLowerCase() !== deps.tenantId.toLowerCase()) {
+    if (
+      deps.tenantId &&
+      cuenta.tenantId &&
+      cuenta.tenantId.toLowerCase() !== deps.tenantId.toLowerCase()
+    ) {
       return { ok: false, motivo: 'TENANT_INVALIDO' };
     }
 

@@ -52,14 +52,14 @@
 ### Pruebas
 
 - [x] T021 [P] [HU-005-1] Integración de `confirmarIdentidad`: dentro y fuera de la ventana, modo `reautenticar`, otra cuenta, tenant inválido, sin rol, intención guardada y recuperada (< 10 min) o descartada — `src/application/sync/confirmarIdentidad.int.test.ts`
-- [ ] T022 [P] [HU-005-1] Componente de `SincronizacionPage`: sin red, resumen de pendientes, cuenta, confirmar, usar otra cuenta, layout de 1 columna en compacto y 2 en expandido. Además, pruebas de los componentes nuevos del catálogo `BarList` (`role="progressbar"`, `aria-valuenow`), `DonutProgress` (`role="img"` + `aria-label` con el %) y `Chip` — `src/features/sincronizacion/pages/SincronizacionPage.test.tsx`, `src/shared/ui/BarList.test.tsx`, `DonutProgress.test.tsx`, `Chip.test.tsx`
+- [x] T022 [P] [HU-005-1] Componente de `SincronizacionPage`: sin red, resumen de pendientes, cuenta, confirmar, usar otra cuenta, layout de 1 columna en compacto y 2 en expandido. Además, pruebas de los componentes nuevos del catálogo `BarList` (`role="progressbar"`, `aria-valuenow`), `DonutProgress` (`role="img"` + `aria-label` con el %) y `Chip` — `src/features/sincronizacion/pages/SincronizacionPage.test.tsx`, `src/shared/ui/BarList.test.tsx`, `DonutProgress.test.tsx`, `Chip.test.tsx`
 
 ### Implementación
 
 - [x] T023 [HU-005-1] `intencionSync.ts` (sessionStorage) y su puerto — `src/infrastructure/sync/intencionSync.ts`, `src/application/ports/IntencionSyncPort.ts`
 - [x] T024 [HU-005-1] `confirmarIdentidad.ts` y `resumenPendientes.ts` — `src/application/sync/`
 - [x] T025 [HU-005-1] Reanudar tras el redirect en `main.tsx` (`/sincronizacion?reanudar=1`) — `src/main.tsx`
-- [ ] T026 [HU-005-1] Componentes del catálogo `BarList`, `DonutProgress` (SVG propio, sin librería) y `Chip` (`account`), agregados a `/tecnico/ui`. Luego `SincronizacionPage` + `ConfirmacionCuenta` según la referencia 09 (plan §3.4: `amount-xl`, chips "ESTE DISPOSITIVO" → "SHAREPOINT", `PillButton` outlined "Confirmar como …", sin teclado PIN) y el layout por breakpoint — `src/shared/ui/`, `src/features/sincronizacion/`
+- [x] T026 [HU-005-1] Componentes del catálogo `BarList`, `DonutProgress` (SVG propio, sin librería) y `Chip` (`account`), agregados a `/tecnico/ui`. Luego `SincronizacionPage` + `ConfirmacionCuenta` según la referencia 09 (plan §3.4: `amount-xl`, chips "ESTE DISPOSITIVO" → "SHAREPOINT", `PillButton` outlined "Confirmar como …", sin teclado PIN) y el layout por breakpoint — `src/shared/ui/`, `src/features/sincronizacion/`
 
 ## Fase 5 — HU-005-3 Progreso, errores y reintentos (P1)
 

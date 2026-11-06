@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { AppShell } from '@/app/layout/AppShell';
 import { InstallGate } from '@/app/guards/InstallGate';
@@ -72,11 +72,15 @@ export const router = createBrowserRouter([
                 ],
               },
               {
-                path: 'sincronizar',
+                path: 'sincronizacion',
                 lazy: async () => ({
-                  Component: (await import('@/features/sincronizacion/SincronizacionPage'))
+                  Component: (await import('@/features/sincronizacion/pages/SincronizacionPage'))
                     .SincronizacionPage,
                 }),
+              },
+              {
+                path: 'sincronizar',
+                element: <Navigate to="/sincronizacion" replace />,
               },
               {
                 path: 'mas',

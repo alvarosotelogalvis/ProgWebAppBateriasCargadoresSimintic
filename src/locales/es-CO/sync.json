@@ -1,8 +1,21 @@
 ﻿{
   "titulo": "Sincronizar",
+  "tituloPagina": "Sincronización",
   "confirmarCuenta": {
-    "titulo": "Confirmar cuenta",
-    "descripcion": "Confirma la cuenta con la que deseas sincronizar los servicios pendientes."
+    "titulo": "Sincronizar",
+    "descripcion": "Confirma la cuenta con la que deseas sincronizar los servicios pendientes.",
+    "resumen": "{{servicios}} registros · {{archivos}} archivos ({{tamano}})",
+    "cargando": "Calculando pendientes…",
+    "sinPendientes": "No hay cambios pendientes",
+    "esteDispositivo": "ESTE DISPOSITIVO",
+    "sharepoint": "SHAREPOINT",
+    "confirmarComo": "Confirmar como {{correo}}",
+    "confirmando": "Sincronizando…",
+    "usarOtraCuenta": "USAR OTRA CUENTA",
+    "subiran": "Se subirán",
+    "archivos": "{{count}} archivo",
+    "archivos_plural": "{{count}} archivos",
+    "sinArchivos": "Sin archivos"
   },
   "resumen": {
     "pendientes": "Pendientes",
@@ -28,6 +41,9 @@
     "sesionExpirada": "Sesión expirada",
     "sinPermisos": "Sin permisos para sincronizar",
     "configuracion": "Configuración incompleta",
-    "desconocido": "Error al sincronizar"
-  }
+    "desconocido": "Error al sincronizar",
+    "tenantInvalido": "La cuenta pertenece a otra organización",
+    "sinRol": "La cuenta no tiene un rol habilitado para sincronizar"
+  },
+  "sinConexion": "Sin conexión. Tus datos están seguros en este dispositivo"
 }
