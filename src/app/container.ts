@@ -22,11 +22,16 @@ import {
   calcularResumenPendientes,
   type ResumenPendientes,
 } from '@/application/sync/resumenPendientes';
+import {
+  cargarConfigGuardada,
+  ConfigActual,
+  conConfigEnMemoria,
+  refrescarConfigRemota,
+} from '@/application/setup/configActual';
 import { sesionSyncVigente } from '@/application/sync/avisosSync';
 import { reintentarServicio } from '@/application/sync/reintentarServicio';
 import { MotorSync, type SyncEngine } from '@/application/sync/SyncEngine';
 import type { ConfigApp } from '@/domain/config';
-import { CONFIG_DEFECTO } from '@/domain/config';
 import { AdjuntoRepositoryDexie } from '@/infrastructure/db/adjuntoRepository';
 import { CatalogoRepositoryDexie } from '@/infrastructure/db/catalogoRepository';
 import { AppDB } from '@/infrastructure/db/dexie';
@@ -82,6 +87,7 @@ export interface Container {
   resumenPendientes: () => Promise<ResumenPendientes>;
   reintentarServicio: (servicioId: string) => Promise<boolean>;
   sesionSyncVigente: () => Promise<boolean>;
+  appVersion: string;
   config: () => ConfigApp;
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
   casosAdjuntos: CasosDeUsoAdjuntos;
@@ -96,12 +102,17 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
   const clock = new SystemClock();
   const servicios = new ServicioRepositoryDexie(db);
   const adjuntos = new AdjuntoRepositoryDexie(db);
-  const catalogos = new CatalogoRepositoryDexie(db);
+  const catalogosDexie = new CatalogoRepositoryDexie(db);
   const meta = new MetaRepositoryDexie(db, ids);
   const uow = new UnidadDeTrabajoDexie(db, servicios, adjuntos);
   const logger = deps.logger ?? new LoggerDexie(db);
   const auth = deps.auth ?? crearAuth(env, meta, logger);
-  const config = deps.config ?? CONFIG_DEFECTO;
+  // Configuración vigente: la guardada por la configuración inicial o el último sync (SDD §16.3).
+  const configActual = new ConfigActual(
+    deps.config ?? (await cargarConfigGuardada(catalogosDexie))
+  );
+  const catalogos = deps.config ? catalogosDexie : conConfigEnMemoria(catalogosDexie, configActual);
+  const config = configActual.obtener;
   const storage = deps.storage ?? new StorageNavegador();
   const esMock = env.VITE_AUTH_MODE === 'mock';
   const graph = crearGraphClient({ auth, logger, ids });
@@ -128,7 +139,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     auth,
     meta,
     clock,
-    config: () => config,
+    config,
     intencion: intencionSync,
     // En modo mock la cuenta simulada no pertenece al tenant real de Entra ID.
     ...(esMock ? {} : { tenantId: env.VITE_ENTRA_TENANT_ID }),
@@ -152,7 +163,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     auth,
     logger,
     meta,
-    config: () => config,
+    config,
     appVersion,
   };
 
@@ -172,10 +183,13 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     meta,
     logger,
     clock,
-    config: () => config,
+    config,
     appVersion,
     lock: conLockSync,
     bus: eventosSync,
+    ...(deps.config
+      ? {}
+      : { refrescarConfig: () => refrescarConfigRemota({ gateway, catalogos, logger }) }),
     usuario: () => auth.cuentaActiva()?.correo,
   });
 
@@ -196,8 +210,9 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     confirmarIdentidad,
     resumenPendientes: () => calcularResumenPendientes({ servicios, adjuntos }),
     reintentarServicio: (servicioId) => reintentarServicio(servicios, servicioId),
-    sesionSyncVigente: () => sesionSyncVigente({ auth, meta, clock, config: () => config }),
-    config: () => config,
+    sesionSyncVigente: () => sesionSyncVigente({ auth, meta, clock, config }),
+    appVersion,
+    config,
     casosDeUso,
     casosAdjuntos,
   };
