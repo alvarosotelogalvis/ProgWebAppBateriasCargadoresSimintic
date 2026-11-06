@@ -21,6 +21,15 @@ function leerCuentaGuardada(): CuentaUsuario | null {
   }
 }
 
+/**
+ * Como MSAL, un login interactivo deja la hora en la cuenta; sin ella la
+ * confirmación del sync pediría reautenticar indefinidamente en modo demo.
+ */
+const cuentaConLoginReciente = (): CuentaUsuario => ({
+  ...CUENTA_MOCK,
+  ultimoLoginInteractivoEn: new Date().toISOString(),
+});
+
 /** Autenticacion simulada: solo para pruebas y desarrollo sin tenant (SDD §8.6). */
 export class MockAuthAdapter implements AuthPort {
   private cuenta: CuentaUsuario | null = leerCuentaGuardada();
@@ -42,7 +51,7 @@ export class MockAuthAdapter implements AuthPort {
   }
 
   async iniciarSesion(_opciones?: OpcionesIniciarSesion): Promise<void> {
-    this.guardarCuenta(CUENTA_MOCK);
+    this.guardarCuenta(cuentaConLoginReciente());
   }
 
   async asegurarToken(): Promise<string> {
@@ -53,7 +62,7 @@ export class MockAuthAdapter implements AuthPort {
   }
 
   async cambiarCuenta(): Promise<void> {
-    this.guardarCuenta(CUENTA_MOCK);
+    this.guardarCuenta(cuentaConLoginReciente());
   }
 
   async cerrarSesion(): Promise<void> {
