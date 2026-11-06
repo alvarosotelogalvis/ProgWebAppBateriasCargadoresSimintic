@@ -27,7 +27,10 @@ export interface DepsResumenPendientes {
 export async function calcularResumenPendientes(
   deps: DepsResumenPendientes
 ): Promise<ResumenPendientes> {
-  const servicios = await deps.servicios.listarPendientes();
+  // Mismo orden en que el motor procesa la cola (actualizadoEn ascendente).
+  const servicios = (await deps.servicios.listarPendientes()).sort(
+    (a, b) => a.actualizadoEn.localeCompare(b.actualizadoEn) || a.id.localeCompare(b.id)
+  );
   const porServicio: ResumenServicioPendiente[] = [];
 
   for (const servicio of servicios) {

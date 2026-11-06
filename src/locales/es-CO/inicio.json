@@ -1,9 +1,7 @@
 {
-  "inicio": {
-    "vacio": {
-      "titulo": "Aun no hay servicios",
-      "descripcion": "Registra la recepcion de una bateria o cargador para empezar."
-    }
+  "vacio": {
+    "titulo": "Aún no hay servicios",
+    "descripcion": "Registra la recepción de una batería o cargador para empezar."
   },
   "recordatorio": {
     "mensaje_one": "Tienes {{count}} registro sin sincronizar desde hace {{antiguedad}}.",

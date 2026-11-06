@@ -99,4 +99,18 @@ describe('calcularResumenPendientes', () => {
     expect(resumen).toMatchObject({ servicios: 1, archivos: 1, bytes: 42 });
     expect(resumen.porServicio.map((item) => item.servicioId)).toEqual(['pendiente']);
   });
+
+  it('ordena por actualizadoEn ascendente, igual que el motor', async () => {
+    const { servicios, adjuntos } = await crearRepositorios();
+    const crear = (id: string, actualizadoEn: string) => ({
+      ...servicioBuilder().conId(id).pendiente().construir(),
+      actualizadoEn,
+    });
+    await servicios.guardar(crear('z-reciente', '2026-11-06T10:00:00.000Z'));
+    await servicios.guardar(crear('a-antiguo', '2026-11-01T10:00:00.000Z'));
+
+    const resumen = await calcularResumenPendientes({ servicios, adjuntos });
+
+    expect(resumen.porServicio.map((s) => s.servicioId)).toEqual(['a-antiguo', 'z-reciente']);
+  });
 });

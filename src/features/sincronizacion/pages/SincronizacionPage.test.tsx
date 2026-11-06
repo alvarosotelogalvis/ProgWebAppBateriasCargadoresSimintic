@@ -284,4 +284,12 @@ describe('SincronizacionPage', () => {
     expect(await screen.findByText(/Actualiza la app para sincronizar/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Confirmar como ana@empresa.com/i })).toBeDisabled();
   });
+
+  it('muestra los tamaños pequeños en KB', async () => {
+    crearContenedor({
+      resumen: { ...RESUMEN, bytes: 2.5 * 1024, archivos: 1, servicios: 1, porServicio: [] },
+    });
+    renderPagina();
+    expect(await screen.findByText(/2,5 KB/)).toBeInTheDocument();
+  });
 });

@@ -25,10 +25,13 @@ interface Props {
 
 function formatearTamano(bytes: number): string {
   const formato = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 1 });
-  const megabytes = bytes / (1024 * 1024);
+  const kilobytes = bytes / 1024;
+  const megabytes = kilobytes / 1024;
 
   if (megabytes >= 1024) return `${formato.format(megabytes / 1024)} GB`;
-  return `${formato.format(megabytes)} MB`;
+  if (megabytes >= 1) return `${formato.format(megabytes)} MB`;
+  // Fotos pequeñas: "0 MB" confundía; se muestra en KB (mínimo 0,1 KB si hay bytes).
+  return `${formato.format(bytes > 0 ? Math.max(kilobytes, 0.1) : 0)} KB`;
 }
 
 export function ConfirmacionCuenta({
