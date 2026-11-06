@@ -80,7 +80,7 @@
 
 ## Fase 8 — Cierre
 
-- [ ] T035 E2E `sync-online.spec.ts`: offline → crear 2 recepciones → online → aviso → confirmar → badges ✓ → resumen; axe sin violaciones serias en 360/768/1280 (T-20). Agregar a `visual.spec.ts` las capturas de confirmar, progreso y cola — `tests/e2e/sync-online.spec.ts`, `tests/e2e/visual.spec.ts`
+- [x] T035 E2E `sync-online.spec.ts`: offline → crear 2 recepciones → online → aviso → confirmar → badges ✓ → resumen; axe sin violaciones serias en 360/768/1280 (T-20). Agregar a `visual.spec.ts` las capturas de confirmar, progreso y cola — `tests/e2e/sync-online.spec.ts`, `tests/e2e/visual.spec.ts`
 - [ ] T036 Verificación en DEV real (Android instalada + Windows): ES-005-01…25, incluido el corte de red manual a mitad. Verificar en SharePoint 0 duplicados y el ítem en `LogSincronizacion`. Anotar en `docs/pruebas/`
 - [ ] T037 Medir CE-005-01 (20 cortes aleatorios) y CE-005-03 (tiempo con 4G). Anotar en la spec §8
 - [ ] T038 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` + spec → `Implementada` en `specs/README.md`

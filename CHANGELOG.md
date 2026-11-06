@@ -21,8 +21,14 @@ adopta [SemVer](https://semver.org/lang/es/).
   configuración remota se vuelve a leer antes de cada sincronización (si falla, se usa la copia
   local).
 
+- E2E `sync-online.spec.ts` (sin conexión → recepciones → aviso → sincronizar → resumen, con axe
+  en 360/768/1280 px) y capturas visuales de la pantalla de sincronización.
+
 ### Corregido
 
+- Inicio mostraba las claves `vacio.titulo` y `vacio.descripcion` en lugar del texto.
+- El tamaño de lo pendiente mostraba "0 MB" con archivos pequeños; ahora usa KB.
+- La lista "Se subirán" no tenía un orden estable; ahora sigue el orden de la cola del motor.
 - La app ignoraba la configuración descargada de SharePoint (`ConfiguracionApp`) y usaba siempre
   los valores por defecto, lo que bloqueaba la sincronización por versión mínima.
 - Bitácora de sincronización: `Inicio` registraba la hora de fin y `Errores` podía quedar como JSON

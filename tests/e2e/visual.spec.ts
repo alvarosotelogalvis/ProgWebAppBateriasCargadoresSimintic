@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { expect, prepararApp, sinDesborde, test } from './base';
+import { crearRecepcion, expect, prepararApp, sinDesborde, test } from './base';
 
 test.beforeEach(async ({ page }) => {
   await prepararApp(page);
@@ -56,4 +56,33 @@ test('filtros y detalle del servicio', async ({ page }) => {
   await expect(page.getByRole('list', { name: 'Linea de tiempo de etapas' })).toBeVisible();
   expect(await sinDesborde(page)).toBe(true);
   await expect(page).toHaveScreenshot('detalle-servicio.png', { fullPage: true });
+});
+
+test('sincronizacion: confirmar, cola y resumen', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'Playwright WebKit no soporta guardar Blob en IndexedDB');
+  test.setTimeout(90_000);
+
+  await crearRecepcion(page, '801', 'VIS-1');
+  await crearRecepcion(page, '802', 'VIS-2');
+
+  // Confirmar (referencia 09) + cola (referencia 07) con pendientes.
+  await page.goto('/sincronizacion');
+  await expect(page.getByTestId('resumen-pendientes')).toContainText('2 registros', {
+    timeout: 15_000,
+  });
+  await listo(page);
+  expect(await sinDesborde(page)).toBe(true);
+  await expect(page).toHaveScreenshot('sincronizacion-confirmar.png', { fullPage: true });
+
+  // Resumen final.
+  await page.getByRole('button', { name: /Confirmar como/ }).click();
+  const dialogo = page.getByRole('dialog', { name: 'Resumen de la sincronización' });
+  await expect(dialogo).toBeVisible({ timeout: 30_000 });
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page).toHaveScreenshot('sincronizacion-resumen.png');
+
+  // Cola sin pendientes.
+  await dialogo.getByRole('button', { name: 'CERRAR', exact: true }).click();
+  await expect(dialogo).toBeHidden();
+  await expect(page).toHaveScreenshot('sincronizacion-cola.png', { fullPage: true });
 });

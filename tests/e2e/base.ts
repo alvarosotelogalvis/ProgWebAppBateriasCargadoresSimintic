@@ -44,4 +44,43 @@ export const prepararApp = async (page: Page): Promise<void> => {
   });
 };
 
+const PNG_1X1 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=';
+
+/** Completa una recepción mínima (1 foto) y devuelve su código. */
+export const crearRecepcion = async (
+  page: Page,
+  solicitud: string,
+  serie: string
+): Promise<string> => {
+  await page.goto('/servicios/nuevo');
+  await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+\/etapa\/recepcion$/, {
+    timeout: 15_000,
+  });
+
+  const cliente = page.getByRole('combobox', { name: 'Cliente' });
+  await cliente.fill('navar');
+  await page.waitForTimeout(300);
+  await cliente.press('ArrowDown');
+  await cliente.press('Enter');
+
+  await page.getByRole('combobox', { name: 'Marca' }).fill('ROQUET');
+  await page.getByLabel('Referencia').fill('REF-SYNC');
+  await page.getByLabel('Serie').fill(serie);
+  await page.getByLabel('Numero de solicitud').fill(solicitud);
+
+  await page
+    .locator('input[type="file"][multiple]')
+    .setInputFiles([
+      { name: `foto-${serie}.png`, mimeType: 'image/png', buffer: Buffer.from(PNG_1X1, 'base64') },
+    ]);
+  await expect(page.getByRole('button', { name: /^Ver / })).toHaveCount(1, { timeout: 15_000 });
+
+  await page.getByRole('button', { name: 'Completar recepcion' }).click();
+  await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+$/, { timeout: 15_000 });
+  const codigo = `BAT-${solicitud}-${serie}`;
+  await expect(page.getByText(codigo)).toBeVisible();
+  return codigo;
+};
+
 export { expect };
