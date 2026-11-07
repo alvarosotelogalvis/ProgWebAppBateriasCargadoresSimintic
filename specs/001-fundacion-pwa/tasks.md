@@ -6,6 +6,7 @@
 - **Precondición**: PC preparado según `docs/05` §2–§11. Para los spikes S1, S2 y S7: tenant DEV configurado (`docs/06` §1–§2).
 
 ## Fase 1 — Preparación (andamiaje y herramientas, F0.1–F0.5)
+
 - [ ] T001 Repo fuera de OneDrive + `git init` + andamiaje de Vite react-ts sin pisar `docs/`, `README.md` ni `CLAUDE.md` (`docs/05` §3, §12) — `/`
 - [ ] T002 [P] `.gitattributes` (`* text=auto eol=lf`), `.gitignore` (incluye `.env*` excepto `.env.example`), `.editorconfig`, `.node-version` — `/`
 - [ ] T003 [P] `.vscode/settings.json` (formatear al guardar, ESLint, Stylelint) y `.vscode/extensions.json` (`docs/05` §6 + `stylelint.vscode-stylelint`) — `.vscode/`
@@ -19,11 +20,15 @@
 - [ ] T011 [P] `CHANGELOG.md` inicial con la sección `Unreleased` — `CHANGELOG.md`
 
 ## Fase 2 — Fundamentos (bloquean las historias)
+
 ### Pruebas
+
 - [ ] T012 [P] Pruebas de `env.ts`: variables obligatorias y formato UUID de tenant y client — `src/shared/env.test.ts`
 - [ ] T013 [P] Script que verifica que `vite build --mode production` con `VITE_AUTH_MODE=mock` falla (T-18) — `scripts/check-build-mock.mjs`
 - [ ] T014 [P] Pruebas de `aplicarEscalaFuente` (1.0 / 1.15 / 1.3 → `--escala-fuente` en `<html>`) y de `useBreakpoint` (límites 599/600, 1023/1024, 1439/1440 con `matchMedia` simulado) — `src/app/escalaFuente.test.ts`, `src/shared/hooks/useBreakpoint.test.ts`
+
 ### Implementación
+
 - [ ] T015 `.env.example`, `.env.development`, `.env.test` (`VITE_AUTH_MODE=mock`) + `src/shared/env.ts` con zod y pantalla de error de configuración (SDD §16.1) — `/`, `src/shared/env.ts`
 - [ ] T016 `vite.config.ts`: plugins de React y **svgr**, `define` de `__APP_VERSION__`, `__GIT_COMMIT__` y `__BUILD_DATE__`, bloqueo del build con mock, visualizer opcional; CSS Modules con `localsConvention: 'camelCaseOnly'` — `vite.config.ts`, `src/vite-env.d.ts`
 - [ ] T017 [P] `AppError` y `CodigoError` (SDD §13) — `src/shared/errors.ts`
@@ -35,12 +40,17 @@
 - [ ] T023 [P] `public/_headers` (SDD §14.2 **sin** `style-src 'unsafe-inline'`, con `font-src 'self'`) y `public/robots.txt` (`Disallow: /`) — `public/`
 
 ## Fase 3 — Sistema de diseño base (bloquea las pantallas) — HU-001-7 (P1)
+
 **Prueba independiente**: `/tecnico/ui` en DEV muestra todos los componentes base en sus estados, sin violaciones de axe, en 360, 768 y 1280 px.
+
 ### Pruebas
+
 - [ ] T024 [P] [HU-001-7] Pruebas de componentes de botones (`PrimaryButton` normal/small, `SecondaryButton` + `onGradient`, `PillButton`, `TextLink`): rol, foco visible (`data-focus-visible`), deshabilitado con `aria-disabled`, área táctil ≥ 44 px — `src/shared/ui/botones.test.tsx`
 - [ ] T025 [P] [HU-001-7] Pruebas de campos (`TextField`, `SelectField`, `Checkbox`, `SegmentedControl`): etiqueta asociada, error con `aria-describedby`, teclado (flechas en Select y Segmented) — `src/shared/ui/campos.test.tsx`
 - [ ] T026 [P] [HU-001-7] Pruebas de `ResponsiveNav` (4 ítems en compacto; riel en medio; sidebar con los ítems de "Más" en expandido; ítem activo con `aria-current="page"`; filtrado por rol) y de `ResponsiveDialog` (Sheet en compacto, Dialog en medio/expandido, foco atrapado, Esc cierra) — `src/shared/ui/ResponsiveNav.test.tsx`, `ResponsiveDialog.test.tsx`
+
 ### Implementación
+
 - [ ] T027 [HU-001-7] `tokens.css` con **todos** los tokens de `docs/10` §2 (colores AA, colores de estado de servicio y de sync, radios, sombras, espaciado, gutters por breakpoint, alturas de control 44 px, tipografía en rem) + `global.css` (reset, `html { font-size: calc(87.5% * var(--escala-fuente, 1)) }`, Montserrat, `tabular-nums`, anillo de foco, `prefers-reduced-motion`, safe areas) — `src/shared/ui/tokens.css`, `global.css`
 - [ ] T028 [P] [HU-001-7] Fuentes: importar `@fontsource/montserrat` 400/500/600/700/800 (latin) en `main.tsx`; verificar en `dist/` que no hay referencias a `fonts.googleapis.com` — `src/main.tsx`
 - [ ] T029 [P] [HU-001-7] `Icon.tsx` con el mapa tipado `IconName` (íconos de `docs/10` §2.5 desde `@material-symbols/svg-500/rounded/*-fill.svg?react`), `aria-hidden`, `currentColor`, tamaños 20/24/28/72 — `src/shared/ui/Icon.tsx`
@@ -51,23 +61,30 @@
 - [ ] T034 [P] [HU-001-7] `QuickActionGrid` (3 / 4 / 6 columnas según el breakpoint, círculo `primary` con halo `primary-light`, badge numérico opcional), `SummaryCard`, `Avatar`, `ListRow` (RAC `GridList`), `StatusBadge`, `SyncBadge` (punto + ícono + texto) — `src/shared/ui/`
 - [ ] T035 [P] [HU-001-7] `Banner` (`role="status"`/`alert`), `Toast` (región `aria-live`) + `uiStore.toasts`, `EmptyState`, `Skeleton` — `src/shared/ui/`
 - [ ] T036 [HU-001-7] `CatalogoUiPage` en `/tecnico/ui` (solo con `VITE_APP_ENV=dev`, import dinámico excluido del build de PRD) con cada componente y sus estados — `src/features/tecnico/CatalogoUiPage.tsx`, `src/app/router.tsx`
-**Punto de control**: el catálogo se ve como la referencia (`docs/diseno/referencia/`) en 360 px y se adapta en 768 y 1280.
+      **Punto de control**: el catálogo se ve como la referencia (`docs/diseno/referencia/`) en 360 px y se adapta en 768 y 1280.
 
 ## Fase 4 — HU-001-1 Instalar la app (P1) 🎯 MVP
+
 **Prueba independiente**: instalar desde DEV en Android, iOS y Windows y abrir en modo avión.
+
 ### Pruebas
+
 - [ ] T037 [P] [HU-001-1] Pruebas de `detectarPlataforma`, `esStandalone` y `requiereInstalacion` con una matriz de user agents (las 10 plataformas del contrato) — `src/infrastructure/pwa/plataforma.test.ts`
 - [ ] T038 [P] [HU-001-1] E2E: webkit-mobile no standalone → `/instalar` sin "Continuar" (T-22); chromium-desktop → banner y "Continuar sin instalar" — `tests/e2e/instalacion.spec.ts`
 - [ ] T039 [P] [HU-001-1] E2E: tras la primera carga con `preview`, `setOffline(true)` + recarga → Inicio visible, con Montserrat aplicada (`document.fonts.check`) e íconos renderizados (ES-001-05, ES-001-25) — `tests/e2e/offline-shell.spec.ts`
+
 ### Implementación
+
 - [ ] T040 [HU-001-1] `plataforma.ts` y `standalone.ts` — `src/infrastructure/pwa/`
 - [ ] T041 [HU-001-1] `installPrompt.ts` (captura `beforeinstallprompt` → uiStore; `mostrarInstalacion`) — `src/infrastructure/pwa/installPrompt.ts`
 - [ ] T042 [HU-001-1] `InstalarPage` estilo de la referencia 01 (fondo principal, logo "ST" en un círculo blanco, `h1` "SERVICIO TÉCNICO" + subtítulo, instrucciones por plataforma en una `Card`, `PrimaryButton` "INSTALAR", `TextLink` "Continuar sin instalar" on-gradient) + `BannerInstalar` descartable (preferencia recordada) + `instalacion.json` — `src/features/instalacion/`, `src/locales/es-CO/instalacion.json`
 - [ ] T043 [HU-001-1] Primer despliegue DEV: crear el proyecto Cloudflare Pages, `npm run deploy:dev`, comprobar HTTPS, cabeceras (`curl -I`) e instalación en dispositivos reales (M-01, M-02) — `docs/pruebas/`
-**Punto de control**: app instalable y offline en DEV, con la identidad visual.
+      **Punto de control**: app instalable y offline en DEV, con la identidad visual.
 
 ## Fase 5 — HU-001-6 Spikes de riesgo (P1)
+
 Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (plantilla del plan §3.4). Si cambia una decisión → ADR nuevo + índice.
+
 - [ ] T044 [P] [HU-001-6] S1 — MSAL `loginRedirect` + `acquireTokenSilent` en la PWA instalada (iOS, Android, Windows) y persistencia de la sesión al reabrir — `docs/spikes/S1-msal-redirect-pwa.md`
 - [ ] T045 [P] [HU-001-6] S2 — `Sites.Selected` delegado + grant `write`: POST de ítem y PUT de archivo con un usuario Colaborar — `docs/spikes/S2-sites-selected.md`
 - [ ] T046 [P] [HU-001-6] S3 — `PATCH …/fields` con `If-Match` (¿412?), formato de las fechas de solo fecha y código de error del valor único duplicado — `docs/spikes/S3-if-match-fechas.md`
@@ -79,10 +96,14 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 - [ ] T052 [HU-001-6] Consolidar los resultados: actualizar los estados de los ADR afectados (0006, 0007, 0008, 0010, 0011, 0022) o crear sus reemplazos — `docs/adr/`
 
 ## Fase 6 — HU-001-2 Navegación (P1)
+
 ### Pruebas
+
 - [ ] T053 [P] [HU-001-2] Pruebas de componentes de `SetupGuard`, `InstallGate` y `RoleGuard` (redirecciones y pantalla sin permiso) — `src/app/guards/guards.test.tsx`
 - [ ] T054 [P] [HU-001-2] E2E de navegación en 360 (BottomNav + FAB), 768 (NavRail) y 1280 (Sidebar con los ítems de "Más"), del indicador de conexión al pasar a offline y del redimensionamiento cruzando breakpoints sin perder la ruta (ES-001-07…10) — `tests/e2e/navegacion.spec.ts`
+
 ### Implementación
+
 - [ ] T055 [HU-001-2] `sesionStore` (mock desde env: cuenta, roles, `configuracionInicialCompleta`) con una interfaz estable para la 004 — `src/shared/stores/sesionStore.ts`
 - [ ] T056 [HU-001-2] `uiStore` (toasts, `bloqueosActualizacion`, `pendientes`, `hayNuevaVersion`, install prompt) — `src/shared/stores/uiStore.ts`
 - [ ] T057 [HU-001-2] Guards — `src/app/guards/`
@@ -92,23 +113,30 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 - [ ] T061 [HU-001-2] `InicioPage` estilo de la referencia 04 (fondo `suave`, `SummaryCard` con avatar y saludo y número de pendientes en `display`, `QuickActionGrid` con accesos marcadores, estado vacío "Aún no hay servicios") y `MasPage` (`Card fill` + `ListRow` por sección de UX §4) — `src/features/inicio/`, `src/features/mas/`
 
 ## Fase 7 — HU-001-5 Actualizaciones (P1)
+
 ### Pruebas
+
 - [ ] T062 [P] [HU-001-5] Prueba de componente de `AvisoActualizacion` (con bloqueo espera, sin bloqueo aplica) — `src/features/actualizacion/AvisoActualizacion.test.tsx`
 - [ ] T063 [P] [HU-001-5] E2E T-23 (dos builds con distinta versión servidos por `preview`; formulario simulado con bloqueo) — `tests/e2e/actualizacion.spec.ts`
+
 ### Implementación
+
 - [ ] T064 [HU-001-5] `registerSW.ts` (onNeedRefresh, `registration.update()` al iniciar y cada 60 min) — `src/infrastructure/pwa/registerSW.ts`
 - [ ] T065 [HU-001-5] `AvisoActualizacion` (`Toast` / `Banner` con `PrimaryButton small` "ACTUALIZAR" y espera por bloqueos) montado en `AppShell` — `src/features/actualizacion/`
 
 ## Fase 8 — HU-001-3 Ajustes (P2)
+
 - [ ] T066 [P] [HU-001-3] Prueba de `AjustesPage`: cambia y persiste el **tamaño de fuente** (sin selector de tema) y aplica la escala antes del primer render al recargar — `src/features/ajustes/AjustesPage.test.tsx`
 - [ ] T067 [HU-001-3] `preferenciasStore` (Zustand `persist` → `localStorage`, con try/catch; solo `escalaFuente` y `bannerInstalarDescartado`) + `AjustesPage` (`Card fill`, `SegmentedControl` Normal / Grande / Muy grande, vista previa en vivo) + `ajustes.json` — `src/features/ajustes/`
 
 ## Fase 9 — HU-001-4 Ayuda y Acerca de (P2)
+
 - [ ] T068 [P] [HU-001-4] Contenido inicial de Ayuda (instalar, trabajar sin conexión, FAQ) — `src/locales/es-CO/ayuda.json`
 - [ ] T069 [HU-001-4] `AyudaPage` y `AyudaTemaPage` (`Card fill`, `ListRow` por tema; renderizado estructurado, sin HTML) — `src/features/ayuda/`
 - [ ] T070 [HU-001-4] `AcercaPage` (versión, commit, fecha, ambiente, CHANGELOG `?raw` de la versión actual, licencia, privacidad) + `acerca.json` — `src/features/acerca/`
 
 ## Fase 10 — Cierre
+
 - [ ] T071 E2E de accesibilidad con axe en Inicio, Más, Ajustes, Ayuda, Acerca de, Instalar y `/tecnico/ui`, en 360, 768 y 1280 (CE-001-04), y comprobación de que no hay desplazamiento horizontal de 320 a 1920 px (CE-001-08) — `tests/e2e/a11y.spec.ts`
 - [ ] T072 Capturas visuales `visual.spec.ts` (Inicio, Más, Ajustes, Instalar, `/tecnico/ui` × 360/768/1280). Comparar con `docs/diseno/referencia/*.png`, pedir la aprobación del dueño del producto y versionar la línea base (CE-001-07) — `tests/e2e/visual.spec.ts`
 - [ ] T073 Medir CE-001-01 (arranque offline), CE-001-02 (Lighthouse) y CE-001-03 (bundle) en DEV. Anotar en la spec §8
@@ -116,6 +144,7 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 - [ ] T075 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` + spec → `Implementada` en `specs/README.md`
 
 ## Dependencias
+
 - Fase 1 → Fase 2 → **Fase 3 (sistema de diseño)** → Fase 4. La Fase 5 (spikes) puede empezar cuando exista el despliegue DEV (T043) y avanza en paralelo con las Fases 6–9. S8 (T051) necesita la Fase 3 para validar la CSP con los componentes reales.
 - T021 depende de T016. T027 antes de T030–T035. T031–T033 dependen de T024–T026. T036 depende de T030–T035. T043 depende de T021–T023 y T042. T058 depende de T057. T060 depende de T033 y T059. T065 depende de T064, T056 y T035.
 - La 002 y la 004 dependen de esta spec. La 004 reemplaza la fuente mock de `sesionStore` (T055) y el marcador de `/configuracion-inicial`. Las specs 003, 005, 007 y 008 agregan al catálogo los componentes específicos (ComboboxField, DateChip/Calendar/RangeCalendar, AmountInput, PhotoCarousel, BarList, DonutProgress, Pagination) sobre los tokens de la Fase 3.

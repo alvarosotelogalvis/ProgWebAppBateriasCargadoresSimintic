@@ -4,38 +4,41 @@
 - **Referencias de diseño**: SDD §4 (capas y carpetas), §11 (PWA), §12 (UI), §14.2 (`_headers`), §16 (env y ambientes), §17 (rendimiento) · UX §1–§4 · **Sistema de diseño `docs/10-Sistema-de-Diseno.md` §2–§5, §8, §9** · Referencia visual `docs/diseno/referencia/` (`styles.css`, `01`, `04`) · `docs/05` §12 (andamiaje) · `docs/07` §F0, §F2 · ADR 0003, 0004, 0014, 0015, 0020, **0022**
 
 ## 1. Contexto técnico
-| Aspecto | Valor |
-|---|---|
-| Lenguaje / framework | TypeScript strict · React 19 · Vite (ADR-0003) |
-| UI | Sistema de diseño propio (ADR-0022): `src/shared/ui/` con **CSS Modules** + `tokens.css`; controles accesibles sobre **`react-aria-components`** (+ `@internationalized/date`); fuente **Montserrat** autoalojada (`@fontsource/montserrat` 400–800); íconos **Material Symbols Rounded** como SVG (`@material-symbols/svg-500` + `vite-plugin-svgr`); `stylelint` para tokens |
-| Breakpoints | compacto < 600 · medio 600–1023 · expandido ≥ 1024 · amplio ≥ 1440 (contenido máx. 1280) (`docs/10` §4.1) |
-| PWA | `vite-plugin-pwa` (generateSW, `registerType: 'prompt'`), `workbox-window` |
-| Router | React Router 7 (`createBrowserRouter`), rutas lazy |
-| Estado | Zustand (conexión, `beforeinstallprompt`, preferencias con `persist`, toasts). Sin datos de negocio (ADR-0005) |
-| Almacenamiento | Solo `localStorage` para preferencias (permitido en `features/ajustes`, ADR-0018). Dexie entra en la 002 |
-| Integraciones | Ninguna remota, salvo los spikes (MSAL y Graph de prueba en ramas `spike/*` desechables) |
-| Hosting | Cloudflare Pages, `wrangler pages deploy` rama `dev` (ADR-0014) |
-| Pruebas | Vitest + Testing Library · Playwright (`chromium-mobile`, `webkit-mobile`, `chromium-desktop`) · `@axe-core/playwright` |
-| Desempeño | Arranque offline < 2 s · JS inicial ≤ 350 KB gzip (las fuentes woff2 y los SVG cuentan en el precaché, no en el JS inicial) |
+
+| Aspecto              | Valor                                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Lenguaje / framework | TypeScript strict · React 19 · Vite (ADR-0003)                                                                                                                                                                                                                                                                                                                                 |
+| UI                   | Sistema de diseño propio (ADR-0022): `src/shared/ui/` con **CSS Modules** + `tokens.css`; controles accesibles sobre **`react-aria-components`** (+ `@internationalized/date`); fuente **Montserrat** autoalojada (`@fontsource/montserrat` 400–800); íconos **Material Symbols Rounded** como SVG (`@material-symbols/svg-500` + `vite-plugin-svgr`); `stylelint` para tokens |
+| Breakpoints          | compacto < 600 · medio 600–1023 · expandido ≥ 1024 · amplio ≥ 1440 (contenido máx. 1280) (`docs/10` §4.1)                                                                                                                                                                                                                                                                      |
+| PWA                  | `vite-plugin-pwa` (generateSW, `registerType: 'prompt'`), `workbox-window`                                                                                                                                                                                                                                                                                                     |
+| Router               | React Router 7 (`createBrowserRouter`), rutas lazy                                                                                                                                                                                                                                                                                                                             |
+| Estado               | Zustand (conexión, `beforeinstallprompt`, preferencias con `persist`, toasts). Sin datos de negocio (ADR-0005)                                                                                                                                                                                                                                                                 |
+| Almacenamiento       | Solo `localStorage` para preferencias (permitido en `features/ajustes`, ADR-0018). Dexie entra en la 002                                                                                                                                                                                                                                                                       |
+| Integraciones        | Ninguna remota, salvo los spikes (MSAL y Graph de prueba en ramas `spike/*` desechables)                                                                                                                                                                                                                                                                                       |
+| Hosting              | Cloudflare Pages, `wrangler pages deploy` rama `dev` (ADR-0014)                                                                                                                                                                                                                                                                                                                |
+| Pruebas              | Vitest + Testing Library · Playwright (`chromium-mobile`, `webkit-mobile`, `chromium-desktop`) · `@axe-core/playwright`                                                                                                                                                                                                                                                        |
+| Desempeño            | Arranque offline < 2 s · JS inicial ≤ 350 KB gzip (las fuentes woff2 y los SVG cuentan en el precaché, no en el JS inicial)                                                                                                                                                                                                                                                    |
 
 ## 2. Verificación de la constitución
-| Artículo | ¿Cumple? | Cómo |
-|---|---|---|
-| I Offline primero | ✅ | Precaché del app shell completo, **incluidas las fuentes woff2 y los íconos SVG** (sin Google Fonts ni CDN). Ninguna pantalla de esta spec usa red |
-| II Cero pérdida | ✅ | No hay datos de negocio aún. La actualización del SW espera si hay un formulario con cambios (contrato `bloqueoActualizacion`), lo que deja lista la protección para las specs siguientes |
-| III Sin backend ni secretos | ✅ | Solo hosting estático. `.env.*` con valores públicos validados con zod. El build de producción falla con `VITE_AUTH_MODE=mock` (SDD §8.6) |
-| IV Identidad confirmada | ✅ | No hay escritura remota. Los spikes S1/S2 usan cuentas de prueba en DEV y no se integran a `main` |
-| V Idempotencia | ✅ N/A | Sin operaciones remotas |
-| VI Dominio puro | ✅ | Se crean `domain/`, `application/`, `infrastructure/`, `features/` y `shared/` con las reglas de `eslint-plugin-boundaries` desde el primer commit |
-| VII Pruebas primero | ✅ | Pruebas de guards, standalone, plataforma y bloqueo de actualización antes de sus implementaciones |
-| VIII Accesible y es-CO | ✅ | i18next `es-CO` desde el inicio, regla de lint contra literales en JSX, axe en E2E en 3 viewports, escala de fuente en `rem`. **Tokens con los valores AA de `docs/10` §2.1** (no los originales de la referencia), controles de 44 px, foco visible en todos los componentes (anillo de 2 px), controles complejos sobre React Aria (teclado, ARIA, lectores de pantalla) |
-| IX Seguridad | ✅ | `public/_headers` con la CSP de SDD §14.2, **sin `style-src 'unsafe-inline'`** (CSS Modules estáticos, sin CSS-in-JS) y con `font-src 'self'`. Lo valida el spike S8. Reglas de lint: prohibido `dangerouslySetInnerHTML`, y `localStorage` solo en `infrastructure/auth` y `features/ajustes` |
-| X Simplicidad | ✅ | Solo las dependencias de `docs/05` §1.2 con el reemplazo de UI del ADR-0022. Sin librería de gráficas ni de CSS-in-JS. El catálogo base se limita a lo que usan las pantallas de esta spec. El resto lo agrega la spec que lo necesite |
-| XI Trazabilidad | ✅ | FR → RF. Los spikes que cambien una decisión generan ADR |
+
+| Artículo                    | ¿Cumple? | Cómo                                                                                                                                                                                                                                                                                                                                                                       |
+| --------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I Offline primero           | ✅       | Precaché del app shell completo, **incluidas las fuentes woff2 y los íconos SVG** (sin Google Fonts ni CDN). Ninguna pantalla de esta spec usa red                                                                                                                                                                                                                         |
+| II Cero pérdida             | ✅       | No hay datos de negocio aún. La actualización del SW espera si hay un formulario con cambios (contrato `bloqueoActualizacion`), lo que deja lista la protección para las specs siguientes                                                                                                                                                                                  |
+| III Sin backend ni secretos | ✅       | Solo hosting estático. `.env.*` con valores públicos validados con zod. El build de producción falla con `VITE_AUTH_MODE=mock` (SDD §8.6)                                                                                                                                                                                                                                  |
+| IV Identidad confirmada     | ✅       | No hay escritura remota. Los spikes S1/S2 usan cuentas de prueba en DEV y no se integran a `main`                                                                                                                                                                                                                                                                          |
+| V Idempotencia              | ✅ N/A   | Sin operaciones remotas                                                                                                                                                                                                                                                                                                                                                    |
+| VI Dominio puro             | ✅       | Se crean `domain/`, `application/`, `infrastructure/`, `features/` y `shared/` con las reglas de `eslint-plugin-boundaries` desde el primer commit                                                                                                                                                                                                                         |
+| VII Pruebas primero         | ✅       | Pruebas de guards, standalone, plataforma y bloqueo de actualización antes de sus implementaciones                                                                                                                                                                                                                                                                         |
+| VIII Accesible y es-CO      | ✅       | i18next `es-CO` desde el inicio, regla de lint contra literales en JSX, axe en E2E en 3 viewports, escala de fuente en `rem`. **Tokens con los valores AA de `docs/10` §2.1** (no los originales de la referencia), controles de 44 px, foco visible en todos los componentes (anillo de 2 px), controles complejos sobre React Aria (teclado, ARIA, lectores de pantalla) |
+| IX Seguridad                | ✅       | `public/_headers` con la CSP de SDD §14.2, **sin `style-src 'unsafe-inline'`** (CSS Modules estáticos, sin CSS-in-JS) y con `font-src 'self'`. Lo valida el spike S8. Reglas de lint: prohibido `dangerouslySetInnerHTML`, y `localStorage` solo en `infrastructure/auth` y `features/ajustes`                                                                             |
+| X Simplicidad               | ✅       | Solo las dependencias de `docs/05` §1.2 con el reemplazo de UI del ADR-0022. Sin librería de gráficas ni de CSS-in-JS. El catálogo base se limita a lo que usan las pantallas de esta spec. El resto lo agrega la spec que lo necesite                                                                                                                                     |
+| XI Trazabilidad             | ✅       | FR → RF. Los spikes que cambien una decisión generan ADR                                                                                                                                                                                                                                                                                                                   |
 
 ## 3. Diseño de la funcionalidad
 
 ### 3.1 Archivos
+
 ```
 / (raíz del repo)
   .gitattributes  .gitignore  .editorconfig  .node-version  .nvmrc(opc.)
@@ -100,6 +103,7 @@ docs/spikes/
 ```
 
 ### 3.2 Contratos
+
 ```ts
 // infrastructure/pwa/plataforma.ts
 export type Plataforma = 'android-chrome' | 'android-samsung' | 'android-otro'
@@ -150,6 +154,7 @@ export function aplicarEscalaFuente(escala: EscalaFuente, root?: HTMLElement): v
 ```
 
 ### 3.3 Flujo de actualización
+
 ```
 registrarSW → onNeedRefresh → uiStore.hayNuevaVersion = true → <AvisoActualizacion/>
 Usuario pulsa "Actualizar":
@@ -160,6 +165,7 @@ Además: registration.update() al arrancar y cada 60 min (SDD §11.4)
 ```
 
 ### 3.4 Decisiones locales
+
 - **Sesión mock en esta spec**: `sesionStore` arranca desde `.env.test`/`.env.development` con `VITE_AUTH_MODE=mock` (cuenta y roles fijos, `configuracionInicialCompleta=true`) para poder recorrer las rutas. La 004 reemplaza la fuente por el `AuthPort` real sin cambiar la interfaz del store.
 - **Escala de fuente**: todos los tamaños tipográficos y de espaciado de texto están en `rem` (`docs/10` §2.4). `aplicarEscalaFuente` fija `--escala-fuente` en `<html>` y `global.css` define `html { font-size: calc(87.5% * var(--escala-fuente, 1)) }`. Se aplica antes del primer render (desde la preferencia guardada) para evitar saltos.
 - **Solo tema claro** (ADR-0022): no hay selector de tema. El modo oscuro queda en el backlog.
@@ -178,31 +184,34 @@ Además: registration.update() al arrancar y cada 60 min (SDD §11.4)
 - **Spikes**: cada spike vive en una rama `spike/Sx-*` que **no** se integra a `main`. Solo se integra su documento `docs/spikes/Sx-*.md` (plantilla: pregunta, entorno, pasos, resultado, evidencia y decisión/ADR).
 
 ## 4. Estrategia de pruebas
-| Nivel | Qué | Archivo |
-|---|---|---|
-| Unit | `detectarPlataforma` (matriz de user agents), `esStandalone`, `requiereInstalacion` | `src/infrastructure/pwa/plataforma.test.ts` |
-| Unit | `aplicarEscalaFuente` fija la variable; `env.ts` rechaza configuraciones inválidas; `useBreakpoint` con `matchMedia` simulado | `src/app/escalaFuente.test.ts`, `src/shared/env.test.ts`, `src/shared/hooks/useBreakpoint.test.ts` |
-| Comp | Componentes base del sistema de diseño: estados (foco visible, deshabilitado, error), roles ARIA, teclado; `ResponsiveNav` por breakpoint; `ResponsiveDialog` Sheet vs. Dialog | `src/shared/ui/*.test.tsx` |
-| Estático | `stylelint`: sin colores ni radios literales fuera de `tokens.css` | `npm run lint` |
-| Comp | Guards (redirecciones y sin permiso) | `src/app/guards/guards.test.tsx` |
-| Comp | `AvisoActualizacion` con y sin bloqueos | `src/features/actualizacion/AvisoActualizacion.test.tsx` |
-| Comp | `AjustesPage` persiste las preferencias | `src/features/ajustes/AjustesPage.test.tsx` |
-| Script | El build de producción con mock falla (T-18 del plan de pruebas) | `scripts/check-build-mock.mjs` |
-| E2E | Pantalla Instalar en webkit-mobile no standalone bloquea (T-22); navegación en 360 / 768 / 1280 (BottomNav, NavRail, Sidebar); app shell offline tras la primera carga, con fuentes e íconos (`npm run preview` + `context.setOffline`); actualización con bloqueo (T-23); axe en los 3 viewports; sin desplazamiento horizontal de 320 a 1920 px | `tests/e2e/*.spec.ts` |
-| Visual | Capturas de Inicio, Más, Ajustes, Instalar y `/tecnico/ui` en 360×740, 768×1024 y 1280×800 (`toHaveScreenshot`), línea base aprobada tras compararla con `docs/diseno/referencia/*.png` | `tests/e2e/visual.spec.ts` |
-| Manual | Matriz M-01, M-02, M-12 y M-13 (`docs/08` §5) en DEV | `docs/pruebas/` |
+
+| Nivel    | Qué                                                                                                                                                                                                                                                                                                                                               | Archivo                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Unit     | `detectarPlataforma` (matriz de user agents), `esStandalone`, `requiereInstalacion`                                                                                                                                                                                                                                                               | `src/infrastructure/pwa/plataforma.test.ts`                                                        |
+| Unit     | `aplicarEscalaFuente` fija la variable; `env.ts` rechaza configuraciones inválidas; `useBreakpoint` con `matchMedia` simulado                                                                                                                                                                                                                     | `src/app/escalaFuente.test.ts`, `src/shared/env.test.ts`, `src/shared/hooks/useBreakpoint.test.ts` |
+| Comp     | Componentes base del sistema de diseño: estados (foco visible, deshabilitado, error), roles ARIA, teclado; `ResponsiveNav` por breakpoint; `ResponsiveDialog` Sheet vs. Dialog                                                                                                                                                                    | `src/shared/ui/*.test.tsx`                                                                         |
+| Estático | `stylelint`: sin colores ni radios literales fuera de `tokens.css`                                                                                                                                                                                                                                                                                | `npm run lint`                                                                                     |
+| Comp     | Guards (redirecciones y sin permiso)                                                                                                                                                                                                                                                                                                              | `src/app/guards/guards.test.tsx`                                                                   |
+| Comp     | `AvisoActualizacion` con y sin bloqueos                                                                                                                                                                                                                                                                                                           | `src/features/actualizacion/AvisoActualizacion.test.tsx`                                           |
+| Comp     | `AjustesPage` persiste las preferencias                                                                                                                                                                                                                                                                                                           | `src/features/ajustes/AjustesPage.test.tsx`                                                        |
+| Script   | El build de producción con mock falla (T-18 del plan de pruebas)                                                                                                                                                                                                                                                                                  | `scripts/check-build-mock.mjs`                                                                     |
+| E2E      | Pantalla Instalar en webkit-mobile no standalone bloquea (T-22); navegación en 360 / 768 / 1280 (BottomNav, NavRail, Sidebar); app shell offline tras la primera carga, con fuentes e íconos (`npm run preview` + `context.setOffline`); actualización con bloqueo (T-23); axe en los 3 viewports; sin desplazamiento horizontal de 320 a 1920 px | `tests/e2e/*.spec.ts`                                                                              |
+| Visual   | Capturas de Inicio, Más, Ajustes, Instalar y `/tecnico/ui` en 360×740, 768×1024 y 1280×800 (`toHaveScreenshot`), línea base aprobada tras compararla con `docs/diseno/referencia/*.png`                                                                                                                                                           | `tests/e2e/visual.spec.ts`                                                                         |
+| Manual   | Matriz M-01, M-02, M-12 y M-13 (`docs/08` §5) en DEV                                                                                                                                                                                                                                                                                              | `docs/pruebas/`                                                                                    |
 
 ## 5. Riesgos
-| Riesgo | Mitigación |
-|---|---|
-| El login por redirect falla en la PWA instalada de iOS (S1) | Se prueba primero. Si falla, se crea un ADR con la alternativa antes de la 004 |
+
+| Riesgo                                                                                                         | Mitigación                                                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| El login por redirect falla en la PWA instalada de iOS (S1)                                                    | Se prueba primero. Si falla, se crea un ADR con la alternativa antes de la 004                                                                                                             |
 | La CSP sin `style-src 'unsafe-inline'` rompe React Aria (estilos posicionales), MSAL (iframe) o el worker (S8) | Validar con un build real en Cloudflare. React Aria aplica estilos vía el CSSOM (`element.style`), que la CSP no bloquea. Si algo falla, documentarlo en S8 y ajustar SDD §14.2 con un ADR |
-| El precaché crece con las fuentes (5 pesos) | Solo el subconjunto latin en woff2 (~20 KB por peso). Revisar con el visualizer y quitar pesos no usados |
-| Las capturas visuales son frágiles entre sistemas operativos | Generar la línea base y comparar siempre en el mismo entorno (Chromium de Playwright en el PC de desarrollo), con un umbral `maxDiffPixelRatio` bajo |
-| Desviaciones respecto a la referencia por los ajustes AA | Están documentadas en `docs/10` §2. Las aprueba el dueño del producto al aceptar la línea base visual (CE-001-07) |
-| `beforeinstallprompt` no se dispara en algunos navegadores | Siempre hay instrucciones manuales |
+| El precaché crece con las fuentes (5 pesos)                                                                    | Solo el subconjunto latin en woff2 (~20 KB por peso). Revisar con el visualizer y quitar pesos no usados                                                                                   |
+| Las capturas visuales son frágiles entre sistemas operativos                                                   | Generar la línea base y comparar siempre en el mismo entorno (Chromium de Playwright en el PC de desarrollo), con un umbral `maxDiffPixelRatio` bajo                                       |
+| Desviaciones respecto a la referencia por los ajustes AA                                                       | Están documentadas en `docs/10` §2. Las aprueba el dueño del producto al aceptar la línea base visual (CE-001-07)                                                                          |
+| `beforeinstallprompt` no se dispara en algunos navegadores                                                     | Siempre hay instrucciones manuales                                                                                                                                                         |
 
 ## 6. Seguimiento de complejidad
-| Desviación | Por qué | Alternativa simple rechazada |
-|---|---|---|
+
+| Desviación                                                                           | Por qué                                                                                                          | Alternativa simple rechazada                                 |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | Sistema de diseño propio (~25 componentes base) en lugar de una librería con estilos | La referencia visual del usuario no se puede reproducir con Fluent o MUI sin sobrescribirlo casi todo (ADR-0022) | Fluent UI con tema: baja fidelidad y CSP con `unsafe-inline` |

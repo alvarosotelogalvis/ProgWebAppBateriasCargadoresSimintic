@@ -28,6 +28,8 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Cambiado
 
+- ADR-0006 (roles de app y ventana de 12 h) y ADR-0007 (`Sites.Selected`) pasan a Aceptado tras la
+  verificación en DEV. Specs 004 y 005 implementadas (iOS de la 004 pendiente de verificar).
 - `RetencionCerradosMeses` por defecto pasa de 6 a 3 meses (aclaración de la spec 006).
 
 ### Corregido

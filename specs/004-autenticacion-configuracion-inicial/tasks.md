@@ -69,10 +69,10 @@
 ## Fase 8 — Cierre
 
 - [x] T030 E2E `configuracion-inicial.spec.ts`: mock auth + Graph emulado → asistente completo → `setOffline(true)` → nuevo borrador con un cliente del catálogo y `capturadoPor` correcto → axe en 360/768/1280. Agregar a `visual.spec.ts` las capturas de Bienvenida, Preparar datos, Mi cuenta y Sin acceso — `tests/e2e/configuracion-inicial.spec.ts`, `tests/e2e/visual.spec.ts`
-- [ ] T031 Verificación manual en DEV con cuentas reales (con rol, sin rol, otro tenant si existe) en la app instalada de Android, iOS y Windows: M-03, M-04, ES-004-01…17. Anotar en `docs/pruebas/`
-- [ ] T032 Actualizar el estado de los ADR 0006 y 0007 según los resultados (Propuesto → Aceptado o reemplazo) y el índice — `docs/adr/`
-- [ ] T033 Medir CE-004-01 (tiempo del asistente) y anotar en la spec §8
-- [ ] T034 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` + spec → `Implementada` en `specs/README.md`
+- [x] T031 Verificación manual en DEV con cuentas reales (con rol, sin rol, otro tenant si existe) en la app instalada de Android, iOS y Windows _(Android y Windows ✅; iOS pendiente, ver `docs/pruebas/004-verificacion-dev.md`)_: M-03, M-04, ES-004-01…17. Anotar en `docs/pruebas/`
+- [x] T032 Actualizar el estado de los ADR 0006 y 0007 según los resultados (Propuesto → Aceptado o reemplazo) y el índice — `docs/adr/`
+- [x] T033 Medir CE-004-01 (tiempo del asistente) y anotar en la spec §8
+- [x] T034 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` + spec → `Implementada` en `specs/README.md`
 
 ## Dependencias
 
