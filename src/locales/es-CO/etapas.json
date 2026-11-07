@@ -88,6 +88,7 @@
     "fechaAyuda": "Fecha en que se entregó el equipo. Debe ser ≥ recepción y ≤ hoy.",
     "fotos": "Fotos de salida",
     "fotosAyuda": "Adjunta al menos 1 foto del equipo reparado.",
+    "agregarFoto": "Agregar foto",
     "vidaUtil": "Proyección de vida útil",
     "vidaUtilAyuda": "Fecha estimada de fin de vida. Sugerencia: entrega + 12 meses.",
     "sugerencias": {
