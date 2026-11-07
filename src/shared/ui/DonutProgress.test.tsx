@@ -12,7 +12,7 @@ describe('DonutProgress', () => {
   });
 
   it('recorta el porcentaje fuera del rango 0-100', () => {
-    render(<DonutProgress valor={130} />);
+    render(<DonutProgress valor={130} etiqueta="Sincronizado" />);
 
     expect(screen.getByRole('img', { name: 'Sincronizado: 100%' })).toBeInTheDocument();
   });

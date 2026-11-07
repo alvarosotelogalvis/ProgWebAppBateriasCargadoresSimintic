@@ -32,7 +32,7 @@ export function Bienvenida({ onEmpezar }: Props): React.JSX.Element {
             {t('bienvenida.comoInstalar')}
           </TextLink>
           <TextLink onGradient onPress={() => navigate('/ayuda')}>
-            {t('common:comun.ayuda', 'Ayuda')}
+            {t('common:comun.ayuda')}
           </TextLink>
         </footer>
       </main>

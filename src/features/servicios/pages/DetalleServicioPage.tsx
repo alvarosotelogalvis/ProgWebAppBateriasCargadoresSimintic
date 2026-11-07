@@ -99,7 +99,7 @@ export function DetalleServicioPage(): React.JSX.Element {
         <p>{t('recepcion.descartarTexto')}</p>
         <div className={styles.acciones!}>
           <SecondaryButton onPress={() => setConfirmar(false)}>
-            {t('comun:cancelar', 'Cancelar')}
+            {t('common:comun.cancelar')}
           </SecondaryButton>
           <PrimaryButton
             onPress={() => {

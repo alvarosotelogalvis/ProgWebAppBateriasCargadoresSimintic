@@ -61,7 +61,7 @@ const ITEMS_NAV: readonly ItemNav[] = [
 ];
 
 export function AppShell(): React.JSX.Element {
-  const { t } = useTranslation(['navegacion', 'comun']);
+  const { t } = useTranslation(['navegacion', 'common']);
   // Mantiene el contador global de pendientes al día en toda la app (T030, ES-005-23).
   const pendientes = usePendientes();
   const items = ITEMS_NAV.map((item) =>

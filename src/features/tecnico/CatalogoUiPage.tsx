@@ -113,7 +113,7 @@ export function CatalogoUiPage(): React.JSX.Element {
       </Card>
 
       <Card fill>
-        <h3>Galeria de fotos</h3>
+        <h3>Galería de fotos</h3>
         <PhotoGallery
           adjuntos={[
             {

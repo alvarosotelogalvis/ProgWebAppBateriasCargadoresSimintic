@@ -6,24 +6,33 @@
     "baseDatosError": "No se pudo abrir la base de datos local. Recarga la aplicación. Detalle:",
     "error": {
       "titulo": "Algo salió mal",
-      "descripcion": "Ocurrio un error inesperado en esta seccion.",
+      "descripcion": "Ocurrió un error inesperado en esta sección.",
       "volver": "Volver al inicio",
       "recuperar": "Intentar de nuevo"
     },
     "config": {
-      "titulo": "Configuracion invalida",
-      "descripcion": "Esta version de la app no se configuro correctamente. Contacta al administrador.",
+      "titulo": "Configuración inválida",
+      "descripcion": "Esta versión de la app no se configuró correctamente. Contacta al administrador.",
       "campo": "Variable",
       "reiniciar": "Recargar"
+    },
+    "sinPermiso": {
+      "titulo": "Sin permiso",
+      "descripcion": "Tu rol no tiene acceso a esta sección. Habla con el administrador si necesitas habilitarla.",
+      "volver": "Volver al inicio"
     }
   },
   "comun": {
     "guardar": "Guardar",
     "cancelar": "Cancelar",
     "continuar": "Continuar",
-    "atras": "Atras",
+    "atras": "Atrás",
     "cerrar": "Cerrar",
-    "si": "Si",
-    "no": "No"
+    "si": "Sí",
+    "no": "No",
+    "cerrarAviso": "Cerrar aviso",
+    "mostrarOpciones": "Mostrar opciones",
+    "ayuda": "Ayuda",
+    "limpiar": "Limpiar búsqueda"
   }
 }

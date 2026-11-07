@@ -172,8 +172,10 @@ export function crearGraphClient({
   ): AsyncGenerator<T> {
     let siguiente: string | undefined = ruta;
     while (siguiente) {
-      const respuesta: GraphRespuesta<{ value?: T[]; '@odata.nextLink'?: string }> =
-        await enviar<{ value?: T[]; '@odata.nextLink'?: string }>({
+      const respuesta: GraphRespuesta<{ value?: T[]; '@odata.nextLink'?: string }> = await enviar<{
+        value?: T[];
+        '@odata.nextLink'?: string;
+      }>({
         ...opts,
         metodo: 'GET',
         ruta: siguiente,

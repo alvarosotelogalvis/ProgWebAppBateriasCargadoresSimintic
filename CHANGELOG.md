@@ -24,8 +24,15 @@ adopta [SemVer](https://semver.org/lang/es/).
 - E2E `sync-online.spec.ts` (sin conexión → recepciones → aviso → sincronizar → resumen, con axe
   en 360/768/1280 px) y capturas visuales de la pantalla de sincronización.
 
+- Prueba que verifica que toda clave literal de `t()` exista en `src/locales/es-CO`.
+
 ### Corregido
 
+- Tildes en todos los textos de la interfaz (más de 110 textos) y textos fijos en componentes
+  pasados a i18n (lista de servicios, galería, navegación, diálogos, avisos, "Sin permiso").
+- El namespace de `common.json` se registraba como `comun`: los textos comunes (p. ej. "Cargando…")
+  se mostraban como clave. Faltaba también la clave `detalle.noEncontrado`.
+- La barra superior mostraba "Inicio" en todas las pantallas; ahora muestra la sección actual.
 - Inicio mostraba las claves `vacio.titulo` y `vacio.descripcion` en lugar del texto.
 - El tamaño de lo pendiente mostraba "0 MB" con archivos pequeños; ahora usa KB.
 - La lista "Se subirán" no tenía un orden estable; ahora sigue el orden de la cola del motor.

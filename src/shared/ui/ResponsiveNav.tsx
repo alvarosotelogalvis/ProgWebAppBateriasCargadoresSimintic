@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 
 import { Icon, type IconName } from '@/shared/ui/Icon';
@@ -35,6 +36,7 @@ interface Props {
 }
 
 export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
+  const { t } = useTranslation('navegacion');
   const breakpoint = useBreakpoint();
   const roles = useSesionStore((estado) => estado.roles);
 
@@ -48,7 +50,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
 
   if (breakpoint === 'compacto') {
     return (
-      <nav className={styles.barraInferior!} aria-label="Navegacion principal">
+      <nav className={styles.barraInferior!} aria-label={t('navegacionPrincipal')}>
         <ul className={styles.lista!}>
           {principal.map((item) => (
             <li key={item.id}>
@@ -61,7 +63,9 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
                   <>
                     <IconoConBadge item={item} />
                     <span className={styles.etiqueta!}>{etiquetaDe(item.etiquetaKey)}</span>
-                    {isActive ? <span className={styles.soloLectores!}>Pagina actual</span> : null}
+                    {isActive ? (
+                      <span className={styles.soloLectores!}>{t('paginaActual')}</span>
+                    ) : null}
                   </>
                 )}
               </NavLink>
@@ -74,7 +78,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
 
   if (breakpoint === 'medio') {
     return (
-      <nav className={styles.riel!} aria-label="Navegacion principal">
+      <nav className={styles.riel!} aria-label={t('navegacionPrincipal')}>
         <ul className={styles.listaRiel!}>
           {principal.map((item) => (
             <li key={item.id}>
@@ -96,7 +100,7 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
   }
 
   return (
-    <nav className={styles.lateral!} aria-label="Navegacion principal">
+    <nav className={styles.lateral!} aria-label={t('navegacionPrincipal')}>
       <ul className={styles.listaLateral!}>
         {principal.map((item) => (
           <li key={item.id}>

@@ -1,20 +1,18 @@
-﻿import type { Adjunto } from '@/domain/adjunto';
+import { useTranslation } from 'react-i18next';
+import type { Adjunto } from '@/domain/adjunto';
 import { useObjectUrl } from '@/shared/hooks/useObjectUrl';
 import { Icon } from '@/shared/ui/Icon';
 import { SyncBadge } from '@/shared/ui/SyncBadge';
 
 import styles from './PhotoGallery.module.css';
 
-const ETIQUETA_SYNC: Record<
-  Adjunto['syncState'],
-  { estado: 'pendiente' | 'sincronizado' | 'error'; texto: string }
-> = {
-  local: { estado: 'pendiente', texto: 'Local' },
-  pending: { estado: 'pendiente', texto: 'Pendiente' },
-  syncing: { estado: 'pendiente', texto: 'Sincronizando' },
-  synced: { estado: 'sincronizado', texto: 'Sincronizado' },
-  error: { estado: 'error', texto: 'Error' },
-  conflict: { estado: 'error', texto: 'Conflicto' },
+const ESTADO_SYNC: Record<Adjunto['syncState'], 'pendiente' | 'sincronizado' | 'error'> = {
+  local: 'pendiente',
+  pending: 'pendiente',
+  syncing: 'pendiente',
+  synced: 'sincronizado',
+  error: 'error',
+  conflict: 'error',
 };
 
 function PhotoTile({
@@ -27,7 +25,8 @@ function PhotoTile({
   readonly onEliminar?: ((adjunto: Adjunto) => void) | undefined;
 }): React.JSX.Element {
   const url = useObjectUrl(adjunto.miniatura ?? adjunto.blob);
-  const sync = ETIQUETA_SYNC[adjunto.syncState];
+  const { t } = useTranslation('servicios');
+  const sync = { estado: ESTADO_SYNC[adjunto.syncState], texto: t(`sync.${adjunto.syncState}`) };
 
   return (
     <figure className={styles.ficha!}>

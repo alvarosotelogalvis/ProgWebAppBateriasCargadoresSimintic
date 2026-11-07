@@ -17,7 +17,7 @@ export function AvisoIniciarSesion(): React.JSX.Element | null {
       tipo="info"
       accion={
         <TextLink onPress={() => navigate('/configuracion-inicial')}>
-          {t('avisoSesionAccion', 'Iniciar sesion')}
+          {t('avisoSesionAccion')}
         </TextLink>
       }
     >

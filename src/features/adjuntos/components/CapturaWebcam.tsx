@@ -77,7 +77,7 @@ export function CapturaWebcam({ abierto, onCerrar, onCapturar }: Props): React.J
       {error ? <Banner tipo="peligro">{error}</Banner> : null}
       <video ref={video} playsInline muted className={styles.video!} />
       <div className={styles.acciones!}>
-        <SecondaryButton onPress={onCerrar}>{t('comun:cancelar', 'Cancelar')}</SecondaryButton>
+        <SecondaryButton onPress={onCerrar}>{t('common:comun.cancelar')}</SecondaryButton>
         <PrimaryButton onPress={capturar} isDisabled={Boolean(error)}>
           {t('tomarFoto')}
         </PrimaryButton>

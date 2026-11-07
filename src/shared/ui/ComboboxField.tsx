@@ -1,4 +1,5 @@
-﻿import {
+import { useTranslation } from 'react-i18next';
+import {
   Button,
   ComboBox,
   Input,
@@ -43,6 +44,7 @@ export function ComboboxField({
   error,
   onCambio,
 }: Props): React.JSX.Element {
+  const { t } = useTranslation('common');
   const [texto, setTexto] = useState(valor);
   const idError = error ? `combo-${etiqueta}-error` : undefined;
   const idAyuda = ayuda ? `combo-${etiqueta}-ayuda` : undefined;
@@ -80,7 +82,7 @@ export function ComboboxField({
           {...(descritoPor ? { 'aria-describedby': descritoPor } : {})}
         />
 
-        <Button className={styles.disparador!} aria-label="Mostrar opciones">
+        <Button className={styles.disparador!} aria-label={t('comun.mostrarOpciones')}>
           &#9662;
         </Button>
       </div>

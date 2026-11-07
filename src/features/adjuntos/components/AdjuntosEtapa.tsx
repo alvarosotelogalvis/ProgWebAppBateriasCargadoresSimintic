@@ -137,7 +137,7 @@ export function AdjuntosEtapa({
         <p>{t('eliminarTexto')}</p>
         <div className={styles.acciones!}>
           <SecondaryButton onPress={() => setAEliminar(undefined)}>
-            {t('comun:cancelar', 'Cancelar')}
+            {t('common:comun.cancelar')}
           </SecondaryButton>
           <PrimaryButton
             onPress={() => {

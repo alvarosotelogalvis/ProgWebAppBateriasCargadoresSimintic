@@ -36,7 +36,7 @@ test('inicio y lista no desbordan horizontalmente', async ({ page }) => {
 test('formulario de recepcion no desborda horizontalmente', async ({ page }) => {
   await page.goto('/servicios/nuevo');
   await expect(page).toHaveURL(/\/etapa\/recepcion$/, { timeout: 15_000 });
-  await expect(page.getByRole('button', { name: 'Completar recepcion' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Completar recepción' })).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   expect(await sinDesborde(page)).toBe(true);
   await expect(page).toHaveScreenshot('recepcion.png', { fullPage: true });
@@ -53,7 +53,7 @@ test('filtros y detalle del servicio', async ({ page }) => {
 
   await page.goto(`/servicios/${servicioId}`);
   await listo(page);
-  await expect(page.getByRole('list', { name: 'Linea de tiempo de etapas' })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Línea de tiempo de etapas' })).toBeVisible();
   expect(await sinDesborde(page)).toBe(true);
   await expect(page).toHaveScreenshot('detalle-servicio.png', { fullPage: true });
 });

@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
+import '@/shared/i18n';
 import { useBreakpoint } from '@/shared/hooks/useBreakpoint';
 
 import { ResponsiveNav, type ItemNav } from './ResponsiveNav';

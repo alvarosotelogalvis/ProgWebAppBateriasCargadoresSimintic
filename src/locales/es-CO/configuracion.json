@@ -6,7 +6,7 @@
     "listo": "Listo"
   },
   "progreso": "Paso {{actual}} de {{total}}: {{paso}}",
-  "progresoTitulo": "Progreso de la configuracion inicial",
+  "progresoTitulo": "Progreso de la configuración inicial",
   "bienvenida": {
     "titulo": "SERVICIO TÉCNICO",
     "subtitulo": "BATERÍAS Y CARGADORES",

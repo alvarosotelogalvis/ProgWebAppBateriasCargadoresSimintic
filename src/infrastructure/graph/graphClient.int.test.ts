@@ -76,10 +76,13 @@ describe('graphClient', () => {
       http.get(`${BASE}/limite`, () => {
         intentos += 1;
         if (intentos === 1) {
-          return HttpResponse.json({ error: { code: 'throttled' } }, {
-            status: 429,
-            headers: { 'Retry-After': '0' },
-          });
+          return HttpResponse.json(
+            { error: { code: 'throttled' } },
+            {
+              status: 429,
+              headers: { 'Retry-After': '0' },
+            }
+          );
         }
         return HttpResponse.json({ value: 42 });
       })
@@ -126,7 +129,10 @@ describe('graphClient', () => {
         if (request.headers.get('authorization') === 'Bearer token-2') {
           return HttpResponse.json({ ok: true });
         }
-        return HttpResponse.json({ error: { code: 'InvalidAuthenticationToken' } }, { status: 401 });
+        return HttpResponse.json(
+          { error: { code: 'InvalidAuthenticationToken' } },
+          { status: 401 }
+        );
       })
     );
 

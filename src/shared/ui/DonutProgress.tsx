@@ -3,7 +3,7 @@ import styles from './DonutProgress.module.css';
 interface Props {
   /** Porcentaje de 0 a 100. */
   readonly valor: number;
-  readonly etiqueta?: string;
+  readonly etiqueta: string;
 }
 
 const RADIO = 52;
@@ -12,7 +12,7 @@ const CIRCUNFERENCIA = 2 * Math.PI * RADIO;
 const acotar = (valor: number): number => Math.min(100, Math.max(0, Math.round(valor)));
 
 /** Anillo de progreso SVG propio, sin librerías de gráficas. */
-export function DonutProgress({ valor, etiqueta = 'Sincronizado' }: Props): React.JSX.Element {
+export function DonutProgress({ valor, etiqueta }: Props): React.JSX.Element {
   const porcentaje = acotar(valor);
   const desplazamiento = CIRCUNFERENCIA * (1 - porcentaje / 100);
 

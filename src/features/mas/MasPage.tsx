@@ -15,10 +15,10 @@ export function MasPage(): React.JSX.Element {
     <div>
       <Card fill>
         <h2 className="titulo-seccion">{t('mas')}</h2>
-        <ListRow icono="persona" etiqueta={t('miCuenta', 'Mi cuenta')} href="/cuenta" />
+        <ListRow icono="persona" etiqueta={t('miCuenta')} href="/cuenta" />
         <ListRow
           icono="configuracion"
-          etiqueta={t('configuracionInicial', 'Configuracion inicial')}
+          etiqueta={t('configuracionInicial')}
           onClick={() => navigate('/configuracion-inicial?modo=repetir')}
         />
         <ListRow icono="configuracion" etiqueta={t('ajustes')} href="/ajustes" />

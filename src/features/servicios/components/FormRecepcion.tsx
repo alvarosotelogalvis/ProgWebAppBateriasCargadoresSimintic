@@ -69,7 +69,7 @@ export function FormRecepcion({
   onCompletar,
   children,
 }: Props): React.JSX.Element {
-  const { t } = useTranslation(['servicios', 'comun', 'errores']);
+  const { t } = useTranslation(['servicios', 'common', 'errores']);
   const traducirError = (clave: string): string =>
     clave.startsWith('errores.') ? t(`errores:${clave.slice('errores.'.length)}`) : t(clave);
   const [datos, setDatos] = useState(() => desdeServicio(servicio));
@@ -167,7 +167,7 @@ export function FormRecepcion({
         </Card>
 
         <Card fill>
-          <h3>{t('servicios:detalle.equipo', 'Equipo')}</h3>
+          <h3>{t('servicios:detalle.equipo')}</h3>
           <CampoMarca
             valor={datos.marca}
             onCambio={(marca) => actualizar({ marca })}

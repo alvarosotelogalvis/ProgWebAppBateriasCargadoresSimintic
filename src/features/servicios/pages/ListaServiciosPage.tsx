@@ -28,7 +28,7 @@ const ESTADOS = [
 ] as const;
 
 export function ListaServiciosPage(): React.JSX.Element {
-  const { t } = useTranslation(['servicios', 'comun']);
+  const { t } = useTranslation(['servicios', 'common']);
   const navigate = useNavigate();
   const { servicios, hoy } = useConsultasServicios();
   const [texto, setTexto] = useState('');
@@ -101,9 +101,12 @@ export function ListaServiciosPage(): React.JSX.Element {
                   onClick={() => navigate(`/servicios/${servicio.id}`)}
                 >
                   <span className={styles.principal!}>
-                    <span className={styles.codigo!}>{servicio.codigo || 'Sin codigo'}</span>
+                    <span className={styles.codigo!}>
+                      {servicio.codigo || t('servicios:lista.sinCodigo')}
+                    </span>
                     <span className={styles.secundario!}>
-                      {servicio.clienteNombre || 'Sin cliente'} · {servicio.serie || 'Sin serie'}
+                      {servicio.clienteNombre || t('servicios:lista.sinCliente')} ·{' '}
+                      {servicio.serie || t('servicios:lista.sinSerie')}
                     </span>
                     <span className={styles.fecha!}>{servicio.fechaRecepcion}</span>
                   </span>

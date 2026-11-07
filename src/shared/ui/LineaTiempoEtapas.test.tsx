@@ -12,10 +12,10 @@ describe('LineaTiempoEtapas', () => {
 
     const pasos = screen.getAllByRole('listitem');
     expect(pasos).toHaveLength(5);
-    expect(screen.getByRole('list', { name: 'Linea de tiempo de etapas' })).toBeInTheDocument();
-    expect(within(pasos[0]!).getByText('Recepcion')).toBeInTheDocument();
-    expect(within(pasos[1]!).getByText('Diagnostico')).toBeInTheDocument();
-    expect(within(pasos[4]!).getByText('Facturacion')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Línea de tiempo de etapas' })).toBeInTheDocument();
+    expect(within(pasos[0]!).getByText('Recepción')).toBeInTheDocument();
+    expect(within(pasos[1]!).getByText('Diagnóstico')).toBeInTheDocument();
+    expect(within(pasos[4]!).getByText('Facturación')).toBeInTheDocument();
   });
 
   it('marca la etapa actual y las completadas', () => {

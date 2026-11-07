@@ -67,7 +67,7 @@ export const crearRecepcion = async (
   await page.getByRole('combobox', { name: 'Marca' }).fill('ROQUET');
   await page.getByLabel('Referencia').fill('REF-SYNC');
   await page.getByLabel('Serie').fill(serie);
-  await page.getByLabel('Numero de solicitud').fill(solicitud);
+  await page.getByLabel('Número de solicitud').fill(solicitud);
 
   await page
     .locator('input[type="file"][multiple]')
@@ -76,7 +76,7 @@ export const crearRecepcion = async (
     ]);
   await expect(page.getByRole('button', { name: /^Ver / })).toHaveCount(1, { timeout: 15_000 });
 
-  await page.getByRole('button', { name: 'Completar recepcion' }).click();
+  await page.getByRole('button', { name: 'Completar recepción' }).click();
   await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+$/, { timeout: 15_000 });
   const codigo = `BAT-${solicitud}-${serie}`;
   await expect(page.getByText(codigo)).toBeVisible();

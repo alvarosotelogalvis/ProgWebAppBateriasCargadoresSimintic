@@ -29,7 +29,7 @@ export function PillInput({ valor, onCambio, placeholder, etiqueta }: Props): Re
           type="button"
           className={styles.limpiar!}
           onClick={() => onCambio('')}
-          aria-label={t('comun.limpiar', 'Limpiar busqueda')}
+          aria-label={t('comun.limpiar')}
         >
           <Icon nombre="cerrar" tamano={20} />
         </button>

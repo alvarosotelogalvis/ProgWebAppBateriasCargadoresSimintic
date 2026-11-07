@@ -36,7 +36,7 @@ interface Props {
 }
 
 export function FiltrosServicios({ valor, hoy, onCambio, onAplicar }: Props): React.JSX.Element {
-  const { t } = useTranslation(['servicios', 'comun']);
+  const { t } = useTranslation(['servicios', 'common']);
   const clientes = useCatalogo<ClienteCatalogo[]>('clientes') ?? [];
   const estado = valor.estados?.[0] ?? '';
   const clienteNombre = clientes.find((cliente) => cliente.id === valor.clienteId)?.nombre ?? '';

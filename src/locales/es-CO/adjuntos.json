@@ -1,12 +1,12 @@
 {
   "titulo": "Fotos de ingreso",
   "contador": "{{actual}} de {{maximo}}",
-  "minimo": "Agrega al menos {{minimo}} foto(s) para completar la recepcion.",
+  "minimo": "Agrega al menos {{minimo}} foto(s) para completar la recepción.",
   "maximo": "Puedes adjuntar hasta {{maximo}} fotos.",
   "tomarFoto": "Tomar foto",
-  "galeria": "Galeria",
+  "galeria": "Galería",
   "archivo": "Archivo",
-  "webcam": "Camara del equipo",
+  "webcam": "Cámara del equipo",
   "procesando": "Procesando {{actual}} de {{total}}...",
   "eliminar": "Eliminar foto",
   "eliminarTitulo": "Eliminar foto",
@@ -17,15 +17,15 @@
   "siguiente": "Foto siguiente",
   "agregar": "Agregar fotos",
   "error": {
-    "formato": "Formato no soportado. Usa JPG, PNG o WebP. Si tu iPhone genera HEIC, cambia el formato de camara a Mas compatible.",
-    "duplicada": "Esta foto ya esta adjunta al servicio.",
-    "maximo": "Ya alcanzaste el maximo de fotos permitido.",
+    "formato": "Formato no soportado. Usa JPG, PNG o WebP. Si tu iPhone genera HEIC, cambia el formato de cámara a Más compatible.",
+    "duplicada": "Esta foto ya está adjunta al servicio.",
+    "maximo": "Ya alcanzaste el máximo de fotos permitido.",
     "almacenamiento": "No hay suficiente espacio en el dispositivo.",
     "desconocido": "No se pudo procesar la imagen.",
-    "camara": "No se pudo abrir la camara."
+    "camara": "No se pudo abrir la cámara."
   },
   "almacenamiento": {
-    "aviso": "El almacenamiento del dispositivo esta al {{porcentaje}} %. Sincroniza y libera espacio.",
-    "lleno": "El almacenamiento esta lleno. No se pueden agregar fotos."
+    "aviso": "El almacenamiento del dispositivo está al {{porcentaje}} %. Sincroniza y libera espacio.",
+    "lleno": "El almacenamiento está lleno. No se pueden agregar fotos."
   }
 }

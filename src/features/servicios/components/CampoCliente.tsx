@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import { useCatalogo } from '@/infrastructure/db/hooks';
 import { ComboboxField } from '@/shared/ui/ComboboxField';
@@ -23,7 +23,7 @@ export function CampoCliente({
   onCambio,
   error,
 }: Props): React.JSX.Element {
-  const { t } = useTranslation(['servicios', 'comun']);
+  const { t } = useTranslation(['servicios', 'common']);
   const clientes = useCatalogo<ClienteCatalogo[]>('clientes') ?? [];
   const items = clientes
     .filter((cliente) => cliente.activo || cliente.id === clienteId)

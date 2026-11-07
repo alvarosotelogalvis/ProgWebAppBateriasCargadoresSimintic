@@ -49,15 +49,16 @@ export function mapearConfiguracion(items: readonly ItemGraph[]): Record<string,
 }
 
 export function mapearChoices(columnas: readonly ColumnaGraph[]): Record<ColumnaChoice, string[]> {
-  const resultado = Object.fromEntries(COLUMNAS_CHOICE.map((columna) => [columna, [] as string[]])) as Record<
-    ColumnaChoice,
-    string[]
-  >;
+  const resultado = Object.fromEntries(
+    COLUMNAS_CHOICE.map((columna) => [columna, [] as string[]])
+  ) as Record<ColumnaChoice, string[]>;
 
   for (const columna of columnas) {
     if (!columna.name || !(COLUMNAS_CHOICE as readonly string[]).includes(columna.name)) continue;
     const nombre = columna.name as ColumnaChoice;
-    resultado[nombre] = [...(columna.choice?.choices ?? [])].map((valor) => valor.trim()).filter(Boolean);
+    resultado[nombre] = [...(columna.choice?.choices ?? [])]
+      .map((valor) => valor.trim())
+      .filter(Boolean);
   }
   return resultado;
 }
