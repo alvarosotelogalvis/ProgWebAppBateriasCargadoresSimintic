@@ -19,17 +19,61 @@ export type ResultadoConflicto412 =
  * - Si hay choque: marca como conflicto
  * T-018
  */
-export function crearResolutorConflicto412(_deps: {
+export function crearResolutorConflicto412(deps: {
   readonly remoto: RemoteGateway;
   readonly servicios: ServicioRepository;
   readonly logger: Logger;
   readonly reloj: Clock;
-}): (_local: Servicio) => Promise<ResultadoConflicto412> {
-  return async () => {
-    // TODO: Obtener cambios remotos para el servicioId
-    // TODO: Aplicar mergeTresVias
-    // TODO: Decidir: reintentar o conflicto
-    throw new Error('resolverConflicto412: not implemented');
+}): (local: Servicio) => Promise<ResultadoConflicto412> {
+  return async (local) => {
+    // Obtener cambios remotos para este servicioId
+    const { cambios } = await deps.remoto.cambiosServicios();
+    const cambioRemoto = cambios.find((c) => c.servicioId === local.id);
+
+    if (!cambioRemoto) {
+      // El ítem no existe en remoto - no hay conflicto
+      return {
+        tipo: 'reintentar',
+        nuevoETag: local.sp?.eTag ?? '',
+        servicio: local,
+      };
+    }
+
+    // Aplicar merge a 3 vías
+    const { servicio: merged, conflictos } = mergeTresVias(
+      local,
+      cambioRemoto.fields as Record<string, unknown>
+    );
+
+    // Actualizar eTag y metadatos remotos
+    if (cambioRemoto.itemId && cambioRemoto.modified) {
+      merged.sp = {
+        itemId: cambioRemoto.itemId,
+        eTag: `etag-nuevo`, // El nuevo eTag vendría del response del PATCH exitoso
+        modificadoEn: cambioRemoto.modified,
+        webUrl: local.sp?.webUrl ?? '',
+      };
+    }
+
+    // Decidir resultado
+    if (conflictos.length === 0) {
+      // Sin choque: reintentar PATCH
+      return {
+        tipo: 'reintentar',
+        nuevoETag: cambioRemoto.itemId ? `etag-nuevo` : (local.sp?.eTag ?? ''),
+        servicio: merged,
+      };
+    }
+
+    // Con choque: marcar como conflicto
+    return {
+      tipo: 'conflicto',
+      servicio: {
+        ...merged,
+        conflictos,
+        syncState: 'conflict',
+      },
+    };
   };
 }
 

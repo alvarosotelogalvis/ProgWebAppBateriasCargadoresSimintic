@@ -89,25 +89,30 @@ describe('resolverConflicto412 — conflicto 412 en el push (T-015)', () => {
   it('crea conflicto cuando el merge a 3 vías tiene choque (ES-006-08)', async () => {
     // Escenario: ambos cambiaron el mismo campo (observacionTecnica)
     // Resultado: conflicto, syncState='conflict'
-    const local = servicioBuilder({
-      id: 'svc-1',
-      estado: 'DIAGNOSTICADO',
-      observacionTecnica: 'Cambio local EN 10:00',
-      camposSucios: ['observacionTecnica'],
-      sp: {
-        itemId: 'item-1',
-        eTag: 'etag-viejo',
-        modificadoEn: '2026-11-07T09:00:00Z',
-        webUrl: 'https://sp/items/1',
-      },
-    });
+    const local = servicioBuilder().construir();
+
+    // Establecer estado:
+    // - base tiene el valor ANTERIOR
+    // - local tiene CAMBIO LOCAL
+    // - remoto tendrá CAMBIO REMOTO
+    local.id = 'svc-1';
+    local.estado = 'DIAGNOSTICADO';
+    local.observacionTecnica = 'Cambio local EN 10:00';
+    local.camposSucios = ['observacionTecnica'];
+    local.base = { observacionTecnica: 'Valor anterior' }; // Valor ANTES
+    local.sp = {
+      itemId: 'item-1',
+      eTag: 'etag-viejo',
+      modificadoEn: '2026-11-07T09:00:00Z',
+      webUrl: 'https://sp/items/1',
+    };
 
     const remoteMasReciente = {
       id: 'item-1',
       servicioId: 'svc-1',
       fields: {
         estado: 'DIAGNOSTICADO',
-        observacionTecnica: 'Cambio remoto EN 09:30',
+        observacionTecnica: 'Cambio remoto EN 09:30', // DIFERENTE al local
         diagnostico: 'Batería descargada',
       },
       itemId: 'item-1',

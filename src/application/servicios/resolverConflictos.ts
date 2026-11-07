@@ -18,15 +18,54 @@ export interface Eleccion {
  * - Marca como pendiente para reintento
  * T-019
  */
-export function crearResolverConflictos(_deps: {
+export function crearResolverConflictos(deps: {
   readonly servicios: ServicioRepository;
   readonly reloj: Clock;
-}): (_servicioId: string, _elecciones: readonly Eleccion[]) => Promise<void> {
-  return async () => {
-    // TODO: Obtener servicio con conflictos
-    // TODO: Validar elecciones completas
-    // TODO: Aplicar elecciones (LOCAL/REMOTO)
-    // TODO: Guardar servicio como 'pending'
-    throw new Error('resolverConflictos: not implemented');
+}): (servicioId: string, elecciones: readonly Eleccion[]) => Promise<void> {
+  return async (servicioId, elecciones) => {
+    // Obtener servicio con conflictos
+    const servicio = await deps.servicios.obtener(servicioId);
+    if (!servicio) {
+      throw new Error(`Servicio ${servicioId} no encontrado`);
+    }
+
+    // Validar que todas las elecciones estén presentes
+    if (elecciones.length !== servicio.conflictos.length) {
+      throw new Error('Elecciones incompleta: faltan campos');
+    }
+
+    for (const conflicto of servicio.conflictos) {
+      const eleccion = elecciones.find((e) => e.campo === conflicto.campo);
+      if (!eleccion) {
+        throw new Error(`Falta elección para campo ${conflicto.campo}`);
+      }
+    }
+
+    // Aplicar elecciones
+    const camposSucios = new Set<keyof typeof servicio>(servicio.camposSucios);
+
+    for (const eleccion of elecciones) {
+      if (eleccion.usar === 'LOCAL') {
+        // LOCAL: deja el campo sucio para reintentar en próxima sync
+        camposSucios.add(eleccion.campo);
+      } else {
+        // REMOTO: limpia el campo (toma del base que tiene el valor remoto)
+        camposSucios.delete(eleccion.campo);
+        // Restaurar valor del base (que tiene el remoto)
+        const valorBase = (servicio.base as Record<string, unknown>)[eleccion.campo];
+        (servicio as Record<string, unknown>)[eleccion.campo] = valorBase;
+      }
+    }
+
+    // Guardar servicio resuelto
+    const actualizado = {
+      ...servicio,
+      camposSucios: Array.from(camposSucios),
+      conflictos: [], // Conflictos resueltos
+      syncState: camposSucios.size > 0 ? ('pending' as const) : ('synced' as const),
+      actualizadoEn: deps.reloj.ahoraIso(),
+    };
+
+    await deps.servicios.guardar(actualizado);
   };
 }
