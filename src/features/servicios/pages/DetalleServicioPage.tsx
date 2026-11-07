@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { useContainer } from '@/app/containerContext';
 import { useAdjuntos, useServicio } from '@/infrastructure/db/hooks';
+import { BannerConflicto } from '@/features/sincronizacion/components/BannerConflicto';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { LineaTiempoEtapas } from '@/shared/ui/LineaTiempoEtapas';
@@ -36,6 +37,8 @@ export function DetalleServicioPage(): React.JSX.Element {
       <button type="button" className={styles.volver!} onClick={() => navigate('/servicios')}>
         {t('detalle.volver')}
       </button>
+
+      {servicio.syncState === 'conflict' && <BannerConflicto servicioId={servicio.id} />}
 
       <Card fill>
         <div className={styles.cabecera!}>

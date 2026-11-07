@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { Conflicto } from '@/domain/servicio';
+import type { ConflictoCampo } from '@/domain/servicio';
 
 /**
  * Campo en conflicto con dos opciones seleccionables (LOCAL / REMOTO)
@@ -8,8 +8,8 @@ import type { Conflicto } from '@/domain/servicio';
  */
 
 interface CampoConflictoProps {
-  readonly conflicto: Conflicto;
-  readonly seleccion?: 'LOCAL' | 'REMOTO';
+  readonly conflicto: ConflictoCampo;
+  readonly seleccion: 'LOCAL' | 'REMOTO' | undefined;
   readonly onChange: (valor: 'LOCAL' | 'REMOTO') => void;
   readonly editor?: string;
   readonly editorNombre?: string;

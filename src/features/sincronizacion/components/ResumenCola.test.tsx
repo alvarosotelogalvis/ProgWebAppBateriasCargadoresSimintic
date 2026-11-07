@@ -1,9 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { BrowserRouter } from 'react-router-dom';
 
 import '@/shared/i18n';
 
 import type { ColaSync } from '@/infrastructure/db/hooks';
+import type { Servicio } from '@/domain/servicio';
 
 import { ResumenCola } from './ResumenCola';
 
@@ -42,9 +44,23 @@ const COLA: ColaSync = {
   conflictos: [{ id: 'c1', codigo: 'BAT-4', descripcion: '', syncState: 'conflict', intentos: 0 }],
 };
 
+const SERVICIOS_MOCK: Servicio[] = [
+  {
+    id: 'c1',
+    codigo: 'BAT-4',
+    estado: 'RECIBIDO',
+    syncState: 'conflict',
+    conflictos: [{ campo: 'observacionTecnica', local: 'Valor local', remoto: 'Valor remoto' }],
+  } as Servicio,
+];
+
 describe('ResumenCola', () => {
   it('muestra el % sincronizado y la cola por defecto', () => {
-    render(<ResumenCola cola={COLA} porcentajeEnCurso={null} onReintentar={vi.fn()} />);
+    render(
+      <BrowserRouter>
+        <ResumenCola cola={COLA} porcentajeEnCurso={null} onReintentar={vi.fn()} servicios={[]} />
+      </BrowserRouter>
+    );
 
     expect(screen.getByRole('img', { name: 'Sincronizado: 70%' })).toBeInTheDocument();
     expect(screen.getByText('7 de 10 registros sincronizados')).toBeInTheDocument();
@@ -53,7 +69,11 @@ describe('ResumenCola', () => {
   });
 
   it('usa el avance de la ejecución en curso cuando existe', () => {
-    render(<ResumenCola cola={COLA} porcentajeEnCurso={40} onReintentar={vi.fn()} />);
+    render(
+      <BrowserRouter>
+        <ResumenCola cola={COLA} porcentajeEnCurso={40} onReintentar={vi.fn()} servicios={[]} />
+      </BrowserRouter>
+    );
     expect(
       screen.getByRole('img', { name: 'Avance de la sincronización: 40%' })
     ).toBeInTheDocument();
@@ -61,7 +81,16 @@ describe('ResumenCola', () => {
 
   it('lista los errores con un mensaje comprensible y permite reintentar (ES-005-17)', () => {
     const onReintentar = vi.fn();
-    render(<ResumenCola cola={COLA} porcentajeEnCurso={null} onReintentar={onReintentar} />);
+    render(
+      <BrowserRouter>
+        <ResumenCola
+          cola={COLA}
+          porcentajeEnCurso={null}
+          onReintentar={onReintentar}
+          servicios={[]}
+        />
+      </BrowserRouter>
+    );
 
     fireEvent.click(screen.getByRole('radio', { name: /Con error/ }));
 
@@ -77,7 +106,14 @@ describe('ResumenCola', () => {
 
   it('muestra los conflictos y un estado vacío en cada segmento', () => {
     render(
-      <ResumenCola cola={{ ...COLA, enCola: [] }} porcentajeEnCurso={null} onReintentar={vi.fn()} />
+      <BrowserRouter>
+        <ResumenCola
+          cola={{ ...COLA, enCola: [] }}
+          porcentajeEnCurso={null}
+          onReintentar={vi.fn()}
+          servicios={SERVICIOS_MOCK}
+        />
+      </BrowserRouter>
     );
     expect(screen.getByText('No hay registros en cola')).toBeInTheDocument();
 

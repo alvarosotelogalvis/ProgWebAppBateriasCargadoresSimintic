@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { Eleccion } from '@/application/servicios/resolverConflictos';
 import type { Servicio } from '@/domain/servicio';
-import { usarContenedor } from '@/app/container';
+import { useContainer } from '@/app/containerContext';
 import { CampoConflicto } from '../components/CampoConflicto';
 
 /**
@@ -16,26 +16,25 @@ export function ResolverConflictoPage() {
   const { t } = useTranslation('sync');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const container = useContainer();
   const [servicio, setServicio] = useState<Servicio | null>(null);
   const [cargando, setCargando] = useState(true);
   const [resolviendo, setResolviendo] = useState(false);
   const [elecciones, setElecciones] = useState<Map<string, 'LOCAL' | 'REMOTO'>>(new Map());
-
-  const { servicios, casosDeUso } = usarContenedor();
 
   // Cargar servicio
   useEffect(() => {
     const cargar = async () => {
       if (!id) return;
       try {
-        const svc = await servicios.obtener(id);
-        setServicio(svc);
+        const svc = await container.servicios.obtener(id);
+        setServicio(svc ?? null);
       } finally {
         setCargando(false);
       }
     };
     cargar();
-  }, [id, servicios]);
+  }, [id, container.servicios]);
 
   if (cargando || !servicio) {
     return <div>{t('conflictos.titulo')}...</div>;
@@ -63,7 +62,7 @@ export function ResolverConflictoPage() {
           usar: elecciones.get(c.campo)!,
         }));
 
-      await casosDeUso.resolverConflictos(servicio.id, eleccionesArray);
+      await container.casosDeUso.resolverConflictos(servicio.id, eleccionesArray);
       navigate('/sincronizacion', { replace: true });
     } finally {
       setResolviendo(false);
