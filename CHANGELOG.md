@@ -12,6 +12,13 @@ adopta [SemVer](https://semver.org/lang/es/).
 - Sincronización (spec 005): progreso por servicio y archivo con cancelación ordenada, cola con
   % sincronizado y segmentos En cola · Con error · Conflictos, mensajes de error por código,
   acción "Reintentar" (reinicia los intentos) y resumen al terminar o si otra ventana ya sincroniza.
+
+- Sincronización pull (spec 006): descarga incremental de servicios de otros usuarios (delta paginado
+  con fallback por `Modified`), merge a 3 vías por campo, resolución de conflictos con elección
+  LOCAL/REMOTO, regla del estado más avanzado, descargar miniaturas remotas (≤50 por sync, respeta
+  cuota 80% y configuración), pantalla de resolución con tabla responsiva (expandido) y tarjetas
+  (móvil), BannerConflicto en detalle, ListaConflictos en pestaña Sincronización, componente
+  AdjuntoRemoto con badge "En SharePoint" e link inteligente (deshabilitado sin red).
 - Componentes del sistema de diseño: `BarList`, `DonutProgress` y `Chip`.
 - Recordatorios de sincronización: contador de pendientes siempre al día en la barra superior,
   badge en "Sincronizar" (navegación e Inicio), aviso "¿Sincronizar ahora?" al volver la conexión
