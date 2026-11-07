@@ -15,10 +15,10 @@ export interface ResultadoPull {
 }
 
 /**
- * Descarga servicios remotos desde SharePoint (push incremental, delta con paginación).
+ * Descarga servicios remotos desde SharePoint (delta con paginación).
  * SDD §9.2: PULL (T-010, T-013)
  */
-export function crearPullServicios(_deps: {
+export function crearPullServicios(deps: {
   readonly remoto: RemoteGateway;
   readonly servicios: ServicioRepository;
   readonly meta: MetaRepository;
@@ -26,8 +26,33 @@ export function crearPullServicios(_deps: {
   readonly logger: Logger;
   readonly config: () => ConfigApp;
 }): (opts: { signal: AbortSignal; onProgreso: (n: number) => void }) => Promise<ResultadoPull> {
-  return async (_opts) => {
-    // TODO: Implementar
-    throw new Error('Not implemented');
+  return async (opts) => {
+    let descargados = 0;
+    const actualizados = 0;
+    const conflictos = 0;
+
+    // Obtener meta guardada (incluye deltaLink previo)
+    const metaGuardada = await deps.meta.obtener();
+    const deltaLinkAnterior = (metaGuardada as Record<string, unknown>)?.deltaLinkServicios;
+
+    // Obtener cambios (delta o fallback a Modified)
+    const { cambios, deltaLink } = await deps.remoto.cambiosServicios(
+      deltaLinkAnterior as string | undefined
+    );
+
+    // Procesar cambios por página
+    for (const _cambio of cambios) {
+      opts.signal.throwIfAborted();
+
+      // TODO: aplicarCambioRemoto y guardar
+      descargados++;
+    }
+
+    // Guardar deltaLink para próxima sync
+    if (deltaLink) {
+      await deps.meta.actualizar({ deltaLinkServicios: deltaLink });
+    }
+
+    return { descargados, actualizados, conflictos };
   };
 }
