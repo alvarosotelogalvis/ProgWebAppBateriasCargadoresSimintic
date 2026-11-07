@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { Servicio } from '@/domain/servicio';
 import type { Eleccion } from '@/application/servicios/resolverConflictos';
+import type { Servicio } from '@/domain/servicio';
+import { usarContenedor } from '@/app/container';
 import { CampoConflicto } from '../components/CampoConflicto';
 
 /**
@@ -10,17 +12,40 @@ import { CampoConflicto } from '../components/CampoConflicto';
  * T-020
  */
 
-interface ResolverConflictoPageProps {
-  readonly servicio: Servicio;
-  readonly onResolver: (elecciones: Eleccion[]) => Promise<void>;
-}
-
-export function ResolverConflictoPage({ servicio, onResolver }: ResolverConflictoPageProps) {
+export function ResolverConflictoPage() {
   const { t } = useTranslation('sync');
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [servicio, setServicio] = useState<Servicio | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [resolviendo, setResolviendo] = useState(false);
   const [elecciones, setElecciones] = useState<Map<string, 'LOCAL' | 'REMOTO'>>(new Map());
 
-  const todasElegidas =
-    servicio.conflictos.length > 0 && servicio.conflictos.every((c) => elecciones.has(c.campo));
+  const { servicios, casosDeUso } = usarContenedor();
+
+  // Cargar servicio
+  useEffect(() => {
+    const cargar = async () => {
+      if (!id) return;
+      try {
+        const svc = await servicios.obtener(id);
+        setServicio(svc);
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargar();
+  }, [id, servicios]);
+
+  if (cargando || !servicio) {
+    return <div>{t('conflictos.titulo')}...</div>;
+  }
+
+  if (servicio.conflictos.length === 0) {
+    return <p>{t('conflictos.sinConflictos')}</p>;
+  }
+
+  const todasElegidas = servicio.conflictos.every((c) => elecciones.has(c.campo));
 
   const handleChange = (campo: string, valor: 'LOCAL' | 'REMOTO') => {
     const nueva = new Map(elecciones);
@@ -29,14 +54,20 @@ export function ResolverConflictoPage({ servicio, onResolver }: ResolverConflict
   };
 
   const handleAplicar = async () => {
-    const eleccionesArray: Eleccion[] = servicio.conflictos
-      .filter((c) => elecciones.has(c.campo))
-      .map((c) => ({
-        campo: c.campo,
-        usar: elecciones.get(c.campo)!,
-      }));
+    setResolviendo(true);
+    try {
+      const eleccionesArray: Eleccion[] = servicio.conflictos
+        .filter((c) => elecciones.has(c.campo))
+        .map((c) => ({
+          campo: c.campo,
+          usar: elecciones.get(c.campo)!,
+        }));
 
-    await onResolver(eleccionesArray);
+      await casosDeUso.resolverConflictos(servicio.id, eleccionesArray);
+      navigate('/sincronizacion', { replace: true });
+    } finally {
+      setResolviendo(false);
+    }
   };
 
   return (
@@ -54,8 +85,8 @@ export function ResolverConflictoPage({ servicio, onResolver }: ResolverConflict
         ))}
       </div>
 
-      <button onClick={handleAplicar} disabled={!todasElegidas} type="button">
-        {t('conflictos.boton')}
+      <button onClick={handleAplicar} disabled={!todasElegidas || resolviendo} type="button">
+        {resolviendo ? 'Aplicando...' : t('conflictos.boton')}
       </button>
     </div>
   );
