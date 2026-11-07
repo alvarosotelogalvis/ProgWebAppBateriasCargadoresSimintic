@@ -37,7 +37,7 @@ export const CONFIG_DEFECTO: Readonly<ConfigApp> = Object.freeze({
   imagenCalidad: 0.75,
   vidaUtilMesesDefecto: 12,
   umbralesAlertaDias: [90, 60, 30],
-  retencionCerradosMeses: 6,
+  retencionCerradosMeses: 3,
   retencionOriginalesDias: 7,
   descargarMiniaturasRemotas: true,
   diagnosticoValorDisposicionFinal: 'D. FINAL',

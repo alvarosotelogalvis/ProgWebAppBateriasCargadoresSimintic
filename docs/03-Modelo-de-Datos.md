@@ -224,7 +224,7 @@ Dato inicial: `ROQUET`.
 | `ImagenCalidad`                       | decimal                       | `0.75`                | —                                                                   |
 | `VidaUtilMesesDefecto`                | entero                        | `12`                  | Sugerencia de la proyección de vida útil                            |
 | `UmbralesAlertaDias`                  | CSV                           | `90,60,30`            | Alertas en la app y en el flujo                                     |
-| `RetencionCerradosMeses`              | entero                        | `6`                   | Servicios cerrados que se conservan localmente                      |
+| `RetencionCerradosMeses`              | entero                        | `3`                   | Servicios cerrados que se conservan localmente                      |
 | `RetencionOriginalesDias`             | entero                        | `7`                   | Días que se conserva el archivo original ya sincronizado            |
 | `DescargarMiniaturasRemotas`          | `true`/`false`                | `true`                | Solo para servicios abiertos                                        |
 | `DiagnosticoValorDisposicionFinal`    | texto                         | `D. FINAL`            | Valor de `Diagnostico` que significa DF                             |

@@ -26,6 +26,10 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 - Prueba que verifica que toda clave literal de `t()` exista en `src/locales/es-CO`.
 
+### Cambiado
+
+- `RetencionCerradosMeses` por defecto pasa de 6 a 3 meses (aclaración de la spec 006).
+
 ### Corregido
 
 - Tildes en todos los textos de la interfaz (más de 110 textos) y textos fijos en componentes
