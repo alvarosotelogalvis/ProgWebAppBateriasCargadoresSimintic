@@ -1,6 +1,6 @@
 # Spec 007 — Etapas del servicio y roles
 
-- **Estado**: Borrador
+- **Estado**: Aprobada
 - **Fecha**: 2026-10-21 · **Rama**: `feature/007-etapas-servicio-roles`
 - **Fase**: F7 (`docs/07`) · **Depende de**: 003 (recepción y adjuntos), 006 (descarga y conflictos), 004 (roles)
 - **Fuentes**: PRD [HU-04, HU-05, HU-06 (captura), HU-07, HU-08, HU-15; RF-05, RF-07, RF-08, RF-25, RF-26; RNF-01, RNF-08, RNF-11] · ADR [0006, 0011, 0012] · Modelo de datos [§2.3–§2.7, §3.1, §4, §5]
@@ -13,9 +13,9 @@ Después de la recepción, cada servicio avanza por las etapas del Excel (column
 
 ### HU-007-1 — Diagnosticar el equipo (Prioridad P1) 🎯
 
-Como **técnico** quiero registrar el diagnóstico con su formato en PDF y mi observación, para dejar documentado el estado real del equipo.
+Como **técnico** quiero registrar el diagnóstico con su formato en PDF, mi observación (texto o audio), para dejar documentado el estado real del equipo.
 **Por qué P1**: es la etapa que decide todo el resto del flujo (reparar o disposición final).
-**Prueba independiente**: en modo avión, sobre un servicio Recibido, completar el diagnóstico "Reparable" con un PDF; el servicio queda Diagnosticado y pendiente de sincronizar.
+**Prueba independiente**: en modo avión, sobre un servicio Recibido, completar el diagnóstico "Reparable" con un PDF y observación de audio; el servicio queda Diagnosticado y pendiente de sincronizar.
 
 **Escenarios de aceptación**
 
@@ -151,14 +151,14 @@ Como **usuario** quiero ver en Inicio cuántos servicios esperan mi acción, par
 - El correo automático de la OT y las alertas de vida útil (spec 008).
 - Generar el PDF de cotización o factura dentro de la app.
 - Reabrir servicios finales.
-- Grabar audio para la observación técnica (se usa el dictado del teclado, PA-13).
+- **Actualizado PA-13**: ahora SÍ incluye opción de grabación de audio para la observación técnica.
 - La subida y descarga de estos datos (specs 005 y 006, que ya los cubren de forma genérica).
 
 ## 8. Aclaraciones
 
-| Fecha | Pregunta                                                                                                                                                               | Respuesta |
-| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| —     | [NECESITA ACLARACIÓN: ¿qué valores tiene la lista de diagnóstico? — por defecto: Reparable, Garantía, Sin falla, D. FINAL; la disposición final es "D. FINAL" (PA-01)] | —         |
-| —     | [NECESITA ACLARACIÓN: ¿qué datos lleva la cotización? — por defecto: fecha de envío, valor, respuesta y PDF opcional (PA-02)]                                          | —         |
-| —     | [NECESITA ACLARACIÓN: ¿qué pasa si el cliente rechaza la cotización? — por defecto: entrega sin reparación sin OT, luego facturación (PA-03)]                          | —         |
-| —     | [NECESITA ACLARACIÓN: ¿la observación técnica "verbal" requiere audio? — por defecto: no, texto con dictado del teclado (PA-13)]                                       | —         |
+| Fecha      | Pregunta                                               | Respuesta                                                                                             |
+| ---------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| 2026-11-07 | ¿qué valores tiene la lista de diagnóstico? (PA-01)    | ✅ Confirmado: Reparable, Garantía, Sin falla, D. FINAL. Disposición final = "D. FINAL"               |
+| 2026-11-07 | ¿qué datos lleva la cotización? (PA-02)                | ✅ Confirmado: fecha de envío, valor en pesos, respuesta (Pendiente/Aprobada/Rechazada), PDF opcional |
+| 2026-11-07 | ¿qué pasa si el cliente rechaza la cotización? (PA-03) | ✅ Confirmado: entrega sin reparación sin OT, luego facturación                                       |
+| 2026-11-07 | ¿la observación técnica requiere audio? (PA-13)        | ✅ **Cambio**: Sí, opción de grabar audio + texto (no solo dictado del teclado)                       |
