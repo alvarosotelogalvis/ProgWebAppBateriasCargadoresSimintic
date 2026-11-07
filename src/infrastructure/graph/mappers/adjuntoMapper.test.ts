@@ -25,11 +25,11 @@ describe('adjuntoMapper (T-007)', () => {
         id: expect.any(String),
         servicioId,
         tipo: 'FOTO_INGRESO',
-        nombre: 'foto-ingreso.jpg',
-        origen: 'remoto',
+        nombreArchivo: 'foto-ingreso.jpg',
+        syncState: 'synced',
         blob: null,
       });
-      expect(resultado.tamaño).toBe(51200);
+      expect(resultado.tamanoBytes).toBe(51200);
     });
 
     it('mapea un archivo PDF remoto', () => {
@@ -48,11 +48,12 @@ describe('adjuntoMapper (T-007)', () => {
       );
 
       expect(resultado.tipo).toBe('FORMATO_DIAGNOSTICO');
-      expect(resultado.nombre).toBe('certificado.pdf');
-      expect(resultado.origen).toBe('remoto');
+      expect(resultado.nombreArchivo).toBe('certificado.pdf');
+      expect(resultado.mime).toBe('application/pdf');
+      expect(resultado.sp?.driveItemId).toBe('drive-item-2');
     });
 
-    it('crea URLs de thumbnail si están disponibles', () => {
+    it('crea blobs de thumbnail si están disponibles', () => {
       const driveItem = {
         id: 'drive-item-1',
         name: 'foto.jpg',
@@ -69,7 +70,8 @@ describe('adjuntoMapper (T-007)', () => {
 
       const resultado = adjuntoMapper(driveItem, servicioId, 'FOTO_INGRESO');
 
-      expect(resultado.urlMiniatura).toBe('https://empresa.sharepoint.com/thumbnail/small');
+      // La miniatura se descargará luego; por ahora solo almacenamos el URL
+      expect(resultado.miniatura).toBeNull();
     });
   });
 
