@@ -113,6 +113,7 @@
     "subtitulo": "Adjunta la factura para cerrar el servicio.",
     "pdf": "PDF de la factura",
     "pdfAyuda": "Documento oficial de la factura.",
+    "adjuntar": "Adjuntar factura",
     "fecha": "Fecha de facturación",
     "fechaAyuda": "Fecha en que se emitió la factura. Debe ser ≥ recepción y ≤ hoy.",
     "numero": "Número de factura (opcional)",
