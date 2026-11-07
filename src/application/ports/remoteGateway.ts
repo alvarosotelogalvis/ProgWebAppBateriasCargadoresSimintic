@@ -40,7 +40,7 @@ export interface RemoteGateway {
   leerCatalogos(): Promise<Catalogos>;
   leerConfiguracion(): Promise<Record<string, string>>;
   // Pull operations (T-011)
-  cambiosServicios(deltaLinkAnterior?: string): Promise<CambiosServicios>;
+  cambiosServicios(deltaLinkAnterior?: string, signal?: AbortSignal): Promise<CambiosServicios>;
   listarArchivosServicio(
     servicioId: string
   ): Promise<Array<{ id: string; name: string; size: number; webUrl: string }>>;

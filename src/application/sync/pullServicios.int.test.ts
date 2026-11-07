@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { crearPullServicios } from './pullServicios';
-import type { RemoteGateway } from '../ports/RemoteGateway';
-import type { ServicioRepository } from '../ports/ServicioRepository';
-import type { MetaRepository } from '../ports/MetaRepository';
-import type { Logger } from '@/infrastructure/logging/logger';
-import type { Clock } from '@/shared/time';
+import type { RemoteGateway } from '@/application/ports/remoteGateway';
+import type { ServicioRepository } from '@/application/ports/servicioRepository';
+import type { MetaRepository } from '@/application/ports/metaRepository';
+import type { Logger } from '@/application/ports/loggerPort';
+import type { Clock } from '@/application/ports/clock';
 import type { ConfigApp } from '@/domain/config';
 
 describe('pullServicios — integración (T-010)', () => {
@@ -24,12 +24,18 @@ describe('pullServicios — integración (T-010)', () => {
 
     mockServicios = {
       obtener: vi.fn(),
-      upsert: vi.fn(),
+      guardar: vi.fn(),
+      listarPendientes: vi.fn(),
+      buscarPorSpItemId: vi.fn(),
+      buscarPorSerie: vi.fn(),
+      eliminarBorrador: vi.fn(),
+      purgarCerrados: vi.fn(),
     };
 
     mockMeta = {
       obtener: vi.fn(),
-      actualizar: vi.fn(),
+      guardar: vi.fn(),
+      dispositivoId: vi.fn(),
     };
 
     mockLogger = {
@@ -39,14 +45,30 @@ describe('pullServicios — integración (T-010)', () => {
     };
 
     mockClock = {
-      ahora: () => new Date('2026-11-07T10:00:00Z'),
+      ahoraIso: () => '2026-11-07T10:00:00Z',
+      ahoraMs: () => new Date('2026-11-07T10:00:00Z').getTime(),
+      fechaHoyIso: () => '2026-11-07',
     };
 
     mockConfig = () =>
       ({
+        versionMinimaApp: '0.1.0',
+        syncModoAutenticacion: 'confirmar',
+        syncReautenticacionHoras: 12,
+        minFotosIngreso: 1,
+        maxFotosIngreso: 5,
+        minFotosSalida: 1,
+        maxFotosSalida: 10,
+        maxTamanoPdfMB: 20,
+        imagenMaxLadoPx: 1920,
+        imagenCalidad: 0.75,
+        vidaUtilMesesDefecto: 12,
+        umbralesAlertaDias: [90, 60, 30],
         retencionCerradosMeses: 3,
+        retencionOriginalesDias: 7,
         descargarMiniaturasRemotas: true,
-        versionMinima: '0.1.0',
+        diagnosticoValorDisposicionFinal: 'D. FINAL',
+        recordatorioPendientesHoras: 24,
       }) as ConfigApp;
   });
 
@@ -62,13 +84,20 @@ describe('pullServicios — integración (T-010)', () => {
       itemId: 'sp-item-1',
     };
 
-    vi.mocked(mockGateway.cambiosServicios).mockResolvedValue({
+    const mockCambiosServicios = vi.mocked(mockGateway.cambiosServicios);
+    mockCambiosServicios.mockResolvedValue({
       cambios: [cambioRemoto],
       deltaLink: 'https://delta-link-new',
     });
 
-    vi.mocked(mockServicios.obtener).mockResolvedValue(undefined);
-    vi.mocked(mockMeta.obtener).mockResolvedValue({ deltaLinkServicios: undefined });
+    const mockObtenerServicios = vi.mocked(mockServicios.obtener);
+    mockObtenerServicios.mockResolvedValue(undefined);
+    const mockObtenerMeta = vi.mocked(mockMeta.obtener);
+    mockObtenerMeta.mockResolvedValue(undefined);
+    const mockGuardarMeta = vi.mocked(mockMeta.guardar);
+    mockGuardarMeta.mockResolvedValue(undefined);
+    const mockGuardarServicios = vi.mocked(mockServicios.guardar);
+    mockGuardarServicios.mockResolvedValue(undefined);
 
     const pullServicios = crearPullServicios({
       remoto: mockGateway as RemoteGateway,
@@ -87,7 +116,7 @@ describe('pullServicios — integración (T-010)', () => {
     expect(resultado.descargados).toBe(1);
     expect(resultado.actualizados).toBe(0);
     expect(resultado.conflictos).toBe(0);
-    expect(mockServicios.upsert).toHaveBeenCalled();
+    expect(vi.mocked(mockServicios.guardar)).toHaveBeenCalled();
   });
 
   it('descarga cambios incrementales usando deltaLink (ES-006-04)', async () => {

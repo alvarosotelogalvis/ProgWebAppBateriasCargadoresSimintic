@@ -1,9 +1,11 @@
-import type { RemoteGateway } from '../ports/RemoteGateway';
-import type { ServicioRepository } from '../ports/ServicioRepository';
-import type { MetaRepository } from '../ports/MetaRepository';
-import type { Logger } from '@/infrastructure/logging/logger';
-import type { Clock } from '@/shared/time';
+import type { RemoteGateway } from '@/application/ports/remoteGateway';
+import type { ServicioRepository } from '@/application/ports/servicioRepository';
+import type { MetaRepository } from '@/application/ports/metaRepository';
+import type { Logger } from '@/application/ports/loggerPort';
+import type { Clock } from '@/application/ports/clock';
 import type { ConfigApp } from '@/domain/config';
+import { aplicarCambioRemoto } from '@/domain/sync/aplicarCambioRemoto';
+import type { RemotoCambio } from '@/domain/sync/remoto';
 
 /**
  * Resultado del pull de servicios desde SharePoint.
@@ -25,11 +27,14 @@ export function crearPullServicios(deps: {
   readonly reloj: Clock;
   readonly logger: Logger;
   readonly config: () => ConfigApp;
-}): (opts: { signal: AbortSignal; onProgreso: (n: number) => void }) => Promise<ResultadoPull> {
+}): (opts: {
+  readonly signal: AbortSignal;
+  readonly onProgreso: (n: number) => void;
+}) => Promise<ResultadoPull> {
   return async (opts) => {
     let descargados = 0;
-    const actualizados = 0;
-    const conflictos = 0;
+    let actualizados = 0;
+    let conflictos = 0;
 
     // Obtener meta guardada (incluye deltaLink previo)
     const metaGuardada = await deps.meta.obtener();
@@ -37,20 +42,79 @@ export function crearPullServicios(deps: {
 
     // Obtener cambios (delta o fallback a Modified)
     const { cambios, deltaLink } = await deps.remoto.cambiosServicios(
-      deltaLinkAnterior as string | undefined
+      deltaLinkAnterior as string | undefined,
+      opts.signal
     );
 
-    // Procesar cambios por página
-    for (const _cambio of cambios) {
+    const config = deps.config();
+    const ahora = new Date(deps.reloj.ahoraIso());
+
+    // Procesar cambios
+    for (const cambioAPI of cambios) {
       opts.signal.throwIfAborted();
 
-      // TODO: aplicarCambioRemoto y guardar
-      descargados++;
+      // Convertir CambioServicio a RemotoCambio
+      const cambio: RemotoCambio = {
+        id: cambioAPI.id,
+        servicioId: cambioAPI.servicioId,
+        fields: cambioAPI.fields,
+        ...(cambioAPI.itemId ? { itemId: cambioAPI.itemId } : {}),
+        ...(cambioAPI.deleted ? { deleted: cambioAPI.deleted } : {}),
+        ...(cambioAPI.modified ? { modified: cambioAPI.modified } : {}),
+        ...(cambioAPI.editor ? { editor: cambioAPI.editor } : {}),
+        ...(cambioAPI.editorNombre ? { editorNombre: cambioAPI.editorNombre } : {}),
+      };
+
+      // Obtener servicio local
+      const local = await deps.servicios.obtener(cambio.servicioId);
+
+      // Aplicar decisión de merge
+      const decision = aplicarCambioRemoto(local, cambio, {
+        ahora,
+        retencionMeses: config.retencionCerradosMeses,
+      });
+
+      // Guardar según decisión
+      switch (decision.tipo) {
+        case 'INSERTAR':
+        case 'SOBRESCRIBIR':
+        case 'COMBINAR':
+          await deps.servicios.guardar(decision.servicio);
+          if (decision.tipo === 'INSERTAR') {
+            descargados++;
+          } else {
+            actualizados++;
+          }
+          if (decision.tipo === 'COMBINAR') {
+            conflictos++;
+          }
+          break;
+
+        case 'ELIMINAR_LOCAL':
+          // TODO: Implementar eliminación en la sesión siguiente
+          // Por ahora se registra pero no se elimina
+          deps.logger.info('pull.eliminacion_remota', {
+            servicioId: cambio.servicioId,
+          });
+          break;
+
+        case 'CONFLICTO_ELIMINACION':
+          await deps.servicios.guardar(decision.servicio);
+          conflictos++;
+          break;
+
+        case 'IGNORAR':
+          deps.logger.debug('pull.ignorado', {
+            servicioId: cambio.servicioId,
+            motivo: decision.motivo,
+          });
+          break;
+      }
     }
 
     // Guardar deltaLink para próxima sync
     if (deltaLink) {
-      await deps.meta.actualizar({ deltaLinkServicios: deltaLink });
+      await deps.meta.guardar('deltaLinkServicios', deltaLink);
     }
 
     return { descargados, actualizados, conflictos };

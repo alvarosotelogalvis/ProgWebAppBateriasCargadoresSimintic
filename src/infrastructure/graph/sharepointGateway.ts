@@ -7,7 +7,12 @@ import type {
   ResultadoActualizacion,
   ServicioRemotoPush,
 } from '@/application/ports/RemoteGatewayPush';
-import type { Catalogos, ClienteCatalogo, SitioResuelto } from '@/application/ports/remoteGateway';
+import type {
+  Catalogos,
+  ClienteCatalogo,
+  SitioResuelto,
+  CambioServicio,
+} from '@/application/ports/remoteGateway';
 import { ConflictoError } from '@/application/sync/ConflictoError';
 import type { Entorno } from '@/shared/env';
 import { AppError } from '@/shared/errors';
@@ -371,9 +376,69 @@ export class SharePointGateway implements RemoteGatewayPush {
     });
   }
 
-  async cambiosServicios(_deltaLink?: string): Promise<{ cambios: unknown[]; deltaLink?: string }> {
-    // TODO: Implementar delta o filtro por Modified
-    // await this.obtenerSitio();
-    return { cambios: [] };
+  async cambiosServicios(
+    deltaLink?: string,
+    signal?: AbortSignal
+  ): Promise<{ cambios: CambioServicio[]; deltaLink?: string }> {
+    const sitio = await this.obtenerSitio();
+    const cambios: CambioServicio[] = [];
+
+    // Construir URL inicial: usar deltaLink si existe, si no hacer delta query desde 0
+    let proximoLink =
+      deltaLink ??
+      `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items/delta?$expand=fields`;
+
+    while (proximoLink) {
+      signal?.throwIfAborted();
+
+      try {
+        const respuesta = await this.deps.graph.enviar<{
+          value?: Array<ItemPushGraph & { '@odata.deltaLink'?: string }>;
+          '@odata.nextLink'?: string;
+          '@odata.deltaLink'?: string;
+        }>({
+          metodo: 'GET',
+          ruta: proximoLink,
+        });
+
+        for (const item of respuesta.datos.value ?? []) {
+          const servicioId = item.fields?.ServicioId as string | undefined;
+          cambios.push({
+            id: item.id ?? '',
+            servicioId: servicioId ?? '',
+            fields: item.fields ?? {},
+            itemId: item.id,
+            deleted: item['@odata.type']?.includes('#microsoft.graph.listItem.deleted'),
+            modified: item.lastModifiedDateTime,
+            editor: item.fields?.Editor as string | undefined,
+            editorNombre: item.fields?.Editor_x0020_Nombre as string | undefined,
+          });
+        }
+
+        proximoLink = respuesta.datos['@odata.nextLink'];
+        if (respuesta.datos['@odata.deltaLink']) {
+          // Última página: devolver deltaLink para la siguiente sync
+          return { cambios, deltaLink: respuesta.datos['@odata.deltaLink'] };
+        }
+      } catch (error) {
+        // Si es un 410 (Gone), el deltaLink expiró
+        const httpStatus =
+          (error instanceof AppError
+            ? parseInt(error.codigo.match(/\d+/) ? error.codigo : '', 10)
+            : undefined) ||
+          (error instanceof Error && (error as Record<string, unknown>).status === 410
+            ? 410
+            : undefined);
+
+        if (httpStatus === 410) {
+          // deltaLink caducado: empezar desde el principio
+          this.deps.logger.warn('delta.caducado', { siteId: sitio.siteId });
+          return this.cambiosServicios(undefined, signal); // Recursivo sin deltaLink
+        }
+        throw error;
+      }
+    }
+
+    return { cambios };
   }
 }
