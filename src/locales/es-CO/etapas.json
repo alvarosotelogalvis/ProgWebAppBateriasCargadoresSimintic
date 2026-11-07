@@ -131,6 +131,7 @@
     "motivo": "Motivo de la anulación",
     "motivoAyuda": "Describe por qué se anula el registro. Mínimo 10 caracteres.",
     "anular": "Anular servicio",
+    "editar": "Editar datos",
     "confirmarTitulo": "Confirmar anulación",
     "confirmarTexto": "El servicio quedará de solo lectura y no se podrá reabrir. ¿Deseas continuar?",
     "confirmar": "Sí, anular",
