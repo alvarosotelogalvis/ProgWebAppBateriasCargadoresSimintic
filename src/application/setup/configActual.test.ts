@@ -85,4 +85,18 @@ describe('configuración vigente', () => {
     expect(actual.obtener()).toEqual(guardada);
     expect(logger.warn).toHaveBeenCalledWith('config.refresco.fallo', expect.any(Object));
   });
+
+  it('registra también los fallos que no son Error', async () => {
+    const actual = new ConfigActual(CONFIG_DEFECTO);
+    const advertencias = { warn: vi.fn() };
+
+    await refrescarConfigRemota({
+      gateway: { leerConfiguracion: () => Promise.reject('timeout') },
+      catalogos: conConfigEnMemoria(crearCatalogos(), actual),
+      logger: advertencias,
+    });
+
+    expect(advertencias.warn).toHaveBeenCalledWith('config.refresco.fallo', { mensaje: 'timeout' });
+    expect(actual.obtener()).toBe(CONFIG_DEFECTO);
+  });
 });

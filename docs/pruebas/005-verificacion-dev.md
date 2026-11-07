@@ -6,13 +6,23 @@
 
 | Dato                            | Valor                                                                     |
 | ------------------------------- | ------------------------------------------------------------------------- |
-| Fecha de ejecución              |                                                                           |
-| Versión de la app (`Acerca de`) |                                                                           |
-| Commit                          |                                                                           |
-| Ejecutado por                   |                                                                           |
-| Dispositivos                    | Android (app instalada): ____ · Windows (app instalada o navegador): ____ |
+| Fecha de ejecución              | Reportado el 2026-11-06                                                   |
+| Versión de la app (`Acerca de`) | 0.1.0                                                                     |
+| Commit                          | Rama `feature/005-sincronizacion-push` (cierre en `075e467a` o posterior) |
+| Ejecutado por                   | Desarrollador del proyecto                                                |
+| Dispositivos                    | Android (app instalada) · Windows                                         |
 
 ---
+
+## Resultado reportado (2026-11-06)
+
+| Verificación                               | Resultado                                                                                                              |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| ES-005-01…25 en Android y Windows          | ✅ Todos los aplicables cumplen. ES-005-10 ➖ (sin PDF en la UI hasta la spec 007; cubierto por `uploads.int.test.ts`) |
+| CE-005-01 — duplicados tras cortes al azar | ✅ 0 duplicados                                                                                                        |
+| CE-005-03 — 3 servicios / 10 fotos con 4G  | ✅ Menos de 60 s (no se registró el tiempo exacto)                                                                     |
+
+> El resultado se reportó de forma resumida; el detalle por escenario y por ronda de las tablas siguientes no se anotó. Si una regresión lo requiere, repetir la fila correspondiente y completar las notas.
 
 ## 1. Preparación (una sola vez)
 

@@ -90,6 +90,13 @@ describe('sesionSyncVigente', () => {
     await expect(sesionSyncVigente(deps({ ultimoLogin }))).resolves.toBe(true);
   });
 
+  it('usa la fecha de login de la cuenta si la tabla meta no la tiene', async () => {
+    const ultimoLoginInteractivoEn = new Date(AHORA - 1 * HORA).toISOString();
+    await expect(
+      sesionSyncVigente(deps({ cuenta: { ...CUENTA, ultimoLoginInteractivoEn } }))
+    ).resolves.toBe(true);
+  });
+
   it('no es vigente sin cuenta, sin sesión, fuera de la ventana o en modo reautenticar', async () => {
     const reciente = new Date(AHORA - 2 * HORA).toISOString();
     await expect(sesionSyncVigente(deps({ cuenta: null }))).resolves.toBe(false);
