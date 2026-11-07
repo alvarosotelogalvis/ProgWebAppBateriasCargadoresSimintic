@@ -69,6 +69,54 @@ export const router = createBrowserRouter([
                         .EtapaRecepcionPage,
                     }),
                   },
+                  {
+                    path: ':id/etapa/diagnostico',
+                    element: <RoleGuard roles={['Tecnico', 'Administrador']} />,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/EtapaDiagnosticoPage'))
+                        .EtapaDiagnosticoPage,
+                    }),
+                  },
+                  {
+                    path: ':id/etapa/cotizacion',
+                    element: <RoleGuard roles={['Comercial', 'Administrador']} />,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/EtapaCotizacionPage'))
+                        .EtapaCotizacionPage,
+                    }),
+                  },
+                  {
+                    path: ':id/etapa/orden-trabajo',
+                    element: <RoleGuard roles={['Tecnico', 'Administrador']} />,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/EtapaOrdenTrabajoPage'))
+                        .EtapaOrdenTrabajoPage,
+                    }),
+                  },
+                  {
+                    path: ':id/etapa/entrega',
+                    element: <RoleGuard roles={['Tecnico', 'Administrador']} />,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/EtapaEntregaPage'))
+                        .EtapaEntregaPage,
+                    }),
+                  },
+                  {
+                    path: ':id/etapa/facturacion',
+                    element: <RoleGuard roles={['Comercial', 'Administrador']} />,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/EtapaFacturacionPage'))
+                        .EtapaFacturacionPage,
+                    }),
+                  },
+                  {
+                    path: ':id/etapa/anulacion',
+                    element: <RoleGuard roles={['Administrador']} />,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/EtapaAnulacionPage'))
+                        .EtapaAnulacionPage,
+                    }),
+                  },
                 ],
               },
               {
