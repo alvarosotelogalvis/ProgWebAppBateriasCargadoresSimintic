@@ -29,7 +29,9 @@ import {
   refrescarConfigRemota,
 } from '@/application/setup/configActual';
 import { sesionSyncVigente } from '@/application/sync/avisosSync';
+import type { ResumenSync } from '@/application/sync/eventosSync';
 import { reintentarServicio } from '@/application/sync/reintentarServicio';
+import { crearPullServicios } from '@/application/sync/pullServicios';
 import { MotorSync, type SyncEngine } from '@/application/sync/SyncEngine';
 import type { ConfigApp } from '@/domain/config';
 import { AdjuntoRepositoryDexie } from '@/infrastructure/db/adjuntoRepository';
@@ -174,6 +176,43 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     storage,
   });
 
+  // Pull de servicios después del push (T-014)
+  const pullServicios = crearPullServicios({
+    remoto: gateway,
+    servicios,
+    meta,
+    reloj: clock,
+    logger,
+    config,
+  });
+
+  const despuesDelPush = async (ctx: {
+    readonly correlationId: string;
+    readonly resumen: ResumenSync;
+    readonly signal: AbortSignal;
+  }) => {
+    try {
+      const resultado = await pullServicios({
+        signal: ctx.signal,
+        onProgreso: (n) => {
+          logger.debug('pull.progreso', { n });
+        },
+      });
+      logger.info('pull.completado', {
+        correlationId: ctx.correlationId,
+        descargados: resultado.descargados,
+        actualizados: resultado.actualizados,
+        conflictos: resultado.conflictos,
+      });
+    } catch (error) {
+      logger.error('pull.error', {
+        correlationId: ctx.correlationId,
+        mensaje: error instanceof Error ? error.message : String(error),
+      });
+      // No lanzar error - el pull es optional para que la sync siga funcionando
+    }
+  };
+
   const sync = new MotorSync({
     servicios,
     adjuntos,
@@ -187,6 +226,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     appVersion,
     lock: conLockSync,
     bus: eventosSync,
+    despuesDelPush,
     ...(deps.config
       ? {}
       : { refrescarConfig: () => refrescarConfigRemota({ gateway, catalogos, logger }) }),

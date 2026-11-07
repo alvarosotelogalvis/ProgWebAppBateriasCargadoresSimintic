@@ -28,6 +28,7 @@ import { crearResolutorPorDefecto, type ResolutorConflictos } from './resolutorC
 export interface ContextoFinSync {
   readonly correlationId: string;
   readonly resumen: ResumenSync;
+  readonly signal: AbortSignal;
 }
 
 export interface DepsSyncEngine {
@@ -322,9 +323,9 @@ export class MotorSync implements SyncEngine {
 
     const resumen = this.resumir(acumulado, abortado);
     await this.actualizarMeta(correlationId);
-    await this.ejecutarExtension(this.deps.despuesDelPush, { correlationId, resumen });
+    await this.ejecutarExtension(this.deps.despuesDelPush, { correlationId, resumen, signal });
     await this.registrarLog(correlationId, inicio, resumen, erroresResumen);
-    await this.ejecutarExtension(this.deps.alFinalizar, { correlationId, resumen });
+    await this.ejecutarExtension(this.deps.alFinalizar, { correlationId, resumen, signal });
 
     this.bus.emitir({ tipo: 'fin', resumen });
     this.deps.logger.info('sync.fin', {

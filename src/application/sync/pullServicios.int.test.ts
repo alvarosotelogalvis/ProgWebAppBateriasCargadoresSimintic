@@ -84,20 +84,15 @@ describe('pullServicios — integración (T-010)', () => {
       itemId: 'sp-item-1',
     };
 
-    const mockCambiosServicios = vi.mocked(mockGateway.cambiosServicios);
-    mockCambiosServicios.mockResolvedValue({
+    vi.spyOn(mockGateway, 'cambiosServicios').mockResolvedValue({
       cambios: [cambioRemoto],
       deltaLink: 'https://delta-link-new',
     });
 
-    const mockObtenerServicios = vi.mocked(mockServicios.obtener);
-    mockObtenerServicios.mockResolvedValue(undefined);
-    const mockObtenerMeta = vi.mocked(mockMeta.obtener);
-    mockObtenerMeta.mockResolvedValue(undefined);
-    const mockGuardarMeta = vi.mocked(mockMeta.guardar);
-    mockGuardarMeta.mockResolvedValue(undefined);
-    const mockGuardarServicios = vi.mocked(mockServicios.guardar);
-    mockGuardarServicios.mockResolvedValue(undefined);
+    vi.spyOn(mockServicios, 'obtener').mockResolvedValue(undefined);
+    vi.spyOn(mockMeta, 'obtener').mockResolvedValue(undefined);
+    vi.spyOn(mockMeta, 'guardar').mockResolvedValue(undefined);
+    vi.spyOn(mockServicios, 'guardar').mockResolvedValue(undefined);
 
     const pullServicios = crearPullServicios({
       remoto: mockGateway as RemoteGateway,
@@ -116,7 +111,7 @@ describe('pullServicios — integración (T-010)', () => {
     expect(resultado.descargados).toBe(1);
     expect(resultado.actualizados).toBe(0);
     expect(resultado.conflictos).toBe(0);
-    expect(vi.mocked(mockServicios.guardar)).toHaveBeenCalled();
+    expect(mockServicios.guardar).toHaveBeenCalled();
   });
 
   it('descarga cambios incrementales usando deltaLink (ES-006-04)', async () => {

@@ -4,6 +4,7 @@ import type { MetaRepository } from '@/application/ports/metaRepository';
 import type { Logger } from '@/application/ports/loggerPort';
 import type { Clock } from '@/application/ports/clock';
 import type { ConfigApp } from '@/domain/config';
+import { CLAVES_META } from '@/application/setup/claves';
 import { aplicarCambioRemoto } from '@/domain/sync/aplicarCambioRemoto';
 import type { RemotoCambio } from '@/domain/sync/remoto';
 
@@ -37,8 +38,7 @@ export function crearPullServicios(deps: {
     let conflictos = 0;
 
     // Obtener meta guardada (incluye deltaLink previo)
-    const metaGuardada = await deps.meta.obtener();
-    const deltaLinkAnterior = (metaGuardada as Record<string, unknown>)?.deltaLinkServicios;
+    const deltaLinkAnterior = await deps.meta.obtener<string>(CLAVES_META.deltaLinkServicios);
 
     // Obtener cambios (delta o fallback a Modified)
     const { cambios, deltaLink } = await deps.remoto.cambiosServicios(
@@ -114,7 +114,7 @@ export function crearPullServicios(deps: {
 
     // Guardar deltaLink para próxima sync
     if (deltaLink) {
-      await deps.meta.guardar('deltaLinkServicios', deltaLink);
+      await deps.meta.guardar(CLAVES_META.deltaLinkServicios, deltaLink);
     }
 
     return { descargados, actualizados, conflictos };
