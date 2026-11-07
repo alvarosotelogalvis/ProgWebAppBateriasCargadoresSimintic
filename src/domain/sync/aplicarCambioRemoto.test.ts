@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { servicioBuilder } from '../../tests/builders/servicioBuilder';
+import { servicioBuilder } from '../../../tests/builders/servicioBuilder';
 import { aplicarCambioRemoto } from './aplicarCambioRemoto';
 import type { RemotoCambio } from './remoto';
 import type { Servicio } from '../servicio';
@@ -26,25 +26,23 @@ describe('aplicarCambioRemoto (T-16)', () => {
       const decision = aplicarCambioRemoto(undefined, cambio, ctx);
 
       expect(decision.tipo).toBe('INSERTAR');
-      expect(decision.servicio.id).toBe(nuevoId);
-      expect(decision.servicio.titulo).toBe('Mi primer servicio');
-      expect(decision.servicio.syncState).toBe('synced');
-      expect(decision.servicio.origen).toBe('remoto');
+      if (decision.tipo === 'INSERTAR') {
+        expect(decision.servicio.id).toBe(nuevoId);
+        expect(decision.servicio.estado).toBe('BORRADOR');
+        expect(decision.servicio.syncState).toBe('synced');
+        expect(decision.servicio.origen).toBe('remoto');
+      }
     });
   });
 
   describe('SOBRESCRIBIR', () => {
     it('sobrescribe localmente si no hay cambios pendientes', () => {
-      const local = servicioBuilder()
-        .recibido()
-        .sincronizado()
-        .conCampos({ titulo: 'Título antiguo' })
-        .construir();
+      const local = servicioBuilder().recibido().sincronizado().construir();
       const cambio: RemotoCambio = {
         id: 'remoto-1',
         servicioId: local.id,
         fields: {
-          titulo: 'Título nuevo',
+          diagnostico: 'Defecto encontrado',
           estado: 'DIAGNOSTICADO',
         },
         itemId: 'item-1',
@@ -53,13 +51,15 @@ describe('aplicarCambioRemoto (T-16)', () => {
       const decision = aplicarCambioRemoto(local, cambio, ctx);
 
       expect(decision.tipo).toBe('SOBRESCRIBIR');
-      expect(decision.servicio.titulo).toBe('Título nuevo');
-      expect(decision.servicio.estado).toBe('DIAGNOSTICADO');
-      expect(decision.servicio.syncState).toBe('synced');
-      expect(decision.servicio.base).toMatchObject({
-        titulo: 'Título nuevo',
-        estado: 'DIAGNOSTICADO',
-      });
+      if (decision.tipo === 'SOBRESCRIBIR') {
+        expect(decision.servicio.diagnostico).toBe('Defecto encontrado');
+        expect(decision.servicio.estado).toBe('DIAGNOSTICADO');
+        expect(decision.servicio.syncState).toBe('synced');
+        expect(decision.servicio.base).toMatchObject({
+          diagnostico: 'Defecto encontrado',
+          estado: 'DIAGNOSTICADO',
+        });
+      }
     });
   });
 
@@ -68,7 +68,6 @@ describe('aplicarCambioRemoto (T-16)', () => {
       const base = servicioBuilder().recibido().sincronizado().construir();
       const local: Servicio = {
         ...base,
-        titulo: 'Título antiguo',
         diagnostico: 'Nuevo diagnóstico',
         camposSucios: ['diagnostico'],
         syncState: 'pending',
@@ -77,7 +76,7 @@ describe('aplicarCambioRemoto (T-16)', () => {
         id: 'remoto-1',
         servicioId: local.id,
         fields: {
-          titulo: 'Título remoto',
+          marca: 'Nueva marca',
           observacionTecnica: 'Nueva observación remota',
         },
         itemId: 'item-1',
@@ -86,11 +85,13 @@ describe('aplicarCambioRemoto (T-16)', () => {
       const decision = aplicarCambioRemoto(local, cambio, ctx);
 
       expect(decision.tipo).toBe('COMBINAR');
-      expect(decision.servicio.titulo).toBe('Título remoto');
-      expect(decision.servicio.diagnostico).toBe('Nuevo diagnóstico');
-      expect(decision.servicio.observacionTecnica).toBe('Nueva observación remota');
-      expect(decision.servicio.conflictos).toHaveLength(0);
-      expect(decision.servicio.syncState).toBe('pending');
+      if (decision.tipo === 'COMBINAR') {
+        expect(decision.servicio.marca).toBe('Nueva marca');
+        expect(decision.servicio.diagnostico).toBe('Nuevo diagnóstico');
+        expect(decision.servicio.observacionTecnica).toBe('Nueva observación remota');
+        expect(decision.servicio.conflictos).toHaveLength(0);
+        expect(decision.servicio.syncState).toBe('pending');
+      }
     });
 
     it('detecta conflicto cuando ambos cambiaron el mismo campo', () => {
@@ -114,13 +115,15 @@ describe('aplicarCambioRemoto (T-16)', () => {
       const decision = aplicarCambioRemoto(local, cambio, ctx);
 
       expect(decision.tipo).toBe('COMBINAR');
-      expect(decision.servicio.conflictos).toHaveLength(1);
-      expect(decision.servicio.conflictos[0]).toMatchObject({
-        campo: 'observacionTecnica',
-        local: 'Mi observación',
-        remoto: 'Otra observación remota',
-      });
-      expect(decision.servicio.syncState).toBe('conflict');
+      if (decision.tipo === 'COMBINAR') {
+        expect(decision.servicio.conflictos).toHaveLength(1);
+        expect(decision.servicio.conflictos[0]).toMatchObject({
+          campo: 'observacionTecnica',
+          local: 'Mi observación',
+          remoto: 'Otra observación remota',
+        });
+        expect(decision.servicio.syncState).toBe('conflict');
+      }
     });
   });
 
@@ -161,9 +164,11 @@ describe('aplicarCambioRemoto (T-16)', () => {
       const decision = aplicarCambioRemoto(local, cambio, ctx);
 
       expect(decision.tipo).toBe('CONFLICTO_ELIMINACION');
-      expect(decision.servicio.conflictos).toHaveLength(1);
-      expect(decision.servicio.conflictos[0].campo).toBe('estado');
-      expect(decision.servicio.syncState).toBe('conflict');
+      if (decision.tipo === 'CONFLICTO_ELIMINACION') {
+        expect(decision.servicio.conflictos).toHaveLength(1);
+        expect(decision.servicio.conflictos[0].campo).toBe('estado');
+        expect(decision.servicio.syncState).toBe('conflict');
+      }
     });
   });
 
@@ -179,7 +184,9 @@ describe('aplicarCambioRemoto (T-16)', () => {
       const decision = aplicarCambioRemoto(undefined, cambio, ctx);
 
       expect(decision.tipo).toBe('IGNORAR');
-      expect(decision.motivo).toBe('SIN_SERVICIO_ID');
+      if (decision.tipo === 'IGNORAR') {
+        expect(decision.motivo).toBe('SIN_SERVICIO_ID');
+      }
     });
 
     it('ignora si el servicio es cerrado y supera la retención', () => {
@@ -199,7 +206,9 @@ describe('aplicarCambioRemoto (T-16)', () => {
       const decision = aplicarCambioRemoto(undefined, cambio, ctx);
 
       expect(decision.tipo).toBe('IGNORAR');
-      expect(decision.motivo).toBe('FUERA_DE_RETENCION');
+      if (decision.tipo === 'IGNORAR') {
+        expect(decision.motivo).toBe('FUERA_DE_RETENCION');
+      }
     });
 
     it('incluye un servicio abierto aunque sea antiguo', () => {

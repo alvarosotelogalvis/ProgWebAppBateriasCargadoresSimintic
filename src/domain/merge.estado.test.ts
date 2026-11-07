@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
-import { servicioBuilder } from '../tests/builders/servicioBuilder';
-import { mergeTresVias } from './merge';
+import { servicioBuilder } from '../../tests/builders/servicioBuilder';
+import { mergeTresVias, type RemotoServicio } from './merge';
 
 describe('mergeTresVias — regla de estado (T-005)', () => {
   describe('el estado más avanzado gana', () => {
@@ -12,7 +12,7 @@ describe('mergeTresVias — regla de estado (T-005)', () => {
       local.syncState = 'pending';
 
       // Remoto cambió a EN_REPARACION (más avanzado que DIAGNOSTICADO)
-      const remoto = { estado: 'EN_REPARACION' };
+      const remoto: RemotoServicio = { estado: 'EN_REPARACION' as const };
 
       const { servicio, conflictos } = mergeTresVias(local, remoto);
 
@@ -28,7 +28,7 @@ describe('mergeTresVias — regla de estado (T-005)', () => {
       local.syncState = 'pending';
 
       // Remoto cambió a COTIZADO (menos avanzado que ENTREGADO)
-      const remoto = { estado: 'COTIZADO' };
+      const remoto: RemotoServicio = { estado: 'COTIZADO' as const };
 
       const { servicio, conflictos } = mergeTresVias(local, remoto);
 
@@ -44,7 +44,7 @@ describe('mergeTresVias — regla de estado (T-005)', () => {
       local.syncState = 'pending';
 
       // Remoto cambió a EN_REPARACION (mismo nivel que COTIZADO en el árbol)
-      const remoto = { estado: 'EN_REPARACION' };
+      const remoto: RemotoServicio = { estado: 'EN_REPARACION' as const };
 
       const { servicio } = mergeTresVias(local, remoto);
 
@@ -63,7 +63,7 @@ describe('mergeTresVias — regla de estado (T-005)', () => {
       local.syncState = 'pending';
 
       // Remoto cambió a FACTURADO (final, gana incluso si es menos reciente)
-      const remoto = { estado: 'FACTURADO' };
+      const remoto: RemotoServicio = { estado: 'FACTURADO' as const };
 
       const { servicio } = mergeTresVias(local, remoto);
 
@@ -83,7 +83,10 @@ describe('mergeTresVias — regla de estado (T-005)', () => {
       local.base = { estado: 'RECIBIDO' };
       local.syncState = 'pending';
 
-      const remoto = { estado: 'DIAGNOSTICADO', diagnostico: 'Defecto remoto' };
+      const remoto: RemotoServicio = {
+        estado: 'DIAGNOSTICADO' as const,
+        diagnostico: 'Defecto remoto',
+      };
 
       const { servicio } = mergeTresVias(local, remoto);
 
