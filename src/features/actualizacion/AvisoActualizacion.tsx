@@ -33,9 +33,14 @@ export function AvisoActualizacion(): React.JSX.Element | null {
   };
 
   return (
-    <Banner tipo="info" accion={<PrimaryButton size="small" onPress={aplicar}>
-      {t('boton')}
-    </PrimaryButton>}>
+    <Banner
+      tipo="info"
+      accion={
+        <PrimaryButton size="small" onPress={aplicar}>
+          {t('boton')}
+        </PrimaryButton>
+      }
+    >
       {t('mensaje')}
     </Banner>
   );

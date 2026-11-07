@@ -1,0 +1,11 @@
+.video {
+  width: 100%;
+  border-radius: var(--radio-md);
+  background-color: var(--texto);
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espacio-2);
+}

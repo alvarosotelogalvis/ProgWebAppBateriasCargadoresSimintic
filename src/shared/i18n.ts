@@ -3,12 +3,16 @@ import { initReactI18next } from 'react-i18next';
 
 import acerca from '@/locales/es-CO/acerca.json';
 import actualizacion from '@/locales/es-CO/actualizacion.json';
+import adjuntos from '@/locales/es-CO/adjuntos.json';
 import ajustes from '@/locales/es-CO/ajustes.json';
 import alertas from '@/locales/es-CO/alertas.json';
+import auth from '@/locales/es-CO/auth.json';
 import ayuda from '@/locales/es-CO/ayuda.json';
-import comun from '@/locales/es-CO/common.json';
+import common from '@/locales/es-CO/common.json';
 import conexion from '@/locales/es-CO/conexion.json';
 import config from '@/locales/es-CO/config.json';
+import configuracion from '@/locales/es-CO/configuracion.json';
+import errores from '@/locales/es-CO/errores.json';
 import inicio from '@/locales/es-CO/inicio.json';
 import instalacion from '@/locales/es-CO/instalacion.json';
 import navegacion from '@/locales/es-CO/navegacion.json';
@@ -24,12 +28,16 @@ void i18n.use(initReactI18next).init({
     'es-CO': {
       acerca,
       actualizacion,
+      adjuntos,
       ajustes,
       alertas,
+      auth,
       ayuda,
-      comun,
+      common,
       conexion,
       config,
+      configuracion,
+      errores,
       inicio,
       instalacion,
       navegacion,

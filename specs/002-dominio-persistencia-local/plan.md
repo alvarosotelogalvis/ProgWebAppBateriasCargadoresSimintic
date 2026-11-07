@@ -4,33 +4,36 @@
 - **Referencias de diseño**: SDD §4.3 (puertos), §5 (dominio, máquina de estados, validación), §6 (Dexie), §9.5 (merge), §13 (errores), §15 (logger) · Modelo de datos §2–§6, §8 · ADR 0004, 0005, 0008, 0010, 0012
 
 ## 1. Contexto técnico
-| Aspecto | Valor |
-|---|---|
-| Lenguaje | TypeScript strict (ADR-0003) |
-| Dominio | Funciones puras + `zod` + `date-fns` (las únicas dependencias permitidas en `domain/`, SDD §4.1) |
-| Almacenamiento | Dexie 4 + `dexie-react-hooks`, base `servicio-tecnico-bc`, esquema v1 (SDD §6.1) |
-| Integraciones | Ninguna remota |
-| Pruebas | Vitest (unitarias del dominio) + `fake-indexeddb` (integración de repositorios y casos de uso) |
-| Desempeño | `actualizarCampos` < 50 ms. Consultas por índice |
+
+| Aspecto        | Valor                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| Lenguaje       | TypeScript strict (ADR-0003)                                                                     |
+| Dominio        | Funciones puras + `zod` + `date-fns` (las únicas dependencias permitidas en `domain/`, SDD §4.1) |
+| Almacenamiento | Dexie 4 + `dexie-react-hooks`, base `servicio-tecnico-bc`, esquema v1 (SDD §6.1)                 |
+| Integraciones  | Ninguna remota                                                                                   |
+| Pruebas        | Vitest (unitarias del dominio) + `fake-indexeddb` (integración de repositorios y casos de uso)   |
+| Desempeño      | `actualizarCampos` < 50 ms. Consultas por índice                                                 |
 
 ## 2. Verificación de la constitución
-| Artículo | ¿Cumple? | Cómo |
-|---|---|---|
-| I Offline primero | ✅ | Todo es local |
-| II Cero pérdida | ✅ | Transacciones `rw` que abarcan servicios y adjuntos. `eliminarBorrador` y las purgas verifican `syncState`/`estado` dentro de la transacción. Pruebas T011, T012 y T030 |
-| III Sin backend ni secretos | ✅ N/A | — |
-| IV Identidad confirmada | ✅ N/A | Sin escritura remota. `capturadoPor` sale de `AuthPort.cuentaActiva()` (en esta spec, el fake o la sesión mock de la 001) |
-| V Idempotencia | ✅ | `id` UUID v4 vía `IdGenerator`. `camposSucios` sin duplicados |
-| VI Dominio puro | ✅ | `domain/` sin imports de React, Dexie ni MSAL (regla de boundaries de la 001). Casos de uso con puertos inyectados |
-| VII Pruebas primero | ✅ | Cada módulo de dominio y caso de uso tiene su tarea de prueba antes de la de código |
-| VIII Accesible y es-CO | ✅ | Los mensajes de validación son claves i18n (`errores.*`). Las traducciones se agregan a `common.json` / `errores.json` |
-| IX Seguridad | ✅ | El logger filtra tokens, blobs y campos sensibles (lista de exclusión) |
-| X Simplicidad | ✅ | DI manual en `container.ts`, sin librerías nuevas |
-| XI Trazabilidad | ✅ | FR → RF. Ampliaciones de los puertos del SDD §4.3 documentadas en §3.4 |
+
+| Artículo                    | ¿Cumple? | Cómo                                                                                                                                                                    |
+| --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I Offline primero           | ✅       | Todo es local                                                                                                                                                           |
+| II Cero pérdida             | ✅       | Transacciones `rw` que abarcan servicios y adjuntos. `eliminarBorrador` y las purgas verifican `syncState`/`estado` dentro de la transacción. Pruebas T011, T012 y T030 |
+| III Sin backend ni secretos | ✅ N/A   | —                                                                                                                                                                       |
+| IV Identidad confirmada     | ✅ N/A   | Sin escritura remota. `capturadoPor` sale de `AuthPort.cuentaActiva()` (en esta spec, el fake o la sesión mock de la 001)                                               |
+| V Idempotencia              | ✅       | `id` UUID v4 vía `IdGenerator`. `camposSucios` sin duplicados                                                                                                           |
+| VI Dominio puro             | ✅       | `domain/` sin imports de React, Dexie ni MSAL (regla de boundaries de la 001). Casos de uso con puertos inyectados                                                      |
+| VII Pruebas primero         | ✅       | Cada módulo de dominio y caso de uso tiene su tarea de prueba antes de la de código                                                                                     |
+| VIII Accesible y es-CO      | ✅       | Los mensajes de validación son claves i18n (`errores.*`). Las traducciones se agregan a `common.json` / `errores.json`                                                  |
+| IX Seguridad                | ✅       | El logger filtra tokens, blobs y campos sensibles (lista de exclusión)                                                                                                  |
+| X Simplicidad               | ✅       | DI manual en `container.ts`, sin librerías nuevas                                                                                                                       |
+| XI Trazabilidad             | ✅       | FR → RF. Ampliaciones de los puertos del SDD §4.3 documentadas en §3.4                                                                                                  |
 
 ## 3. Diseño de la funcionalidad
 
 ### 3.1 Archivos
+
 ```
 src/domain/
   servicio.ts            # tipos de SDD §5 (TipoEquipo, EstadoServicio, CamposServicio, Servicio, SyncState, Rol…)
@@ -63,6 +66,7 @@ tests/builders/          # servicioBuilder, adjuntoBuilder (datos válidos por e
 ```
 
 ### 3.2 Contratos
+
 ```ts
 // domain/estados.ts
 export interface Transicion {
@@ -118,6 +122,7 @@ descartarBorrador(id: string): Promise<void>
 ```
 
 ### 3.3 Reglas de `actualizarCampos` y `completarEtapa`
+
 ```
 actualizarCampos(id, cambios, roles):
   s = obtener(id) ; editables = camposEditables(s, roles)
@@ -137,6 +142,7 @@ completarEtapa(id, accion, roles):
 ```
 
 ### 3.4 Decisiones locales
+
 - **Ampliación de los puertos del SDD §4.3**: `buscarPorSerie`, `AdjuntoRepository.obtener`, `buscarPorHash`, `marcarPendientes`, `UnidadDeTrabajo` y `MetaRepository`. Son extensiones compatibles, no cambian decisiones (sin ADR). Se anota en el SDD §4.3 al cerrar la spec.
 - **Estado `syncState` de un adjunto en borrador**: `'local'`. Del servicio en borrador: `'local'` (SDD §9.3).
 - **Requisitos como datos**: cada transición referencia un esquema zod de etapa + requisitos de adjuntos (`{ tipo, min, max }` desde la config). `ErrorValidacion.clave` = clave i18n (`errores.serie.formato`, `errores.adjunto.min`).
@@ -147,25 +153,28 @@ completarEtapa(id, accion, roles):
 - **Hooks**: `usePendientes()` cuenta los servicios con `syncState` en `pending`, `error` o `conflict` y publica el valor en `uiStore.setPendientes` (contrato de la 001).
 
 ## 4. Estrategia de pruebas
-| Nivel | Qué | Archivo |
-|---|---|---|
-| Unit | Normalización y esquemas de cada etapa (campos, rangos de fechas, regex) | `src/domain/normalizacion.test.ts`, `validaciones.test.ts` |
-| Unit | Tabla de transiciones al 100 %: cada fila × {válida, falta requisito, rol incorrecto} (T-01) + `camposEditables` | `src/domain/estados.test.ts` |
-| Unit | `mergeTresVias`: 4 casos + regla del estado + estado final (T-03) | `src/domain/merge.test.ts` |
-| Unit | `nivelAlerta` y `diasRestantes` (T-04), `generarCodigo`, `combinarConfig` (valores inválidos → defecto) | `src/domain/*.test.ts` |
-| Int | Repositorios con `fake-indexeddb`: persistencia de blobs, índices, `eliminarBorrador`, `purgarCerrados`, `purgarOriginales` (T-08) | `src/infrastructure/db/*.int.test.ts` |
-| Int | Casos de uso: crear → actualizar → completar recepción (T-06), atomicidad ante una falla inyectada, anular, descartar | `src/application/servicios/*.int.test.ts` |
-| Int | Patrón de migración: prueba plantilla que abre v1 con datos y simula `version(2).upgrade` sin perder pendientes (T-07) | `src/infrastructure/db/migraciones.int.test.ts` |
-| Int | Logger: anillo de 2000 y filtrado de datos sensibles | `src/infrastructure/logging/logger.int.test.ts` |
+
+| Nivel | Qué                                                                                                                                | Archivo                                                    |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Unit  | Normalización y esquemas de cada etapa (campos, rangos de fechas, regex)                                                           | `src/domain/normalizacion.test.ts`, `validaciones.test.ts` |
+| Unit  | Tabla de transiciones al 100 %: cada fila × {válida, falta requisito, rol incorrecto} (T-01) + `camposEditables`                   | `src/domain/estados.test.ts`                               |
+| Unit  | `mergeTresVias`: 4 casos + regla del estado + estado final (T-03)                                                                  | `src/domain/merge.test.ts`                                 |
+| Unit  | `nivelAlerta` y `diasRestantes` (T-04), `generarCodigo`, `combinarConfig` (valores inválidos → defecto)                            | `src/domain/*.test.ts`                                     |
+| Int   | Repositorios con `fake-indexeddb`: persistencia de blobs, índices, `eliminarBorrador`, `purgarCerrados`, `purgarOriginales` (T-08) | `src/infrastructure/db/*.int.test.ts`                      |
+| Int   | Casos de uso: crear → actualizar → completar recepción (T-06), atomicidad ante una falla inyectada, anular, descartar              | `src/application/servicios/*.int.test.ts`                  |
+| Int   | Patrón de migración: prueba plantilla que abre v1 con datos y simula `version(2).upgrade` sin perder pendientes (T-07)             | `src/infrastructure/db/migraciones.int.test.ts`            |
+| Int   | Logger: anillo de 2000 y filtrado de datos sensibles                                                                               | `src/infrastructure/logging/logger.int.test.ts`            |
 
 ## 5. Riesgos
-| Riesgo | Mitigación |
-|---|---|
+
+| Riesgo                                               | Mitigación                                                                                                                                            |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | La tabla de transiciones diverge del modelo de datos | La prueba T-01 se construye leyendo el modelo de datos §5 fila por fila. Cualquier cambio de PA-02/PA-03 actualiza primero el modelo y luego la tabla |
-| `fake-indexeddb` no reproduce los límites de cuota | Las fallas de cuota se simulan con un `UnidadDeTrabajo` que lanza error |
-| Supuestos de negocio (PA-01, 02, 03) cambian | Están aislados en `estados.ts` y `validaciones.ts`. Si cambia la semántica, ADR nuevo que reemplace al 0012 |
+| `fake-indexeddb` no reproduce los límites de cuota   | Las fallas de cuota se simulan con un `UnidadDeTrabajo` que lanza error                                                                               |
+| Supuestos de negocio (PA-01, 02, 03) cambian         | Están aislados en `estados.ts` y `validaciones.ts`. Si cambia la semántica, ADR nuevo que reemplace al 0012                                           |
 
 ## 6. Seguimiento de complejidad
-| Desviación | Por qué | Alternativa simple rechazada |
-|---|---|---|
+
+| Desviación               | Por qué                                                                                        | Alternativa simple rechazada                                            |
+| ------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | Puerto `UnidadDeTrabajo` | El Artículo II exige atomicidad entre servicio y adjuntos sin que `application/` importe Dexie | Llamar a `db.transaction` desde los casos de uso (viola el Artículo VI) |

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Dialog, Modal, ModalOverlay } from 'react-aria-components';
 import type { ReactNode } from 'react';
 
@@ -22,9 +23,10 @@ export function ResponsiveDialog({
   onCerrar,
   children,
 }: Props): React.JSX.Element {
+  const { t } = useTranslation('common');
   const breakpoint = useBreakpoint();
   const esHoja = breakpoint === 'compacto';
-  const claseOverlay = esHoja ? styles['overlay-hoja']! : styles.overlay!;
+  const claseOverlay = esHoja ? styles.overlayHoja! : styles.overlay!;
   const claseModal = esHoja ? styles.hoja! : styles.modal!;
 
   return (
@@ -37,10 +39,15 @@ export function ResponsiveDialog({
     >
       <Modal className={claseModal} aria-label={titulo}>
         {esHoja ? <span className={styles.asa!} aria-hidden="true" /> : null}
-        <Dialog className={styles.dialogo!}>
+        <Dialog className={styles.dialogo!} aria-label={titulo}>
           <header className={styles.cabecera!}>
             <h2 className={styles.titulo!}>{titulo}</h2>
-            <button type="button" className={styles.cerrar!} onClick={onCerrar} aria-label="Cerrar">
+            <button
+              type="button"
+              className={styles.cerrar!}
+              onClick={onCerrar}
+              aria-label={t('comun.cerrar')}
+            >
               ✕
             </button>
           </header>

@@ -60,3 +60,13 @@ function iniciarActualizacionPeriodica(
     void registro.update();
   }, intervalo);
 }
+
+/**
+ * Fuerza la búsqueda de una nueva versión (`registration.update()`, SDD §11.4).
+ * Si la hay, el flujo normal del SW muestra el aviso "Hay una nueva versión".
+ */
+export async function buscarActualizacion(): Promise<void> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+  const registro = await navigator.serviceWorker.getRegistration();
+  await registro?.update();
+}

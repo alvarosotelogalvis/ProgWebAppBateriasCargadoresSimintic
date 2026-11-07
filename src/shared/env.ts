@@ -14,8 +14,7 @@ const esquema = z.object({
 export type Entorno = z.infer<typeof esquema>;
 
 export type ResultadoEnv =
-  | { ok: true; env: Entorno }
-  | { ok: false; error: string; campos: string[] };
+  { ok: true; env: Entorno } | { ok: false; error: string; campos: string[] };
 
 function leerBruto(): Record<string, unknown> {
   return import.meta.env as unknown as Record<string, unknown>;

@@ -1,0 +1,45 @@
+.contenedor {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  width: 100%;
+  min-height: var(--control-alto);
+  padding: 0 var(--espacio-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radio-full);
+  background-color: var(--surface);
+}
+
+.contenedor:focus-within {
+  border-color: var(--primary);
+}
+
+.icono {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+.entrada {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: var(--texto-base);
+}
+
+.entrada:focus {
+  outline: none;
+}
+
+.limpiar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radio-full);
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}

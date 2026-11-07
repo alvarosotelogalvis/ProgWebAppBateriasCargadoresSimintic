@@ -26,6 +26,7 @@
   --surface: #ffffff;
   --surface-muted: #f5f6fa;
   --surface-sunken: #eceef5;
+  --surface-translucida: rgb(255 255 255 / 14%);
   --border: #d8dbe6;
   --border-strong: #b6bccf;
 
@@ -40,19 +41,19 @@
   --estado-borrador: #6b7080;
   --estado-recibido: #1f6fe5;
   --estado-diagnosticado: #7b3ff2;
-  --estado-cotizado: #b26a00;
+  --estado-cotizado: #8a5200;
   --estado-reparacion: #c2410c;
   --estado-entregado: #0f7b3f;
   --estado-facturado: #0b6b57;
   --estado-disposicion-final: #5b5f6d;
   --estado-anulado: #b3261e;
 
-  --sync-pendiente: #b26a00;
+  --sync-pendiente: #8a5200;
   --sync-sincronizado: #0f7b3f;
   --sync-error: #b3261e;
 
   --exito: #0f7b3f;
-  --advertencia: #b26a00;
+  --advertencia: #8a5200;
   --peligro: #b3261e;
   --info: #1f6fe5;
 

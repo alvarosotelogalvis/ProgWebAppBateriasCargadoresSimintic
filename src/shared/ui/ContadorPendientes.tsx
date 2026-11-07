@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { useUiStore } from '@/shared/stores/uiStore';
 
@@ -16,7 +16,7 @@ export function ContadorPendientes({ etiqueta }: Props): React.JSX.Element {
   }
 
   return (
-    <Link to="/sincronizar" className={styles.contador!}>
+    <Link to="/sincronizacion" className={styles.contador!}>
       <span className={styles.cifra!}>{pendientes}</span>
       <span className={styles.texto!}>{etiqueta}</span>
     </Link>

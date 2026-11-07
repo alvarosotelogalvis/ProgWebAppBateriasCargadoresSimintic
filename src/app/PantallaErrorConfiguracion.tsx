@@ -18,9 +18,9 @@ export function PantallaErrorConfiguracion({ mensaje }: Props): React.JSX.Elemen
       }}
     >
       <div role="alert" style={{ maxWidth: '32rem' }}>
-        <h1>Configuracion invalida</h1>
+        <h1>Configuración inválida</h1>
         <p>
-          Esta version de la app no se configuro correctamente. Contacta al administrador del
+          Esta versión de la app no se configuró correctamente. Contacta al administrador del
           sistema.
         </p>
         <pre

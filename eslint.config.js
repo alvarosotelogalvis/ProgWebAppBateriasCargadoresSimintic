@@ -1,4 +1,4 @@
-﻿import js from '@eslint/js';
+import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
@@ -99,8 +99,7 @@ export default tseslint.config(
       'no-restricted-syntax': [
         'error',
         {
-          selector:
-            "JSXText[value=/[A-Za-zÃÃ‰ÃÃ“ÃšÃ¡Ã©Ã­Ã³ÃºÃ±Ã‘]{3,}/]",
+          selector: 'JSXText[value=/[A-Za-zÃÃ‰ÃÃ“ÃšÃ¡Ã©Ã­Ã³ÃºÃ±Ã‘]{3,}/]',
           message:
             'Prohibido escribir texto de UI directamente en JSX. Usa useTranslation con claves de src/locales/es-CO.',
         },

@@ -1,0 +1,70 @@
+.linea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.paso {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--espacio-3);
+  color: var(--text-muted);
+}
+
+.marcador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radio-full);
+}
+
+.numero {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+}
+
+.etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.completada {
+  color: var(--text-secondary);
+}
+
+.completada .marcador {
+  border-color: var(--exito);
+  background: var(--exito);
+  color: var(--text-inverse);
+}
+
+.actual {
+  color: var(--text-primary);
+}
+
+.actual .marcador {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.actual .etiqueta {
+  font-weight: var(--peso-semibold);
+}
+
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

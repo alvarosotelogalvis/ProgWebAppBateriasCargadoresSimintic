@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -21,11 +21,12 @@ const commit = git('rev-parse', '--short', 'HEAD');
 const buildDate = new Date().toISOString();
 
 export default defineConfig(({ mode }) => {
-  const authMode = process.env.VITE_AUTH_MODE ?? 'mock';
+  const env = loadEnv(mode, rootDir, '');
+  const authMode = env.VITE_AUTH_MODE ?? process.env.VITE_AUTH_MODE ?? 'mock';
   if (mode === 'production' && authMode === 'mock') {
     throw new Error(
       'El build de producción no puede usar VITE_AUTH_MODE=mock (SDD 8.6). ' +
-        'Configura VITE_AUTH_MODE=msal antes de compilar.'
+        'Define VITE_AUTH_MODE=msal en .env.local, .env.production o en el entorno antes de compilar.'
     );
   }
 
@@ -51,7 +52,12 @@ export default defineConfig(({ mode }) => {
           icons: [
             { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
             { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-            { src: 'icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+            {
+              src: 'icons/maskable-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
           ],
         },
         workbox: {

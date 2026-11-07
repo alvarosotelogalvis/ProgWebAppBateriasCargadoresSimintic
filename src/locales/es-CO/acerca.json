@@ -1,11 +1,11 @@
 {
   "titulo": "Acerca de",
-  "version": "Version",
+  "version": "Versión",
   "build": "Build",
   "fechaBuild": "Fecha de build",
   "ambiente": "Ambiente",
   "novedades": "Novedades",
-  "sinNovedades": "Sin novedades registradas en esta version.",
+  "sinNovedades": "Sin novedades registradas en esta versión.",
   "licencia": "Licencia",
   "licenciaTexto": "Uso interno autorizado. Todos los derechos reservados.",
   "privacidad": "Privacidad",

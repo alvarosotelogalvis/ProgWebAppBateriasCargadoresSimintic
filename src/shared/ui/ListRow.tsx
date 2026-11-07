@@ -1,4 +1,4 @@
-﻿import { Icon, type IconName } from '@/shared/ui/Icon';
+import { Icon, type IconName } from '@/shared/ui/Icon';
 
 import styles from './ListRow.module.css';
 
@@ -10,13 +10,8 @@ interface Props {
   readonly href?: string;
 }
 
-export function ListRow({
-  icono,
-  etiqueta,
-  descripcion,
-  onClick,
-  href,
-}: Props): React.JSX.Element {
+export function ListRow({ icono, etiqueta, descripcion, onClick, href }: Props): React.JSX.Element {
+  const interactivo = Boolean(onClick || href);
   const contenido = (
     <>
       <span className={styles.icono!}>
@@ -26,9 +21,11 @@ export function ListRow({
         <span className={styles.etiqueta!}>{etiqueta}</span>
         {descripcion ? <span className={styles.descripcion!}>{descripcion}</span> : null}
       </span>
-      <span className={styles.chevron!} aria-hidden="true">
-        <Icon nombre="chevronDerecha" tamano={24} />
-      </span>
+      {interactivo ? (
+        <span className={styles.chevron!} aria-hidden="true">
+          <Icon nombre="chevronDerecha" tamano={24} />
+        </span>
+      ) : null}
     </>
   );
 
@@ -40,9 +37,13 @@ export function ListRow({
     );
   }
 
-  return (
-    <button type="button" className={styles.fila!} onClick={onClick}>
-      {contenido}
-    </button>
-  );
+  if (onClick) {
+    return (
+      <button type="button" className={styles.fila!} onClick={onClick}>
+        {contenido}
+      </button>
+    );
+  }
+
+  return <div className={styles.fila!}>{contenido}</div>;
 }

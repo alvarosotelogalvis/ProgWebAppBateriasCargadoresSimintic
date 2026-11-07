@@ -1,0 +1,121 @@
+﻿.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  flex-wrap: wrap;
+}
+
+.conteo {
+  color: var(--text-muted);
+  font-size: var(--texto-sm);
+}
+
+.barra {
+  display: flex;
+  gap: var(--espacio-2);
+  align-items: center;
+}
+
+.filtro-toggle {
+  min-height: var(--control-alto);
+  padding: 0 var(--espacio-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radio-full);
+  background-color: var(--surface);
+  font-weight: var(--peso-semibold);
+  cursor: pointer;
+}
+
+.filtros {
+  display: grid;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  border-radius: var(--radio-lg);
+  background-color: var(--surface);
+  box-shadow: var(--sombra-sm);
+}
+
+@media (width >= 1024px) {
+  .filtros {
+    grid-template-columns: 14rem 1fr auto;
+    align-items: end;
+  }
+}
+
+.limpiar {
+  min-height: var(--control-alto);
+  padding: 0 var(--espacio-3);
+  border: none;
+  background: none;
+  color: var(--text-link);
+  font-weight: var(--peso-semibold);
+  cursor: pointer;
+}
+
+.lista {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espacio-2);
+  list-style: none;
+}
+
+@media (width >= 600px) {
+  .lista {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.fila {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radio-md);
+  background-color: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.fila:hover {
+  border-color: var(--primary);
+}
+
+.principal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  min-width: 0;
+}
+
+.codigo {
+  font-weight: var(--peso-bold);
+  overflow-wrap: anywhere;
+}
+
+.secundario,
+.fecha {
+  font-size: var(--texto-sm);
+  color: var(--text-secondary);
+}
+
+.fecha {
+  color: var(--text-muted);
+}
+
+.badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--espacio-1);
+}

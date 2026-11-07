@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
- import { obtenerEnv } from '@/shared/env';
+import { obtenerEnv } from '@/shared/env';
 
 import styles from './FranjaAmbiente.module.css';
 

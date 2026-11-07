@@ -5,6 +5,7 @@ import BatteryFull from '@material-symbols/svg-500/rounded/battery_full-fill.svg
 import MoreHoriz from '@material-symbols/svg-500/rounded/more_horiz-fill.svg?react';
 import ChevronRight from '@material-symbols/svg-500/rounded/chevron_right-fill.svg?react';
 import ChevronLeft from '@material-symbols/svg-500/rounded/chevron_left-fill.svg?react';
+import ArrowForward from '@material-symbols/svg-500/rounded/arrow_forward-fill.svg?react';
 import PhotoCamera from '@material-symbols/svg-500/rounded/photo_camera-fill.svg?react';
 import Folder from '@material-symbols/svg-500/rounded/folder-fill.svg?react';
 import UploadFile from '@material-symbols/svg-500/rounded/upload_file-fill.svg?react';
@@ -96,10 +97,11 @@ export const ICONOS = {
   mas: MoreHoriz,
   chevronDerecha: ChevronRight,
   chevronIzquierda: ChevronLeft,
+  avanzar: ArrowForward,
   camara: PhotoCamera,
   carpeta: Folder,
   subirArchivo: UploadFile,
- _adjuntar: AttachFile,
+  _adjuntar: AttachFile,
   imagen: Image,
   wifi: Wifi,
   wifiOff: WifiOff,

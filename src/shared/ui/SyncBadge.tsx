@@ -1,4 +1,4 @@
-﻿import { Icon, type IconName } from '@/shared/ui/Icon';
+import { Icon, type IconName } from '@/shared/ui/Icon';
 
 import styles from './SyncBadge.module.css';
 

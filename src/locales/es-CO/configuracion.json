@@ -1,0 +1,59 @@
+{
+  "pasos": {
+    "bienvenida": "Bienvenida",
+    "login": "Iniciar sesión",
+    "datos": "Preparar datos",
+    "listo": "Listo"
+  },
+  "progreso": "Paso {{actual}} de {{total}}: {{paso}}",
+  "progresoTitulo": "Progreso de la configuración inicial",
+  "bienvenida": {
+    "titulo": "SERVICIO TÉCNICO",
+    "subtitulo": "BATERÍAS Y CARGADORES",
+    "descripcion": "Registra la recepción de equipos y trabaja sin conexión. Prepara la app una sola vez.",
+    "empezar": "EMPEZAR",
+    "comoInstalar": "¿Cómo instalar?"
+  },
+  "login": {
+    "titulo": "Inicia sesión",
+    "descripcion": "Usa tu cuenta de la organización para identificar tus registros y sincronizarlos.",
+    "boton": "Iniciar sesión con Microsoft",
+    "continuar": "CONTINUAR",
+    "cuenta": "Cuenta",
+    "roles": "Roles",
+    "sinCuenta": "Todavía no has iniciado sesión.",
+    "error": "No se pudo iniciar sesión. Inténtalo de nuevo."
+  },
+  "preparar": {
+    "titulo": "Preparar datos",
+    "descripcion": "Con conexión, descargamos los catálogos y la configuración para que puedas trabajar sin red.",
+    "empezar": "PREPARAR DATOS",
+    "reintentar": "REINTENTAR",
+    "continuar": "CONTINUAR",
+    "tareas": {
+      "sitio": "Conectar con SharePoint",
+      "catalogos": "Clientes, marcas y opciones",
+      "configuracion": "Configuración de la app",
+      "almacenamiento": "Almacenamiento del dispositivo"
+    },
+    "estados": {
+      "pendiente": "Pendiente",
+      "en-curso": "En curso",
+      "ok": "Listo",
+      "advertencia": "Con advertencia",
+      "error": "Error"
+    },
+    "almacenamientoDetalle": "Almacenamiento persistente: {{persistente}}. Espacio disponible: {{espacio}}.",
+    "sinClientes": "No hay clientes activos; pide al administrador que los cree."
+  },
+  "listo": {
+    "titulo": "Todo listo",
+    "descripcion": "Ya puedes registrar equipos sin conexión. Sincroniza cuando vuelvas a tener red.",
+    "irInicio": "IR AL INICIO",
+    "repetir": "REPETIR CONFIGURACIÓN"
+  },
+  "repetir": {
+    "titulo": "Configuración inicial",
+    "descripcion": "Se refrescan la conexión con el sitio, los catálogos y la configuración. Ningún dato local se borra."
+  }
+}

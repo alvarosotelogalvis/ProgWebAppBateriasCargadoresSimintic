@@ -1,4 +1,4 @@
-﻿import {
+import {
   ToggleButton,
   ToggleButtonGroup,
   type ToggleButtonGroupProps as RACToggleButtonGroupProps,
@@ -11,11 +11,15 @@ export interface SegmentadoItem {
   readonly etiqueta: string;
 }
 
-export interface SegmentedControlProps
-  extends Omit<
-    RACToggleButtonGroupProps,
-    'className' | 'children' | 'selectedKeys' | 'defaultSelectedKeys' | 'onSelectionChange' | 'selectionMode'
-  > {
+export interface SegmentedControlProps extends Omit<
+  RACToggleButtonGroupProps,
+  | 'className'
+  | 'children'
+  | 'selectedKeys'
+  | 'defaultSelectedKeys'
+  | 'onSelectionChange'
+  | 'selectionMode'
+> {
   readonly items: ReadonlyArray<SegmentadoItem>;
   readonly selectedKey: string;
   readonly onChange: (clave: string) => void;

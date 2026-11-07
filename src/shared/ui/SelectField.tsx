@@ -1,5 +1,6 @@
-import {
+﻿import {
   Button,
+  Label,
   ListBox,
   ListBoxItem,
   Popover,
@@ -17,7 +18,7 @@ export interface OpcionSelect {
 
 export interface SelectFieldProps extends Omit<SelectProps, 'className' | 'children'> {
   readonly etiqueta: string;
-  readonly error?: string;
+  readonly error?: string | undefined;
   readonly items: readonly OpcionSelect[];
   readonly textoVacio?: string;
 }
@@ -36,7 +37,7 @@ export function SelectField({
       isInvalid={Boolean(error)}
       className={styles.campo!}
     >
-      <label className={styles.etiqueta!}>{etiqueta}</label>
+      <Label className={styles.etiqueta!}>{etiqueta}</Label>
       <Button className={styles.selector!}>
         <SelectValue className={styles.valor!} />
         <span aria-hidden="true" className={styles.flecha!}>

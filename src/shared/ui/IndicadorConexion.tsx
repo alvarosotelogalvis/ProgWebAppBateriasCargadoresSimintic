@@ -1,4 +1,4 @@
-﻿import { Icon } from '@/shared/ui/Icon';
+import { Icon } from '@/shared/ui/Icon';
 import { useOnline } from '@/shared/hooks/useOnline';
 
 import styles from './IndicadorConexion.module.css';
@@ -16,7 +16,7 @@ export function IndicadorConexion({
 
   return (
     <span
-      className={`${styles.indicador!} ${enLinea ? styles['en-linea']! : styles['sin-conexion']!}`}
+      className={`${styles.indicador!} ${enLinea ? styles.enLinea! : styles.sinConexion!}`}
       role="status"
       aria-live="polite"
     >

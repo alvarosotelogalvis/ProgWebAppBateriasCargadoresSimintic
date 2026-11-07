@@ -2,13 +2,18 @@
   "inicio": "Inicio",
   "servicios": "Servicios",
   "sincronizar": "Sincronizar",
-  "mas": "Mas",
+  "mas": "Más",
   "nuevo": "Nuevo",
   "ajustes": "Ajustes",
   "ayuda": "Ayuda",
   "acerca": "Acerca de",
   "alertas": "Alertas",
-  "configuracion": "Configuracion",
-  "tecnico": "Tecnico",
-  "sincronizacion": "Sincronizacion"
+  "configuracion": "Configuración",
+  "tecnico": "Técnico",
+  "sincronizacion": "Sincronización",
+  "navegacionPrincipal": "Navegación principal",
+  "paginaActual": "Página actual",
+  "cuenta": "Mi cuenta",
+  "miCuenta": "Mi cuenta",
+  "configuracionInicial": "Configuración inicial"
 }

@@ -1,4 +1,111 @@
 {
-  "proximamente": "Sincronizacion disponible pronto",
-  "proximamenteDescripcion": "La sincronizacion con SharePoint se habilita en una version posterior."
+  "titulo": "Sincronizar",
+  "tituloPagina": "Sincronización",
+  "confirmarCuenta": {
+    "titulo": "Sincronizar",
+    "descripcion": "Confirma la cuenta con la que deseas sincronizar los servicios pendientes.",
+    "resumen": "{{servicios}} registros · {{archivos}} archivos ({{tamano}})",
+    "cargando": "Calculando pendientes…",
+    "sinPendientes": "No hay cambios pendientes",
+    "esteDispositivo": "ESTE DISPOSITIVO",
+    "sharepoint": "SHAREPOINT",
+    "confirmarComo": "Confirmar como {{correo}}",
+    "confirmando": "Sincronizando…",
+    "usarOtraCuenta": "USAR OTRA CUENTA",
+    "subiran": "Se subirán",
+    "archivos_one": "{{count}} archivo",
+    "archivos_other": "{{count}} archivos",
+    "sinArchivos": "Sin archivos"
+  },
+  "resumen": {
+    "pendientes": "Pendientes",
+    "sinErrores": "Sin errores",
+    "conErrores": "Con errores"
+  },
+  "acciones": {
+    "confirmar": "Confirmar",
+    "usarOtraCuenta": "Usar otra cuenta",
+    "sincronizarAhora": "Sincronizar ahora",
+    "reintentar": "Reintentar",
+    "cancelar": "Cancelar"
+  },
+  "estados": {
+    "enCola": "En cola",
+    "subiendo": "Subiendo",
+    "sincronizado": "Sincronizado",
+    "error": "Con error",
+    "conflicto": "Conflicto"
+  },
+  "errores": {
+    "sinConexion": "Sin conexión a Internet",
+    "sesionExpirada": "Sesión expirada",
+    "sinPermisos": "Sin permisos para sincronizar",
+    "configuracion": "Configuración incompleta",
+    "desconocido": "Error al sincronizar",
+    "tenantInvalido": "La cuenta pertenece a otra organización",
+    "sinRol": "La cuenta no tiene un rol habilitado para sincronizar"
+  },
+  "sinConexion": "Sin conexión. Tus datos están seguros en este dispositivo",
+  "progreso": {
+    "titulo": "Progreso",
+    "etiquetaLista": "Avance por servicio y archivo",
+    "archivoDe": "Archivo {{actual}} de {{total}}",
+    "cancelar": "CANCELAR",
+    "cancelando": "Cancelando…",
+    "estado": {
+      "enCola": "En cola",
+      "subiendo": "Subiendo",
+      "listo": "Listo",
+      "error": "Con error",
+      "conflicto": "Conflicto"
+    }
+  },
+  "cola": {
+    "titulo": "Estado de la sincronización",
+    "donut": "Sincronizado",
+    "donutEnCurso": "Avance de la sincronización",
+    "sincronizados": "{{sincronizados}} de {{total}} registros sincronizados",
+    "segmentos": {
+      "etiqueta": "Filtrar la cola",
+      "enCola": "En cola",
+      "conError": "Con error",
+      "conflictos": "Conflictos"
+    },
+    "vacio": {
+      "enCola": "No hay registros en cola",
+      "conError": "No hay registros con error",
+      "conflictos": "No hay conflictos"
+    },
+    "reintentar": "REINTENTAR",
+    "reintentarServicio": "Reintentar {{codigo}}",
+    "intentos_one": "{{count}} intento",
+    "intentos_other": "{{count}} intentos",
+    "conflictoDetalle": "Se resolverá al descargar los cambios de SharePoint"
+  },
+  "resumenFinal": {
+    "titulo": "Resumen de la sincronización",
+    "resultado": {
+      "OK": "Sincronización completa",
+      "Parcial": "Sincronización parcial",
+      "Error": "No se pudo sincronizar"
+    },
+    "subidos": "Registros subidos",
+    "archivos": "Archivos subidos",
+    "errores": "Con error",
+    "conflictos": "En conflicto",
+    "ocupado": "Ya hay una sincronización en curso en otra ventana de la app. Espera a que termine.",
+    "cerrar": "CERRAR"
+  },
+  "avisoConexion": {
+    "mensaje_one": "Tienes {{count}} pendiente. ¿Sincronizar ahora?",
+    "mensaje_other": "Tienes {{count}} pendientes. ¿Sincronizar ahora?",
+    "sincronizar": "SINCRONIZAR AHORA",
+    "ahoraNo": "Ahora no"
+  },
+  "versionObsoleta": {
+    "mensaje": "Actualiza la app para sincronizar. Tus datos siguen guardados en este dispositivo y puedes seguir registrando servicios.",
+    "buscar": "BUSCAR ACTUALIZACIÓN",
+    "buscando": "Buscando…",
+    "buscada": "Si hay una versión nueva, aparecerá el aviso para actualizar."
+  }
 }

@@ -1,0 +1,92 @@
+{
+  "servicio": {
+    "tipoEquipoRequerido": "Selecciona el tipo de equipo.",
+    "fechaRecepcionRequerida": "La fecha de recepción es obligatoria.",
+    "fechaFormato": "La fecha no tiene un formato válido (AAAA-MM-DD).",
+    "fechaFutura": "La fecha no puede ser futura.",
+    "clienteRequerido": "Selecciona el cliente.",
+    "solicitudRequerida": "El número de solicitud es obligatorio.",
+    "marcaRequerida": "La marca es obligatoria.",
+    "marcaFormato": "La marca no puede superar 60 caracteres.",
+    "referenciaRequerida": "La referencia es obligatoria.",
+    "referenciaFormato": "La referencia solo admite letras, números, guiones, puntos y barras.",
+    "referenciaEspacios": "La referencia no puede contener espacios.",
+    "serieRequerida": "La serie es obligatoria.",
+    "serieFormato": "La serie solo admite letras, números, guiones, puntos y barras.",
+    "serieEspacios": "La serie no puede contener espacios.",
+    "diagnosticoRequerido": "El diagnóstico es obligatorio.",
+    "observacionRequerida": "La observación técnica es obligatoria.",
+    "observacionFormato": "La observación debe tener entre 5 y 4000 caracteres.",
+    "fechaSocializacionRequerida": "La fecha de socialización es obligatoria.",
+    "fechaSocializacionInvalida": "La fecha de socialización no puede ser anterior a la recepción.",
+    "cotizacionFechaRequerida": "La fecha de envío de la cotización es obligatoria.",
+    "cotizacionValorInvalido": "El valor de la cotización no es válido.",
+    "cotizacionEstadoInvalido": "El estado de la cotización no es válido.",
+    "cotizacionNoAprobada": "La cotización debe estar aprobada para generar la orden de trabajo.",
+    "cotizacionNoRechazada": "La cotización debe estar rechazada para entregar sin reparación.",
+    "diagnosticoEsDisposicionFinal": "El diagnóstico indica disposición final; usa esa etapa.",
+    "diagnosticoNoDisposicionFinal": "El diagnóstico debe ser D. FINAL para esta etapa.",
+    "otDetalleRequerido": "El detalle de la orden de trabajo es obligatorio.",
+    "otDetalleFormato": "El detalle de la orden de trabajo debe tener entre 5 y 4000 caracteres.",
+    "otCostoInvalido": "El costo de reparación no es válido.",
+    "fechaEntregaRequerida": "La fecha de entrega es obligatoria.",
+    "vidaUtilRequerida": "La proyección de vida útil es obligatoria.",
+    "vidaUtilInvalida": "La proyección de vida útil debe ser posterior a la entrega.",
+    "facturaFechaRequerida": "La fecha de factura es obligatoria.",
+    "facturaNumeroFormato": "El número de factura no es válido.",
+    "motivoMinimo": "El motivo de anulación debe tener al menos 10 caracteres.",
+    "campoNoEditable": "El campo no se puede editar en el estado actual.",
+    "noEncontrado": "No se encontró el servicio.",
+    "camposObligatorios": "Completa los campos obligatorios."
+  },
+  "transicion": {
+    "noPermitida": "La transición no está permitida.",
+    "faltantes": "Faltan requisitos para completar la etapa.",
+    "rolNoAutorizado": "No tienes permiso para realizar esta acción.",
+    "estadoFinal": "El servicio ya está en un estado final.",
+    "entregaSinReparacion": "Usa la entrega sin reparación para una cotización rechazada."
+  },
+  "anulacion": {
+    "motivoRequerido": "El motivo de anulación es obligatorio.",
+    "rolNoAutorizado": "Solo un administrador puede anular un servicio."
+  },
+  "borrador": {
+    "noEsBorrador": "El servicio ya no es un borrador y no se puede descartar."
+  },
+  "adjunto": {
+    "min": "Falta al menos un adjunto obligatorio de este tipo.",
+    "max": "Hay demasiados adjuntos de este tipo.",
+    "hashDuplicado": "El archivo ya está adjunto al servicio."
+  },
+  "auth": {
+    "requerida": "Debes iniciar sesión para continuar."
+  },
+  "config": {
+    "invalida": "La configuración recibida no es válida."
+  },
+  "codigo": {
+    "CONFIG_INVALIDA": "La configuración de la app no es válida.",
+    "SIN_CONEXION": "No hay conexión a internet.",
+    "RED_SIN_CONEXION": "No hay conexión a internet. Revisa tu red e inténtalo de nuevo.",
+    "AUTH_REQUERIDA": "Debes iniciar sesión para continuar.",
+    "AUTH_SIN_ROL": "Tu cuenta no tiene acceso a esta app. Pide acceso al administrador.",
+    "AUTH_TENANT_INVALIDO": "Esta cuenta no pertenece a la organización.",
+    "SP_SIN_PERMISO": "Tu cuenta no tiene permiso en el sitio de SharePoint.",
+    "SP_NO_ENCONTRADO": "No se encontró el sitio o la lista configurada. Avisa a soporte.",
+    "SP_CONFLICTO": "El dato cambió en SharePoint. Revisa la información e inténtalo de nuevo.",
+    "SP_LIMITE": "El servicio de datos limitó la solicitud. Espera un momento y reintenta.",
+    "SP_SERVIDOR": "El servicio de datos no está disponible. Inténtalo más tarde.",
+    "VALIDACION": "Los datos enviados no son validos.",
+    "VERSION_OBSOLETA": "Debes actualizar la app para continuar.",
+    "NO_AUTORIZADO": "No tienes autorización para esta acción.",
+    "SIN_PERMISO": "No tienes permiso para esta acción.",
+    "NO_ENCONTRADO": "No se encontró la información.",
+    "CONFLICTO": "Hay un conflicto con los datos.",
+    "LIMITE_ALCANZADO": "Se alcanzó el límite permitido.",
+    "ARCHIVO_INVALIDO": "El archivo no es válido.",
+    "FALLA_GRAFICO": "No se pudo procesar la imagen.",
+    "ALMACENAMIENTO_LLENO": "El almacenamiento del dispositivo está lleno.",
+    "ALMACENAMIENTO_NO_DISPONIBLE": "El almacenamiento del dispositivo no está disponible.",
+    "DESCONOCIDO": "Ocurrió un error inesperado."
+  }
+}

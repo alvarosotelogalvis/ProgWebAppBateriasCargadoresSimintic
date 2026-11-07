@@ -1,0 +1,6 @@
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  justify-content: flex-end;
+}

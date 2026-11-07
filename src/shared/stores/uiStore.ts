@@ -46,6 +46,5 @@ export const useUiStore = create<EstadoUi>((set) => ({
     set((estado) => ({
       toasts: [...estado.toasts, { ...toast, id: `${Date.now()}-${Math.random()}` }],
     })),
-  quitarToast: (id) =>
-    set((estado) => ({ toasts: estado.toasts.filter((t) => t.id !== id) })),
+  quitarToast: (id) => set((estado) => ({ toasts: estado.toasts.filter((t) => t.id !== id) })),
 }));

@@ -1,14 +1,14 @@
 {
-  "titulo": "SERVICIO TECNICO",
-  "subtitulo": "Baterias y cargadores. Funciona sin conexion.",
+  "titulo": "SERVICIO TÉCNICO",
+  "subtitulo": "Baterías y cargadores. Funciona sin conexión.",
   "instrucciones": {
     "titulo": "Como instalar",
-    "texto": "Instala la app para usarla en pantalla completa y trabajar sin conexion.",
-    "paso1": "Abre el menu del navegador.",
+    "texto": "Instala la app para usarla en pantalla completa y trabajar sin conexión.",
+    "paso1": "Abre el menú del navegador.",
     "paso2": "Elige \"Instalar app\" o \"Agregar a pantalla de inicio\".",
     "paso3": "Confirma. Busca el icono ST en tu escritorio."
   },
   "botonInstalar": "INSTALAR",
   "continuar": "Continuar sin instalar",
-  "descartado": "Puedes instalarla mas tarde desde el menu Mas."
+  "descartado": "Puedes instalarla más tarde desde el menú Más."
 }

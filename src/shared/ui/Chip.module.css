@@ -1,0 +1,21 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  padding: var(--espacio-1) var(--espacio-2);
+  border-radius: var(--radio-sm);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.account {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.tag {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}

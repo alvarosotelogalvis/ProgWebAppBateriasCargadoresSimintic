@@ -1,0 +1,14 @@
+.tarjeta {
+  gap: var(--espacio-4);
+}
+
+.titulo {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-medio);
+}
+
+.cancelar {
+  align-self: center;
+}

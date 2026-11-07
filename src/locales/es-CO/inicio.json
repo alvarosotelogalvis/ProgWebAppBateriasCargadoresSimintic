@@ -1,8 +1,18 @@
 {
-  "inicio": {
-    "vacio": {
-      "titulo": "Aun no hay servicios",
-      "descripcion": "Registra la recepcion de una bateria o cargador para empezar."
-    }
+  "vacio": {
+    "titulo": "Aún no hay servicios",
+    "descripcion": "Registra la recepción de una batería o cargador para empezar."
+  },
+  "recordatorio": {
+    "mensaje_one": "Tienes {{count}} registro sin sincronizar desde hace {{antiguedad}}.",
+    "mensaje_other": "Tienes {{count}} registros sin sincronizar desde hace {{antiguedad}}.",
+    "horas_one": "{{count}} hora",
+    "horas_other": "{{count}} horas",
+    "dias_one": "{{count}} día",
+    "dias_other": "{{count}} días",
+    "sincronizar": "SINCRONIZAR"
+  },
+  "accesos": {
+    "sincronizar": "Sincronizar"
   }
 }

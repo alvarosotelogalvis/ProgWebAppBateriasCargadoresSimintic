@@ -1,4 +1,4 @@
-﻿import { Button, type ButtonProps } from 'react-aria-components';
+import { Button, type ButtonProps } from 'react-aria-components';
 
 import styles from './SecondaryButton.module.css';
 
@@ -11,7 +11,7 @@ export function SecondaryButton({
   className,
   ...props
 }: SecondaryButtonProps): React.JSX.Element {
-  const clases = [styles.boton!, onGradient ? styles['on-gradient']! : '', className]
+  const clases = [styles.boton!, onGradient ? styles.onGradient! : '', className]
     .filter(Boolean)
     .join(' ');
 

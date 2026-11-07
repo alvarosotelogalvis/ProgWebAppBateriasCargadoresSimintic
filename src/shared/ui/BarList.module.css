@@ -1,0 +1,60 @@
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.etiqueta {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detalle {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: var(--texto-xs);
+}
+
+.pista {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: var(--radio-full);
+  background-color: var(--surface-sunken);
+}
+
+.barra {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--primary);
+  transition: width var(--duracion-media) var(--curva);
+}
+
+.accent {
+  background-color: var(--accent);
+}
+
+.peligro {
+  background-color: var(--peligro);
+}

@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import styles from './Card.module.css';
 
@@ -18,7 +18,7 @@ export function Card({
   const clases = [
     styles.tarjeta!,
     fill ? styles.fill! : '',
-    pegadaAbajo ? styles['pegada-abajo']! : '',
+    pegadaAbajo ? styles.pegadaAbajo! : '',
     className ?? '',
   ]
     .filter(Boolean)

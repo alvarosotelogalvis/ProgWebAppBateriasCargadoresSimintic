@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { Icon } from '@/shared/ui/Icon';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';

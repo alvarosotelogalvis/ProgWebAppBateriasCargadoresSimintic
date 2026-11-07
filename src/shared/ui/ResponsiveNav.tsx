@@ -1,4 +1,5 @@
-﻿import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { NavLink } from 'react-router-dom';
 
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { useBreakpoint } from '@/shared/hooks/useBreakpoint';
@@ -16,12 +17,26 @@ export interface ItemNav {
   readonly badge?: number;
 }
 
+function IconoConBadge({ item }: { readonly item: ItemNav }): React.JSX.Element {
+  return (
+    <span className={styles.iconoEnvuelto!}>
+      <Icon nombre={item.icono} tamano={24} />
+      {typeof item.badge === 'number' && item.badge > 0 ? (
+        <span className={styles.badge!} aria-hidden="true">
+          {item.badge}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 interface Props {
   readonly items: readonly ItemNav[];
   readonly etiquetaDe: (clave: string) => string;
 }
 
 export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
+  const { t } = useTranslation('navegacion');
   const breakpoint = useBreakpoint();
   const roles = useSesionStore((estado) => estado.roles);
 
@@ -35,29 +50,22 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
 
   if (breakpoint === 'compacto') {
     return (
-      <nav className={styles['barra-inferior']!} aria-label="Navegacion principal">
+      <nav className={styles.barraInferior!} aria-label={t('navegacionPrincipal')}>
         <ul className={styles.lista!}>
           {principal.map((item) => (
             <li key={item.id}>
               <NavLink
                 to={item.ruta}
                 end={item.ruta === '/'}
-                className={({ isActive }) =>
-                  `${styles.enlace!} ${isActive ? styles.activo! : ''}`
-                }
+                className={({ isActive }) => `${styles.enlace!} ${isActive ? styles.activo! : ''}`}
               >
                 {({ isActive }) => (
                   <>
-                    <span className={styles['icono-envuelto']!}>
-                      <Icon nombre={item.icono} tamano={24} />
-                      {typeof item.badge === 'number' && item.badge > 0 ? (
-                        <span className={styles.badge!} aria-hidden="true">
-                          {item.badge}
-                        </span>
-                      ) : null}
-                    </span>
+                    <IconoConBadge item={item} />
                     <span className={styles.etiqueta!}>{etiquetaDe(item.etiquetaKey)}</span>
-                    {isActive ? <span className={styles.soloLectores!}>Pagina actual</span> : null}
+                    {isActive ? (
+                      <span className={styles.soloLectores!}>{t('paginaActual')}</span>
+                    ) : null}
                   </>
                 )}
               </NavLink>
@@ -70,19 +78,19 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
 
   if (breakpoint === 'medio') {
     return (
-      <nav className={styles.riel!} aria-label="Navegacion principal">
-        <ul className={styles['lista-riel']!}>
+      <nav className={styles.riel!} aria-label={t('navegacionPrincipal')}>
+        <ul className={styles.listaRiel!}>
           {principal.map((item) => (
             <li key={item.id}>
               <NavLink
                 to={item.ruta}
                 end={item.ruta === '/'}
                 className={({ isActive }) =>
-                  `${styles['enlace-riel']!} ${isActive ? styles.activo! : ''}`
+                  `${styles.enlaceRiel!} ${isActive ? styles.activo! : ''}`
                 }
               >
-                <Icon nombre={item.icono} tamano={24} />
-                <span className={styles['etiqueta-riel']!}>{etiquetaDe(item.etiquetaKey)}</span>
+                <IconoConBadge item={item} />
+                <span className={styles.etiquetaRiel!}>{etiquetaDe(item.etiquetaKey)}</span>
               </NavLink>
             </li>
           ))}
@@ -92,18 +100,18 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
   }
 
   return (
-    <nav className={styles.lateral!} aria-label="Navegacion principal">
-      <ul className={styles['lista-lateral']!}>
+    <nav className={styles.lateral!} aria-label={t('navegacionPrincipal')}>
+      <ul className={styles.listaLateral!}>
         {principal.map((item) => (
           <li key={item.id}>
             <NavLink
               to={item.ruta}
               end={item.ruta === '/'}
               className={({ isActive }) =>
-                `${styles['enlace-lateral']!} ${isActive ? styles.activo! : ''}`
+                `${styles.enlaceLateral!} ${isActive ? styles.activo! : ''}`
               }
             >
-              <Icon nombre={item.icono} tamano={24} />
+              <IconoConBadge item={item} />
               <span>{etiquetaDe(item.etiquetaKey)}</span>
             </NavLink>
           </li>
@@ -116,10 +124,10 @@ export function ResponsiveNav({ items, etiquetaDe }: Props): React.JSX.Element {
                 <NavLink
                   to={item.ruta}
                   className={({ isActive }) =>
-                    `${styles['enlace-lateral']!} ${isActive ? styles.activo! : ''}`
+                    `${styles.enlaceLateral!} ${isActive ? styles.activo! : ''}`
                   }
                 >
-                  <Icon nombre={item.icono} tamano={24} />
+                  <IconoConBadge item={item} />
                   <span>{etiquetaDe(item.etiquetaKey)}</span>
                 </NavLink>
               </li>

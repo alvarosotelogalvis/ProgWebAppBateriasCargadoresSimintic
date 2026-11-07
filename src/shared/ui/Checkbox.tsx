@@ -1,4 +1,4 @@
-﻿import {
+import {
   Checkbox as RACCheckbox,
   type CheckboxProps as RACCheckboxProps,
 } from 'react-aria-components';

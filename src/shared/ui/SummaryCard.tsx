@@ -1,4 +1,4 @@
-﻿import styles from './SummaryCard.module.css';
+import styles from './SummaryCard.module.css';
 
 interface Props {
   readonly nombre: string;

@@ -1,13 +1,22 @@
-﻿import { TextField as RACTextField, type TextFieldProps as RACTextFieldProps } from 'react-aria-components';
+﻿import {
+  Input,
+  Label,
+  TextArea,
+  TextField as RACTextField,
+  type TextFieldProps as RACTextFieldProps,
+} from 'react-aria-components';
+import { useId } from 'react';
 
 import styles from './TextField.module.css';
 
 export interface TextFieldProps extends Omit<RACTextFieldProps, 'className' | 'children'> {
   readonly etiqueta: string;
-  readonly error?: string;
-  readonly ayuda?: string;
+  readonly error?: string | undefined;
+  readonly ayuda?: string | undefined;
   readonly multilinea?: boolean;
-  readonly placeholder?: string;
+  readonly inputMode?: 'text' | 'numeric' | 'decimal' | 'email' | 'tel' | 'search' | 'url';
+  readonly autoCapitalize?: string;
+  readonly placeholder?: string | undefined;
 }
 
 export function TextField({
@@ -15,26 +24,36 @@ export function TextField({
   error,
   ayuda,
   multilinea = false,
+  inputMode,
+  autoCapitalize,
   placeholder,
+  id: idExplicito,
   ...props
 }: TextFieldProps): React.JSX.Element {
-  const base = props.id ?? 'campo';
-  const idError = error ? `${base}-error` : undefined;
-  const idAyuda = ayuda ? `${base}-ayuda` : undefined;
+  const idGenerado = useId();
+  const id = idExplicito ?? idGenerado;
+  const idError = error ? `${id}-error` : undefined;
+  const idAyuda = ayuda ? `${id}-ayuda` : undefined;
   const descritoPor = [idError, idAyuda].filter(Boolean).join(' ');
 
   return (
-    <RACTextField
-      {...props}
-      isInvalid={Boolean(error)}
-      className={styles.campo!}
-      {...(descritoPor ? { 'aria-describedby': descritoPor } : {})}
-    >
-      <label className={styles.etiqueta!}>{etiqueta}</label>
+    <RACTextField {...props} isInvalid={Boolean(error)} className={styles.campo!}>
+      <Label className={styles.etiqueta!}>{etiqueta}</Label>
       {multilinea ? (
-        <textarea className={styles.entrada!} rows={4} placeholder={placeholder} />
+        <TextArea
+          className={styles.entrada!}
+          rows={4}
+          {...(placeholder !== undefined ? { placeholder } : {})}
+          {...(descritoPor ? { 'aria-describedby': descritoPor } : {})}
+        />
       ) : (
-        <input className={styles.entrada!} placeholder={placeholder} />
+        <Input
+          className={styles.entrada!}
+          {...(placeholder !== undefined ? { placeholder } : {})}
+          {...(inputMode !== undefined ? { inputMode } : {})}
+          {...(autoCapitalize !== undefined ? { autoCapitalize } : {})}
+          {...(descritoPor ? { 'aria-describedby': descritoPor } : {})}
+        />
       )}
       {ayuda ? (
         <span id={idAyuda} className={styles.ayuda!}>

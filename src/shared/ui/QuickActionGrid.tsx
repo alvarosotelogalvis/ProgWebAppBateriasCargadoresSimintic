@@ -1,4 +1,4 @@
-﻿import styles from './QuickActionGrid.module.css';
+import styles from './QuickActionGrid.module.css';
 
 export interface AccionRapida {
   readonly id: string;

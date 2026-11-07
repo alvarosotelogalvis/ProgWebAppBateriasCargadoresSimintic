@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { AppShell } from '@/app/layout/AppShell';
 import { InstallGate } from '@/app/guards/InstallGate';
@@ -40,21 +40,58 @@ export const router = createBrowserRouter([
               },
               {
                 path: 'servicios',
+                children: [
+                  {
+                    index: true,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/ListaServiciosPage'))
+                        .ListaServiciosPage,
+                    }),
+                  },
+                  {
+                    path: 'nuevo',
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/NuevoServicioPage'))
+                        .NuevoServicioPage,
+                    }),
+                  },
+                  {
+                    path: ':id',
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/DetalleServicioPage'))
+                        .DetalleServicioPage,
+                    }),
+                  },
+                  {
+                    path: ':id/etapa/recepcion',
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/EtapaRecepcionPage'))
+                        .EtapaRecepcionPage,
+                    }),
+                  },
+                ],
+              },
+              {
+                path: 'sincronizacion',
                 lazy: async () => ({
-                  Component: (await import('@/features/servicios/ServiciosPage')).ServiciosPage,
+                  Component: (await import('@/features/sincronizacion/pages/SincronizacionPage'))
+                    .SincronizacionPage,
                 }),
               },
               {
                 path: 'sincronizar',
-                lazy: async () => ({
-                  Component: (await import('@/features/sincronizacion/SincronizacionPage'))
-                    .SincronizacionPage,
-                }),
+                element: <Navigate to="/sincronizacion" replace />,
               },
               {
                 path: 'mas',
                 lazy: async () => ({
                   Component: (await import('@/features/mas/MasPage')).MasPage,
+                }),
+              },
+              {
+                path: 'cuenta',
+                lazy: async () => ({
+                  Component: (await import('@/features/auth/MiCuentaPage')).MiCuentaPage,
                 }),
               },
               {
@@ -105,7 +142,8 @@ export const router = createBrowserRouter([
                     {
                       path: 'tecnico/ui',
                       lazy: async () => ({
-                        Component: (await import('@/features/tecnico/CatalogoUiPage')).CatalogoUiPage,
+                        Component: (await import('@/features/tecnico/CatalogoUiPage'))
+                          .CatalogoUiPage,
                       }),
                     },
                   ]

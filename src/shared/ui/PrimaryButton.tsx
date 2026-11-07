@@ -1,4 +1,4 @@
-﻿import { Button, type ButtonProps } from 'react-aria-components';
+import { Button, type ButtonProps } from 'react-aria-components';
 
 import styles from './PrimaryButton.module.css';
 
@@ -13,7 +13,7 @@ export function PrimaryButton({
   className,
   ...props
 }: PrimaryButtonProps): React.JSX.Element {
-  const clases = [styles.boton!, styles[size], onGradient ? styles['on-gradient']! : '', className]
+  const clases = [styles.boton!, styles[size], onGradient ? styles.onGradient! : '', className]
     .filter(Boolean)
     .join(' ');
 

@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { Icon, type IconName } from '@/shared/ui/Icon';
 

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { useUiStore } from '@/shared/stores/uiStore';
 
 import styles from './Toast.module.css';
 
 export function Toast(): React.JSX.Element {
+  const { t } = useTranslation('common');
   const toasts = useUiStore((estado) => estado.toasts);
   const quitar = useUiStore((estado) => estado.quitarToast);
 
@@ -19,7 +21,7 @@ export function Toast(): React.JSX.Element {
             type="button"
             className={styles.cerrar!}
             onClick={() => quitar(toast.id)}
-            aria-label="Cerrar aviso"
+            aria-label={t('comun.cerrarAviso')}
           >
             ✕
           </button>

@@ -1,7 +1,8 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 
 import { PantallaSinPermiso } from '@/shared/ui/PantallaSinPermiso';
-import { useSesionStore, type Rol } from '@/shared/stores/sesionStore';
+import { useRoles } from '@/shared/hooks/useRoles';
+import type { Rol } from '@/shared/stores/sesionStore';
 
 interface Props {
   readonly roles: readonly Rol[];
@@ -9,10 +10,10 @@ interface Props {
 
 /**
  * Si el usuario no tiene ninguno de los roles indicados, muestra "Sin permiso"
- * con un enlace al inicio (ES-001-11).
+ * (ES-001-11).
  */
 export function RoleGuard({ roles }: Props): React.JSX.Element {
-  const rolesUsuario = useSesionStore((estado) => estado.roles);
+  const rolesUsuario = useRoles();
 
   const permitido = rolesUsuario.some((rol) => roles.includes(rol));
 
@@ -21,8 +22,4 @@ export function RoleGuard({ roles }: Props): React.JSX.Element {
   }
 
   return <Outlet />;
-}
-
-export function NavigateInicio(): React.JSX.Element {
-  return <Navigate to="/" replace />;
 }
