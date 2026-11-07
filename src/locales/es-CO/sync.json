@@ -107,5 +107,20 @@
     "buscar": "BUSCAR ACTUALIZACIÓN",
     "buscando": "Buscando…",
     "buscada": "Si hay una versión nueva, aparecerá el aviso para actualizar."
+  },
+  "conflictos": {
+    "titulo": "Resolver conflictos",
+    "sinConflictos": "Sin conflictos por resolver",
+    "banner": {
+      "mensaje_one": "{{count}} conflicto: {{campos}}",
+      "mensaje_other": "{{count}} conflictos: {{campos}}",
+      "resolver": "RESOLVER"
+    },
+    "campo": {
+      "miValor": "Mi valor",
+      "sharepoint": "SharePoint"
+    },
+    "boton": "APLICAR Y SINCRONIZAR",
+    "validacion": "Elige un valor para todos los conflictos"
   }
 }
