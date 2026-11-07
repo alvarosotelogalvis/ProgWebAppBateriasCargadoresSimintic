@@ -370,4 +370,10 @@ export class SharePointGateway implements RemoteGatewayPush {
       timeoutMs: 10_000,
     });
   }
+
+  async cambiosServicios(_deltaLink?: string): Promise<{ cambios: unknown[]; deltaLink?: string }> {
+    // TODO: Implementar delta o filtro por Modified
+    // await this.obtenerSitio();
+    return { cambios: [] };
+  }
 }
