@@ -11,12 +11,12 @@ describe('mergeTresVias — regla de estado (T-005)', () => {
       local.base = { estado: 'RECIBIDO' };
       local.syncState = 'pending';
 
-      // Remoto cambió a EN_REPARACION (más avanzado que DIAGNOSTICADO)
-      const remoto: RemotoServicio = { estado: 'EN_REPARACION' as const };
+      // Remoto cambió a COTIZADO (más avanzado que DIAGNOSTICADO, ambos requieren diagnóstico)
+      const remoto: RemotoServicio = { estado: 'COTIZADO' as const };
 
       const { servicio, conflictos } = mergeTresVias(local, remoto);
 
-      expect(servicio.estado).toBe('EN_REPARACION');
+      expect(servicio.estado).toBe('COTIZADO');
       expect(conflictos).toHaveLength(0);
       expect(servicio.syncState).toBe('synced');
     });
@@ -62,8 +62,13 @@ describe('mergeTresVias — regla de estado (T-005)', () => {
       local.base = { estado: 'EN_REPARACION' };
       local.syncState = 'pending';
 
-      // Remoto cambió a FACTURADO (final, gana incluso si es menos reciente)
-      const remoto: RemotoServicio = { estado: 'FACTURADO' as const };
+      // Remoto cambió a FACTURADO (final, gana incluso si remoto no cambió desde base)
+      // Proporcionar todos los campos requeridos para coherencia
+      const remoto: RemotoServicio = {
+        estado: 'FACTURADO' as const,
+        facturaFecha: '2026-11-07',
+        facturaNumero: 'FV-001',
+      };
 
       const { servicio } = mergeTresVias(local, remoto);
 
