@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useContainer } from '@/app/container';
+import { useContainer } from '@/app/containerContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
 import CampoDiagnostico from '../components/CampoDiagnostico';

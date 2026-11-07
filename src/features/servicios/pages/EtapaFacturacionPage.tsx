@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
-import { useContainer } from '@/app/container';
+import { useContainer } from '@/app/containerContext';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useRoles } from '@/features/auth/useRoles';
+import { useRoles } from '@/shared/hooks/useRoles';
 import { useTranslation } from 'react-i18next';
 import FormEtapa from '../components/FormEtapa';
 

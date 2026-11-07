@@ -1,4 +1,4 @@
-import { useContainer } from '@/app/container';
+import { useContainer } from '@/app/containerContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
 import styles from './CampoDiagnostico.module.css';

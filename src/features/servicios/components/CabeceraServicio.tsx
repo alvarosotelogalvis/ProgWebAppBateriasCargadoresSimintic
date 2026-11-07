@@ -1,6 +1,6 @@
 import type { Servicio } from '@/domain/servicio';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useContainer } from '@/app/container';
+import { useContainer } from '@/app/containerContext';
 import { useTranslation } from 'react-i18next';
 import PhotoCarousel from '@/shared/ui/PhotoCarousel';
 import styles from './CabeceraServicio.module.css';
