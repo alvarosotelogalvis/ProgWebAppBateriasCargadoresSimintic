@@ -1,0 +1,48 @@
+.campo-diagnostico {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.campo-diagnostico label {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.campo-diagnostico select {
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-default);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary-border);
+    box-shadow: 0 0 0 3px var(--color-primary-bg);
+  }
+}
+
+.campo-diagnostico small {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
+.advertencia {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+  color: var(--color-warning-text);
+  font-size: 0.875rem;
+}
