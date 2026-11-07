@@ -6,26 +6,29 @@
 > **Relación con `specs/`**: este documento da la visión por fases. El detalle ejecutable de cada fase (historias, escenarios Given/When/Then, archivos y tareas `T###`) está en su spec. Si hay diferencias, **manda la spec aprobada** y este documento se actualiza.
 
 ## Resumen de fases
-| Fase | Objetivo | Entregable verificable | Depende de | Spec |
-|---|---|---|---|---|
-| F0 | Andamiaje, herramientas y **spikes de riesgo** | PWA vacía instalable, desplegada en DEV; spikes documentados | Tenant DEV (06 §1–2) | [001](../specs/001-fundacion-pwa/spec.md) |
-| F1 | Dominio y persistencia local | Dominio + Dexie con pruebas (sin UI) | F0 | [002](../specs/002-dominio-persistencia-local/spec.md) |
-| F2 | Shell de UI | Layout, rutas, menús, ajustes, i18n, puerta de instalación | F1 | [001](../specs/001-fundacion-pwa/spec.md) |
-| F3 | Recepción + adjuntos (offline) | Crear una recepción con fotos en modo avión | F2 | [003](../specs/003-recepcion-adjuntos-offline/spec.md) |
-| F4 | Autenticación + configuración inicial | Login, roles, catálogos descargados, script de SharePoint | F2, tenant | [004](../specs/004-autenticacion-configuracion-inicial/spec.md) |
-| F5 | Sync push | Registros y archivos subidos de forma idempotente | F3, F4 | [005](../specs/005-sincronizacion-push/spec.md) |
-| F6 | Sync pull + conflictos | Cambios remotos visibles; conflictos resolubles | F5 | [006](../specs/006-sincronizacion-pull-conflictos/spec.md) |
-| F7 | Etapas restantes + roles | Ciclo completo hasta facturación / DF / anulación | F3, F6 | [007](../specs/007-etapas-servicio-roles/spec.md) |
-| F8 | Alertas + Power Automate | Alertas en la app y correos funcionando en DEV | F7 | [008](../specs/008-alertas-notificaciones/spec.md) |
-| F9 | Menú técnico, respaldo, purgas, logs | Soporte y operación | F6 | [009](../specs/009-soporte-respaldo-purgas/spec.md) |
-| F10 | Endurecimiento y release 1.0.0 | Pruebas en dispositivos, Lighthouse, a11y, PRD desplegado | Todo | — (este documento §F10) |
+
+| Fase | Objetivo                                       | Entregable verificable                                       | Depende de           | Spec                                                            |
+| ---- | ---------------------------------------------- | ------------------------------------------------------------ | -------------------- | --------------------------------------------------------------- |
+| F0   | Andamiaje, herramientas y **spikes de riesgo** | PWA vacía instalable, desplegada en DEV; spikes documentados | Tenant DEV (06 §1–2) | [001](../specs/001-fundacion-pwa/spec.md)                       |
+| F1   | Dominio y persistencia local                   | Dominio + Dexie con pruebas (sin UI)                         | F0                   | [002](../specs/002-dominio-persistencia-local/spec.md)          |
+| F2   | Shell de UI                                    | Layout, rutas, menús, ajustes, i18n, puerta de instalación   | F1                   | [001](../specs/001-fundacion-pwa/spec.md)                       |
+| F3   | Recepción + adjuntos (offline)                 | Crear una recepción con fotos en modo avión                  | F2                   | [003](../specs/003-recepcion-adjuntos-offline/spec.md)          |
+| F4   | Autenticación + configuración inicial          | Login, roles, catálogos descargados, script de SharePoint    | F2, tenant           | [004](../specs/004-autenticacion-configuracion-inicial/spec.md) |
+| F5   | Sync push                                      | Registros y archivos subidos de forma idempotente            | F3, F4               | [005](../specs/005-sincronizacion-push/spec.md)                 |
+| F6   | Sync pull + conflictos                         | Cambios remotos visibles; conflictos resolubles              | F5                   | [006](../specs/006-sincronizacion-pull-conflictos/spec.md)      |
+| F7   | ✅ Etapas restantes + roles                    | Ciclo completo hasta facturación / DF / anulación            | F3, F6               | [007](../specs/007-etapas-servicio-roles/spec.md)               |
+| F8   | Alertas + Power Automate                       | Alertas en la app y correos funcionando en DEV               | F7                   | [008](../specs/008-alertas-notificaciones/spec.md)              |
+| F9   | Menú técnico, respaldo, purgas, logs           | Soporte y operación                                          | F6                   | [009](../specs/009-soporte-respaldo-purgas/spec.md)             |
+| F10  | Endurecimiento y release 1.0.0                 | Pruebas en dispositivos, Lighthouse, a11y, PRD desplegado    | Todo                 | — (este documento §F10)                                         |
 
 ---
 
 ## F0 — Andamiaje y spikes
+
 **Preguntas a confirmar antes**: PA-10 (Acceso Condicional) y PA-11 (cuenta de Cloudflare).
 
 ### Tareas
+
 1. **F0.1 Repo y andamiaje** (`chore/F0-andamiaje`): ejecutar `05-Stack-y-Entorno-de-Desarrollo.md` §3 y §12. Crear `.gitattributes`, `.gitignore` (incluye `.env*` excepto `.env.example`), `.node-version`, `.editorconfig`, `.vscode/`.
 2. **F0.2 TypeScript estricto**: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. Alias `@/` → `src/`.
 3. **F0.3 ESLint + Prettier + reglas de capas** (SDD §4.1) con `eslint-plugin-boundaries`. Agregar `jsx-a11y` y una regla que prohíba `dangerouslySetInnerHTML` y `localStorage` fuera de `infrastructure/auth` y `features/ajustes`.
@@ -37,23 +40,25 @@
 9. **F0.9 Despliegue DEV**: `npm run deploy:dev` a Cloudflare Pages (rama `dev`). Verificar HTTPS, cabeceras e instalación.
 10. **F0.10 Spikes** (cada uno en una rama `spike/…` desechable; el resultado se documenta en `docs/spikes/Sx-*.md` y, si cambia una decisión, en un ADR nuevo):
 
-| Spike | Pregunta | Criterio de éxito |
-|---|---|---|
-| S1 | ¿`loginRedirect` + `acquireTokenSilent` de MSAL funcionan en la PWA **instalada** en iOS, Android y Windows? ¿Persiste la sesión al cerrar y abrir? | Login completo y token silencioso tras reabrir en los 3. Si falla en iOS: documentar la alternativa (abrir el login en Safari) y crear el ADR |
-| S2 | ¿`Sites.Selected` delegado con el grant `write` permite crear un ítem y subir un archivo? | `POST` de ítem y `PUT` de archivo OK con un usuario con *Colaborar* |
-| S3 | ¿`PATCH …/items/{id}/fields` respeta `If-Match` (412)? ¿Cómo vuelven las fechas de solo fecha? | Documentar el comportamiento. Si no hay 412, implementar el respaldo "GET + comparar eTag antes del PATCH" |
-| S4 | ¿`lists/{id}/items/delta?$expand=fields` devuelve los campos y un `deltaLink` estable? | Si sí, usar delta. Si no, el filtro por `Modified` (SDD §9.4) |
-| S5 | Persistencia y cuota de IndexedDB en iOS instalada: ¿`storage.persist()`? ¿Cuánto permite? ¿Sobrevive 8 días sin abrir la app? | Datos presentes y la cuota reportada documentada |
-| S6 | Cámara con `capture` en iOS y Android; tiempo de compresión de una foto de 12 MP en gama baja | < 2 s en gama media, < 4 s en gama baja |
-| S7 | Acceso Condicional con un dispositivo no administrado | Graph responde 200 desde un teléfono personal |
-| S8 | CSP de `_headers` (`style-src 'self'` sin `unsafe-inline`, `font-src 'self'`) con React Aria Components, CSS Modules, MSAL (iframe) y el worker de compresión | Sin violaciones de CSP en la consola |
+| Spike | Pregunta                                                                                                                                                      | Criterio de éxito                                                                                                                             |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1    | ¿`loginRedirect` + `acquireTokenSilent` de MSAL funcionan en la PWA **instalada** en iOS, Android y Windows? ¿Persiste la sesión al cerrar y abrir?           | Login completo y token silencioso tras reabrir en los 3. Si falla en iOS: documentar la alternativa (abrir el login en Safari) y crear el ADR |
+| S2    | ¿`Sites.Selected` delegado con el grant `write` permite crear un ítem y subir un archivo?                                                                     | `POST` de ítem y `PUT` de archivo OK con un usuario con _Colaborar_                                                                           |
+| S3    | ¿`PATCH …/items/{id}/fields` respeta `If-Match` (412)? ¿Cómo vuelven las fechas de solo fecha?                                                                | Documentar el comportamiento. Si no hay 412, implementar el respaldo "GET + comparar eTag antes del PATCH"                                    |
+| S4    | ¿`lists/{id}/items/delta?$expand=fields` devuelve los campos y un `deltaLink` estable?                                                                        | Si sí, usar delta. Si no, el filtro por `Modified` (SDD §9.4)                                                                                 |
+| S5    | Persistencia y cuota de IndexedDB en iOS instalada: ¿`storage.persist()`? ¿Cuánto permite? ¿Sobrevive 8 días sin abrir la app?                                | Datos presentes y la cuota reportada documentada                                                                                              |
+| S6    | Cámara con `capture` en iOS y Android; tiempo de compresión de una foto de 12 MP en gama baja                                                                 | < 2 s en gama media, < 4 s en gama baja                                                                                                       |
+| S7    | Acceso Condicional con un dispositivo no administrado                                                                                                         | Graph responde 200 desde un teléfono personal                                                                                                 |
+| S8    | CSP de `_headers` (`style-src 'self'` sin `unsafe-inline`, `font-src 'self'`) con React Aria Components, CSS Modules, MSAL (iframe) y el worker de compresión | Sin violaciones de CSP en la consola                                                                                                          |
 
 **Criterios de aceptación de F0**: `npm run verify` en verde. App vacía instalable desde `dev.*.pages.dev` en Android, iOS y Windows, funcionando offline (pantalla "Hola" cargada sin red). Los 8 spikes documentados.
 
 ---
 
 ## F1 — Dominio y persistencia local
+
 **Preguntas antes**: PA-07 y PA-12.
+
 1. **F1.1** `domain/servicio.ts`, `adjunto.ts` y `config.ts` (tipos + defaults, SDD §5 y modelo de datos).
 2. **F1.2** `domain/validaciones.ts`: esquemas zod por etapa, normalizaciones y mensajes como claves i18n.
 3. **F1.3** `domain/estados.ts`: tabla de transiciones completa (modelo de datos §5), `camposEditables` y `transicionesDisponibles`. **Cobertura del 100 %**.
@@ -67,6 +72,7 @@
 ---
 
 ## F2 — Shell de UI
+
 1. **F2.1** Sistema de diseño (`docs/10`, ADR-0022): `tokens.css`, fuentes e íconos autoalojados, `GradientBackground`, `AppShell` + `ResponsiveNav` (3 breakpoints), catálogo base de componentes y la página `/tecnico/ui`. `providers.tsx` (i18n, RAC I18nProvider es-CO, ErrorBoundary) y escala de fuente.
 2. **F2.2** `router.tsx` con las rutas de `04-UX` §2 (lazy) y los guards `SetupGuard`, `InstallGate` y `RoleGuard` (con auth mock en esta fase).
 3. **F2.3** Layout responsive: barra inferior en celular y lateral en tablet/PC. Indicador de conexión (`useOnline`) y contador de pendientes.
@@ -78,7 +84,9 @@
 ---
 
 ## F3 — Recepción y adjuntos (offline)
+
 **Preguntas antes**: PA-08 y PA-09.
+
 1. **F3.1** `features/servicios`: lista (búsqueda, filtros, virtualización, badges) y detalle con la línea de tiempo.
 2. **F3.2** Formulario de **recepción** (`react-hook-form` + zod) con autoguardado, combobox de cliente (catálogo, sin texto libre), combobox de marca (texto libre normalizado) y advertencia de serie duplicada abierta.
 3. **F3.3** `infrastructure/media/imageProcessor.ts` (Web Worker), miniaturas y sha256.
@@ -92,7 +100,9 @@
 ---
 
 ## F4 — Autenticación y configuración inicial
+
 **Preguntas antes**: PA-06 y PA-14. Tenant DEV configurado (06 §1–2).
+
 1. **F4.1** `msalConfig.ts`, `msalAuthAdapter.ts` (AuthPort), `main.tsx` con `initialize()` + `handleRedirectPromise()`. Validación de `tid` y `roles`.
 2. **F4.2** `mockAuthAdapter.ts` para pruebas, seleccionado por `VITE_AUTH_MODE`.
 3. **F4.3** `infrastructure/graph/graphClient.ts`: wrapper de `fetch` con token, `client-request-id`, timeouts, traducción a `AppError` y reintentos (SDD §9.6).
@@ -106,6 +116,7 @@
 ---
 
 ## F5 — Sincronización push
+
 1. **F5.1** Mappers dominio ↔ SP (SDD §7.4) con pruebas de ida y vuelta.
 2. **F5.2** Gateway: `buscarServicioPorId`, `crearServicio`, `actualizarServicio` (If-Match o el respaldo de S3), `subirArchivo` (simple ≤ 4 MB / upload session reanudable), `actualizarMetadatosArchivo`, `eliminarArchivo` y `registrarLogSync`.
 3. **F5.3** `SyncEngine` push (SDD §9.2) con Web Locks, eventos de progreso, cancelación, backoff y clasificación de errores.
@@ -118,6 +129,7 @@
 ---
 
 ## F6 — Sincronización pull y conflictos
+
 1. **F6.1** `cambiosServicios` (delta o filtro según S4) e inserción de servicios remotos (`origen='remoto'`).
 2. **F6.2** `mergeTresVias` integrado y estado `conflict`.
 3. **F6.3** Pantalla Resolver conflicto (04-UX §3.9).
@@ -129,7 +141,9 @@
 ---
 
 ## F7 — Etapas restantes y roles
+
 **Preguntas antes**: PA-01, PA-02, PA-03 y PA-13.
+
 1. **F7.1** Formulario de diagnóstico, con la rama de disposición final (fecha de socialización + PDF) que cierra el registro.
 2. **F7.2** Cotización (fecha, valor COP, estado de la respuesta, PDF opcional).
 3. **F7.3** Orden de trabajo (detalle, costo).
@@ -143,7 +157,9 @@
 ---
 
 ## F8 — Alertas y Power Automate
+
 **Preguntas antes**: PA-04 y PA-05.
+
 1. **F8.1** Pantalla `/alertas` y tarjeta en Inicio (cálculo con `domain/alertas.ts`).
 2. **F8.2** Crear y probar los flujos (06 §3) en DEV junto con el administrador. Exportar los flujos como paquete (`.zip`) a `docs/powerautomate/` para reproducirlos en PRD.
 
@@ -152,6 +168,7 @@
 ---
 
 ## F9 — Menú técnico, respaldo, purgas y logs
+
 1. **F9.1** `/tecnico` (04-UX §5): estado del dispositivo y de SharePoint, visor de logs.
 2. **F9.2** `exportarRespaldo` (fflate + Web Share API Level 2 con respaldo de descarga) e `importarRespaldo` (Admin, RF-19).
 3. **F9.3** Purgas automáticas tras el sync y "Liberar espacio" manual (con pruebas de no-pérdida).
@@ -162,6 +179,7 @@
 ---
 
 ## F10 — Endurecimiento y release 1.0.0
+
 1. **F10.1** Matriz de pruebas manuales en dispositivos (`08-Plan-de-Pruebas.md` §5).
 2. **F10.2** Lighthouse ≥ 90 (Performance, Accessibility, Best Practices) en móvil. Bundle inicial ≤ 350 KB gzip.
 3. **F10.3** axe sin violaciones serias en todas las pantallas. Revisión con lector de pantalla (TalkBack / VoiceOver) en el flujo de recepción.
@@ -176,6 +194,7 @@
 ---
 
 ## Backlog posterior a 1.0 (no implementar sin aprobación)
+
 - Notificaciones push (Web Push; en iOS solo para PWA instalada).
 - Firma digital del cliente en la entrega (canvas).
 - Lector de códigos QR o de barras para la serie (`BarcodeDetector` / ZXing).
