@@ -54,23 +54,23 @@
 - [x] T018 [HU-009-2] Enganchar las purgas en `SyncEngine.alFinalizar` (solo si `resultado === 'OK'`) — `src/application/sync/SyncEngine.ts`, `src/app/container.ts`
 - [x] T019 [HU-009-2] `LiberarEspacioDialog` (confirmación + resultado con espacio liberado vía `estimate()` antes y después) — `src/features/tecnico/components/LiberarEspacioDialog.tsx`
 
-## Fase 5 — HU-009-3 Diagnóstico para soporte (P2)
+## Fase 5 — HU-009-3 Diagnóstico para soporte (P2) ✅
 
-- [ ] T020 [P] [HU-009-3] `estadoDispositivo.ts` y `EstadoDispositivo` — `src/application/tecnico/`, `src/features/tecnico/components/`
-- [ ] T021 [P] [HU-009-3] `estadoSharePoint.ts` y `EstadoSharePoint` (copiar el `correlationId`) — `src/application/tecnico/`, `src/features/tecnico/components/`
-- [ ] T022 [HU-009-3] `VisorLogs` (`SegmentedControl` por nivel, búsqueda con `PillInput`, `TablaResponsive` virtualizada: tarjetas en compacto y tabla en expandido; copiar, exportar `.json` sanitizado) — `src/features/tecnico/components/VisorLogs.tsx`
+- [x] T020 [P] [HU-009-3] `estadoDispositivo.ts` y `EstadoDispositivo` — `src/application/tecnico/`, `src/features/tecnico/components/`
+- [x] T021 [P] [HU-009-3] `estadoSharePoint.ts` y `EstadoSharePoint` (copiar el `correlationId`) — `src/application/tecnico/`, `src/features/tecnico/components/`
+- [x] T022 [HU-009-3] `VisorLogs` (`SegmentedControl` por nivel, búsqueda con `PillInput`, `TablaResponsive` virtualizada: tarjetas en compacto y tabla en expandido; copiar, exportar `.json` sanitizado) — `src/features/tecnico/components/VisorLogs.tsx`
 
-## Fase 6 — HU-009-4 Acciones de mantenimiento (P2)
+## Fase 6 — HU-009-4 Acciones de mantenimiento (P2) ✅
 
 ### Pruebas
 
-- [ ] T023 [P] [HU-009-4] Integración de `restablecerApp` (rechazado con pendientes sin salvaguardas; OK sin pendientes) y de `reintentarErrores` — `src/application/tecnico/restablecerApp.int.test.ts`, `reintentarErrores.int.test.ts`
-- [ ] T024 [P] [HU-009-4] Componente de `MenuTecnicoPage` por rol, estado de red y breakpoint (tarjetas apiladas vs. tablas y 2 columnas) — `src/features/tecnico/pages/MenuTecnicoPage.test.tsx`
+- [x] T023 [P] [HU-009-4] Integración de `restablecerApp` (rechazado con pendientes sin salvaguardas; OK sin pendientes) y de `reintentarErrores` — `src/application/tecnico/restablecerApp.int.test.ts`, `reintentarErrores.int.test.ts`
+- [x] T024 [P] [HU-009-4] Componente de `MenuTecnicoPage` por rol, estado de red y breakpoint (tarjetas apiladas vs. tablas y 2 columnas) — `src/features/tecnico/pages/MenuTecnicoPage.test.tsx`
 
 ### Implementación
 
-- [ ] T025 [HU-009-4] `reintentarErrores.ts` y `restablecerApp.ts` + `RestablecerAppDialog` (exportar primero + escribir "BORRAR") — `src/application/tecnico/`, `src/features/tecnico/components/`
-- [ ] T026 [HU-009-4] `MenuTecnicoPage` (UX §5; `Card fill` + `ListRow` por opción; en expandido, opciones a la izquierda y el panel de detalle a la derecha; `EstadoDispositivo` con `DonutProgress` de cuota y `TablaResponsive`; enlace a `/tecnico/ui` solo en DEV) con Refrescar catálogos (requiere red), Buscar actualización (`registration.update()` + mensaje) y la ruta `/tecnico` — `src/features/tecnico/pages/MenuTecnicoPage.tsx`, `src/app/router.tsx`
+- [x] T025 [HU-009-4] `reintentarErrores.ts` y `restablecerApp.ts` + `RestablecerAppDialog` (exportar primero + escribir "BORRAR") — `src/application/tecnico/`, `src/features/tecnico/components/`
+- [x] T026 [HU-009-4] `MenuTecnicoPage` (UX §5; `Card fill` + `ListRow` por opción; en expandido, opciones a la izquierda y el panel de detalle a la derecha; `EstadoDispositivo` con `DonutProgress` de cuota y `TablaResponsive`; enlace a `/tecnico/ui` solo en DEV) con Refrescar catálogos (requiere red), Buscar actualización (`registration.update()` + mensaje) y la ruta `/tecnico` — `src/features/tecnico/pages/MenuTecnicoPage.tsx`, `src/app/router.tsx`
 
 ## Fase 7 — Cierre
 
