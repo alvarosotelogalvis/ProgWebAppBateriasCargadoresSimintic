@@ -2,14 +2,14 @@
 
 ## Fase 1: Fundación dominio (T001–T002)
 
-- [ ] **T001**: Función `calcularNivelAlerta` en `domain/alertas.ts`
+- [x] **T001**: Función `calcularNivelAlerta` en `domain/alertas.ts`
   - Entrada: `proyeccionVidaUtil` (Date), `umbrales` (config)
   - Salida: `'vencida' | '90' | '60' | '30' | null`
   - Lógica: días restantes vs. umbrales en configuración
   - Prueba: casos límite (hoy, mañana, +30/60/90/91 días)
   - Archivo: `domain/alertas.ts` + `tests/domain/alertas.test.ts`
 
-- [ ] **T002**: Función `filtrarAlertasActivas` en `domain/alertas.ts`
+- [x] **T002**: Función `filtrarAlertasActivas` en `domain/alertas.ts`
   - Filtra servicios ENTREGADO/FACTURADO con `proyeccionVidaUtil`
   - Excluye ANULADO, DISPOSICION_FINAL, sin proyección
   - Agrupa por nivel (un equipo en un nivel)
@@ -19,7 +19,7 @@
 
 ## Fase 2: UI alertas (T003–T004)
 
-- [ ] **T003**: Componente `/alertas` con pestañas
+- [x] **T003**: Componente `/alertas` con pestañas
   - Ruta lazy: `src/features/alertas/AlertasPage.tsx`
   - Pestañas: "Vencidas", "≤30 días", "≤60 días", "≤90 días"
   - FiltroCliente (combobox, persiste entre pestañas)
@@ -29,7 +29,7 @@
   - CSS: `AlertasPage.module.css`, responsive 3/4/6 cols
   - Archivo: `src/features/alertas/AlertasPage.tsx` + `.module.css` + test
 
-- [ ] **T004**: Tarjeta resumen en Inicio
+- [x] **T004**: Tarjeta resumen en Inicio
   - Componente `TarjetaAlertasInicio` (reutilizable en test)
   - Texto: "Alertas: Vencidas N · ≤30 días M" o "Sin alertas"
   - Click → navega a `/alertas`
