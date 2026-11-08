@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppDB } from '@/infrastructure/db/dexie';
-import { ejecutarPurgas } from '@/application/purgas/ejecutarPurgas';
+import type { Logger } from '@/application/ports/loggerPort';
+import { ejecutarPurgas } from '@/application/sync/purgas';
 import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
@@ -10,6 +11,7 @@ import { Banner } from '@/shared/ui/Banner';
 interface Props {
   readonly abierto: boolean;
   readonly db: AppDB;
+  readonly logger?: Logger;
   readonly onCerrar: () => void;
   readonly onPurgado?: (espacioLiberado: number) => void;
 }
@@ -17,6 +19,7 @@ interface Props {
 export function LiberarEspacioDialog({
   abierto,
   db,
+  logger,
   onCerrar,
   onPurgado,
 }: Props): React.JSX.Element {
@@ -33,7 +36,7 @@ export function LiberarEspacioDialog({
     try {
       setCargando(true);
       setError(null);
-      const res = await ejecutarPurgas(db);
+      const res = await ejecutarPurgas(db, 7, 3, logger);
 
       setResultado({
         serviciosPurgados: res.serviciosPurgados.length,
@@ -43,7 +46,7 @@ export function LiberarEspacioDialog({
 
       onPurgado?.(res.espacioLiberado);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('respaldo.errorExportar'));
+      setError(err instanceof Error ? err.message : t('tecnico.error_red'));
     } finally {
       setCargando(false);
     }

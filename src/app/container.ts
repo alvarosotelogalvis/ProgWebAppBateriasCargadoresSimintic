@@ -31,6 +31,7 @@ import {
 import { sesionSyncVigente } from '@/application/sync/avisosSync';
 import { reintentarServicio } from '@/application/sync/reintentarServicio';
 import { MotorSync, type SyncEngine } from '@/application/sync/SyncEngine';
+import { ejecutarPurgas } from '@/application/sync/purgas';
 import type { ConfigApp } from '@/domain/config';
 import { AdjuntoRepositoryDexie } from '@/infrastructure/db/adjuntoRepository';
 import { CatalogoRepositoryDexie } from '@/infrastructure/db/catalogoRepository';
@@ -191,6 +192,24 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
       ? {}
       : { refrescarConfig: () => refrescarConfigRemota({ gateway, catalogos, logger }) }),
     usuario: () => auth.cuentaActiva()?.correo,
+    alFinalizar: async (contexto) => {
+      // Ejecutar purgas solo si sincronización fue exitosa
+      if (contexto.resumen.resultado === 'OK') {
+        try {
+          const cfg = config();
+          await ejecutarPurgas(
+            db,
+            cfg.retencionOriginalesDias ?? 7,
+            cfg.retencionCerradosMeses ?? 3,
+            logger
+          );
+        } catch (error) {
+          logger.error('purga.falloEnSyncEngine', {
+            error: error instanceof Error ? error.message : 'Error desconocido',
+          });
+        }
+      }
+    },
   });
 
   return {
