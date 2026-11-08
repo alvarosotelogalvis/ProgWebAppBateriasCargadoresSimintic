@@ -69,6 +69,11 @@
     "noArchivoSeleccionado": "Selecciona un archivo de respaldo",
     "todosDuplicados": "Todos los servicios del respaldo ya existen en este dispositivo.",
     "errorExportar": "Error al exportar el respaldo",
-    "errorImportar": "Error al importar el respaldo"
+    "errorImportar": "Error al importar el respaldo",
+    "limpiarAdvertencia": "Se eliminarán servicios cerrados y adjuntos antiguos. Solo se libera espacio local, los datos en SharePoint permanecen intactos.",
+    "serviciosPurgados": "Servicios purgados",
+    "adjuntosPurgados": "Adjuntos purgados",
+    "liberado": "Espacio liberado",
+    "purgando": "Purgando..."
   }
 }
