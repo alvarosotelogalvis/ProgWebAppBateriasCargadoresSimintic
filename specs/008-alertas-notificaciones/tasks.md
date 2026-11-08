@@ -39,21 +39,22 @@
 
 ## Fase 3: Rutas e i18n (T005–T006)
 
-- [ ] **T005**: Ruta `/alertas` con protección
+- [x] **T005**: Ruta `/alertas` con protección
   - Layout: sidebar, topbar, contenedor
   - Lazy load `AlertasPage`
   - Requiere login (check en router)
   - No requiere rol específico (visible para todos)
   - Archivo: `src/app/router.tsx`
 
-- [ ] **T006**: Textos i18n para alertas
+- [x] **T006**: Textos i18n para alertas
   - Claves: `alertas.titulo`, `alertas.vencidas`, `alertas.dias30/60/90`, `alertas.haceNDias`, `alertas.sin`, `alertas.filtro`
   - Archivo: `src/locales/es-CO/alertas.json` (nuevo)
+  - Namespace registrado en `src/shared/i18n.ts`
   - Suma a `common.json` si textos reutilizables
 
 ## Fase 4: E2E alertas (T007)
 
-- [ ] **T007**: E2E ciclo alertas
+- [x] **T007**: E2E ciclo alertas
   - Stub test en `tests/e2e/alertas.spec.ts`
   - Escenario: crear servicio → entregar con vida útil → verificar alert en pestañas
   - Validar tarjeta en Inicio
