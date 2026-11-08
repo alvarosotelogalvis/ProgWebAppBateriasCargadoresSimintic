@@ -42,17 +42,17 @@
 - [x] T015 [HU-009-1] `ExportarRespaldoDialog` (alcance, tamaño, progreso, compartir/descargar) e `ImportarRespaldoDialog` (solo Admin, resumen) — `src/features/tecnico/components/`
       **Punto de control**: ES-009-01…06 en Android (compartir) y Windows (descarga).
 
-## Fase 4 — HU-009-2 Limpieza segura del espacio (P1)
+## Fase 4 — HU-009-2 Limpieza segura del espacio (P1) ✅
 
 ### Pruebas
 
-- [ ] T016 [P] [HU-009-2] Integración de `ejecutarPurgas`: solo tras resultado `OK`; edición concurrente entre la selección y el borrado → no se borra; libera el blob y conserva la miniatura; elimina cerrados con sus adjuntos (T-08) — `src/application/sync/purgas.int.test.ts`
+- [x] T016 [P] [HU-009-2] Integración de `ejecutarPurgas`: solo tras resultado `OK`; edición concurrente entre la selección y el borrado → no se borra; libera el blob y conserva la miniatura; elimina cerrados con sus adjuntos (T-08) — `src/application/sync/purgas.int.test.ts`
 
 ### Implementación
 
-- [ ] T017 [HU-009-2] `ejecutarPurgas` transaccional con re-verificación y log `purga` — `src/application/sync/purgas.ts`
-- [ ] T018 [HU-009-2] Enganchar las purgas en `SyncEngine.alFinalizar` (solo si `resultado === 'OK'`) — `src/application/sync/SyncEngine.ts`, `src/app/container.ts`
-- [ ] T019 [HU-009-2] `LiberarEspacioDialog` (confirmación + resultado con espacio liberado vía `estimate()` antes y después) — `src/features/tecnico/components/LiberarEspacioDialog.tsx`
+- [x] T017 [HU-009-2] `ejecutarPurgas` transaccional con re-verificación y log `purga` — `src/application/sync/purgas.ts`
+- [x] T018 [HU-009-2] Enganchar las purgas en `SyncEngine.alFinalizar` (solo si `resultado === 'OK'`) — `src/application/sync/SyncEngine.ts`, `src/app/container.ts`
+- [x] T019 [HU-009-2] `LiberarEspacioDialog` (confirmación + resultado con espacio liberado vía `estimate()` antes y después) — `src/features/tecnico/components/LiberarEspacioDialog.tsx`
 
 ## Fase 5 — HU-009-3 Diagnóstico para soporte (P2)
 
