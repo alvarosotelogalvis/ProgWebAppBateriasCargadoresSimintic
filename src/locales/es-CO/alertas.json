@@ -1,4 +1,11 @@
-{
-  "proximamente": "Alertas disponibles pronto",
-  "proximamenteDescripcion": "Las alertas de vida útil se habilitan cuando se conecte el flujo de notificaciones."
+﻿{
+  "titulo": "Alertas de vida útil",
+  "filtro": "Filtrar por cliente",
+  "todoClientes": "Todos los clientes",
+  "vencidas": "Vencidas",
+  "sinAlertas": "Sin alertas en este momento",
+  "resumen": "Vencidas {{vencidas}} · ≤30 días {{dias30}}",
+  "dias30": "≤30 días",
+  "dias60": "≤60 días",
+  "dias90": "≤90 días"
 }
