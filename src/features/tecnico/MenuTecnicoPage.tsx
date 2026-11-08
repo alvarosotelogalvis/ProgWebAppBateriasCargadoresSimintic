@@ -8,6 +8,7 @@ import { ExportarRespaldoDialog } from './ExportarRespaldoDialog';
 import { ImportarRespaldoDialog } from './ImportarRespaldoDialog';
 import { LiberarEspacioDialog } from './LiberarEspacioDialog';
 import { useDb } from '@/shared/hooks/useDb';
+import type { Servicio } from '@/domain/servicio';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 
 type Tab = 'dispositivo' | 'sharepoint' | 'logs';
@@ -20,7 +21,7 @@ interface Props {
 }
 
 export function MenuTecnicoPage({
-  config,
+  config: _config,
   servicios = [],
   onRestablecerApp,
 }: Props): React.JSX.Element {
@@ -79,7 +80,7 @@ export function MenuTecnicoPage({
         }}
       >
         {tabActiva === 'dispositivo' && <EstadoDispositivo />}
-        {tabActiva === 'sharepoint' && <EstadoSharePoint config={config} />}
+        {tabActiva === 'sharepoint' && <EstadoSharePoint />}
         {tabActiva === 'logs' && <VisorLogs />}
       </div>
 
@@ -121,9 +122,11 @@ export function MenuTecnicoPage({
         >
           <h3>{t('acciones_mantenimiento')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-2)' }}>
-            <PrimaryButton onPress={onRestablecerApp} size="small" isDisabled={!onRestablecerApp}>
-              {t('restablecer_app')}
-            </PrimaryButton>
+            {onRestablecerApp && (
+              <PrimaryButton onPress={onRestablecerApp} size="small">
+                {t('restablecer_app')}
+              </PrimaryButton>
+            )}
           </div>
         </div>
       </div>
@@ -133,12 +136,12 @@ export function MenuTecnicoPage({
         <>
           <ExportarRespaldoDialog
             abierto={dialogoAbierto === 'exportar'}
-            servicios={servicios as unknown as typeof servicios}
+            servicios={servicios as Servicio[]}
             onCerrar={() => setDialogoAbierto(null)}
           />
           <ImportarRespaldoDialog
             abierto={dialogoAbierto === 'importar'}
-            serviciosExistentes={servicios as unknown as typeof servicios}
+            serviciosExistentes={servicios as Servicio[]}
             onImportados={() => setDialogoAbierto(null)}
             onCerrar={() => setDialogoAbierto(null)}
           />

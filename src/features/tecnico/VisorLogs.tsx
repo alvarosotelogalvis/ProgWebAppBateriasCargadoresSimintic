@@ -21,11 +21,13 @@ export function VisorLogs(): React.JSX.Element {
       if (!db) return;
       setCargando(true);
       try {
-        const resultados = await consultarLogs(db, {
-          nivel: filtros.nivel,
-          busqueda: filtros.busqueda,
+        const opciones: Exclude<Parameters<typeof consultarLogs>[1], undefined> = {
           limite: 100,
-        });
+        };
+        if (filtros.nivel) opciones.nivel = filtros.nivel;
+        if (filtros.busqueda) opciones.busqueda = filtros.busqueda;
+
+        const resultados = await consultarLogs(db, opciones);
         setLogs(resultados);
       } catch (err) {
         console.error('Error cargando logs:', err);
