@@ -178,8 +178,9 @@ describe('sanitizar', () => {
     const nivel1 = resultado.nivel1 as Record<string, unknown>;
     const nivel2 = nivel1.nivel2 as Record<string, unknown>;
     const nivel3 = nivel2.nivel3 as Record<string, unknown>;
-    const nivel4 = nivel3.nivel4;
+    const nivel4 = nivel3.nivel4 as Record<string, unknown>;
+    const nivel5 = nivel4.nivel5;
 
-    expect(nivel4).toBe('[profundidad-maxima]');
+    expect(nivel5).toBe('[profundidad-maxima]');
   });
 });
