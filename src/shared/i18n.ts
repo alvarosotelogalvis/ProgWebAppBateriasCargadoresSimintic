@@ -18,7 +18,7 @@ import instalacion from '@/locales/es-CO/instalacion.json';
 import navegacion from '@/locales/es-CO/navegacion.json';
 import servicios from '@/locales/es-CO/servicios.json';
 import sync from '@/locales/es-CO/sync.json';
-import tecnico from '@/locales/es-CO/tecnico.json';
+import tecnico from '@/locales/es-CO/tecnico.json' assert { type: 'json' };
 
 export const LOCALES = ['es-CO'] as const;
 export const LOCALE_POR_DEFECTO = 'es-CO';
