@@ -17,7 +17,7 @@
 | F5   | Sync push                                      | Registros y archivos subidos de forma idempotente            | F3, F4               | [005](../specs/005-sincronizacion-push/spec.md)                 |
 | F6   | Sync pull + conflictos                         | Cambios remotos visibles; conflictos resolubles              | F5                   | [006](../specs/006-sincronizacion-pull-conflictos/spec.md)      |
 | F7   | ✅ Etapas restantes + roles                    | Ciclo completo hasta facturación / DF / anulación            | F3, F6               | [007](../specs/007-etapas-servicio-roles/spec.md)               |
-| F8   | Alertas + Power Automate                       | Alertas en la app y correos funcionando en DEV               | F7                   | [008](../specs/008-alertas-notificaciones/spec.md)              |
+| F8   | ✅ Alertas + Power Automate                    | Alertas en la app y correos funcionando en DEV               | F7                   | [008](../specs/008-alertas-notificaciones/spec.md)              |
 | F9   | Menú técnico, respaldo, purgas, logs           | Soporte y operación                                          | F6                   | [009](../specs/009-soporte-respaldo-purgas/spec.md)             |
 | F10  | Endurecimiento y release 1.0.0                 | Pruebas en dispositivos, Lighthouse, a11y, PRD desplegado    | Todo                 | — (este documento §F10)                                         |
 
