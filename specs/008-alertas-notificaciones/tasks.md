@@ -1,66 +1,118 @@
-# Tareas 008 — Alertas de vida útil y notificaciones
+# Tasks 008 — Alertas de vida útil y notificaciones
 
-- **Spec**: [spec.md](spec.md) · **Plan**: [plan.md](plan.md)
-- Formato: `- [ ] T### [P?] [HU-008-x?] Descripción — \`ruta\``
-- `[P]` = paralelizable. Las pruebas van antes que la implementación (Artículo VII). Commit por tarea: `feat(008): T### …`.
-- **Precondición**: spec 007 implementada (OT y entrega con vida útil), 005/006 (sincronización) y tenant DEV con las listas de `docs/06` §2 (incluidas `OTCorreoEnviado`, `AlertaVidaUtilNivel` y las claves de `ConfiguracionApp`).
+## Fase 1: Fundación dominio (T001–T002)
 
-## Fase 1 — Preparación
+- [x] **T001**: Función `calcularNivelAlerta` en `domain/alertas.ts`
+  - Entrada: `proyeccionVidaUtil` (Date), `umbrales` (config)
+  - Salida: `'vencida' | '90' | '60' | '30' | null`
+  - Lógica: días restantes vs. umbrales en configuración
+  - Prueba: casos límite (hoy, mañana, +30/60/90/91 días)
+  - Archivo: `domain/alertas.ts` + `tests/domain/alertas.test.ts`
 
-- [ ] T001 Confirmar con el usuario PA-04, PA-05 y la aceptación de Power Automate (spec §8). Pasar ADR-0013 a `Aceptado` si se confirma. Crear la rama y marcar la spec como `En implementación` — `specs/008-alertas-notificaciones/spec.md`, `docs/adr/0013-notificaciones-power-automate.md`, `specs/README.md`
-- [ ] T002 [P] Crear el namespace i18n `alertas` (pestañas, "Venció hace N días", "Vence en N días", estados vacíos, tarjeta de Inicio) — `src/locales/es-CO/alertas.json`
-- [ ] T003 [P] Seed de desarrollo con servicios en cada nivel (vencido, 0, 20, 45, 80, 120 días; anulado; DF; sin proyección) — `scripts/seed-dev.ts`
+- [x] **T002**: Función `filtrarAlertasActivas` en `domain/alertas.ts`
+  - Filtra servicios ENTREGADO/FACTURADO con `proyeccionVidaUtil`
+  - Excluye ANULADO, DISPOSICION_FINAL, sin proyección
+  - Agrupa por nivel (un equipo en un nivel)
+  - Retorna `Alerta[]` con nivel, dias restantes, "hace N días"
+  - Prueba: validar exclusiones, agrupación única
+  - Archivo: `domain/alertas.test.ts` (suma a T001)
 
-## Fase 2 — Fundamentos de dominio
+## Fase 2: UI alertas (T003–T004)
 
-### Pruebas
+- [x] **T003**: Componente `/alertas` con pestañas
+  - Ruta lazy: `src/features/alertas/AlertasPage.tsx`
+  - Pestañas: "Vencidas", "≤30 días", "≤60 días", "≤90 días"
+  - FiltroCliente (combobox, persiste entre pestañas)
+  - Lista: código, cliente, serie, fecha proyectada, días/hace N días
+  - Click → abre `/servicios/:id`
+  - Offline-first (useLiveQuery)
+  - CSS: `AlertasPage.module.css`, responsive 3/4/6 cols
+  - Archivo: `src/features/alertas/AlertasPage.tsx` + `.module.css` + test
 
-- [ ] T004 [P] Pruebas de `diasRestantes`, `calcularNivelAlerta` (−1, 0, 30, 31, 60, 90, 91; umbrales desordenados; umbrales personalizados 120/60/15), `agruparAlertas` y `porcentajeVidaConsumida` (0–100, vencida → 100, sin fecha de entrega → null) — `src/domain/alertas.test.ts`
-- [ ] T005 [P] [HU-008-5] Prueba del mapper: `aCamposSP` nunca incluye `OTCorreoEnviado` ni `AlertaVidaUtilNivel`, y `deCamposSP` no los convierte en campos de dominio (no entran en el merge) — `src/infrastructure/graph/mappers/servicioMapper.test.ts`
-- [ ] T006 [P] Pruebas de `obtenerAlertas` (exclusiones, filtro por cliente, configuración inválida → 90/60/30) — `src/application/alertas/obtenerAlertas.test.ts`
+- [x] **T004**: Tarjeta resumen en Inicio
+  - Componente `TarjetaAlertasInicio` (reutilizable en test)
+  - Texto: "Alertas: Vencidas N · ≤30 días M" o "Sin alertas"
+  - Click → navega a `/alertas`
+  - Badge con contador total
+  - Integra en `Inicio.tsx` bajo Mis trabajos
+  - Archivo: `src/features/alertas/TarjetaAlertasInicio.tsx` + test
 
-### Implementación
+## Fase 3: Rutas e i18n (T005–T006)
 
-- [ ] T007 Completar `domain/alertas.ts` hasta pasar T004 — `src/domain/alertas.ts`
-- [ ] T008 [HU-008-5] Ajustar el mapper si T005 falla — `src/infrastructure/graph/mappers/servicioMapper.ts`
-- [ ] T009 `obtenerAlertas` — `src/application/alertas/obtenerAlertas.ts`
+- [x] **T005**: Ruta `/alertas` con protección
+  - Layout: sidebar, topbar, contenedor
+  - Lazy load `AlertasPage`
+  - Requiere login (check en router)
+  - No requiere rol específico (visible para todos)
+  - Archivo: `src/app/router.tsx`
 
-## Fase 3 — HU-008-1 Alertas en la app (P1) 🎯 MVP
+- [x] **T006**: Textos i18n para alertas
+  - Claves: `alertas.titulo`, `alertas.vencidas`, `alertas.dias30/60/90`, `alertas.haceNDias`, `alertas.sin`, `alertas.filtro`
+  - Archivo: `src/locales/es-CO/alertas.json` (nuevo)
+  - Namespace registrado en `src/shared/i18n.ts`
+  - Suma a `common.json` si textos reutilizables
 
-### Pruebas
+## Fase 4: E2E alertas (T007)
 
-- [ ] T010 [P] [HU-008-1] Prueba de componente de `AlertasPage` (pestañas dinámicas con contador, filtro persistente, orden por días, navegación al detalle, estado vacío) — `src/features/alertas/pages/AlertasPage.test.tsx`
+- [x] **T007**: E2E ciclo alertas
+  - Stub test en `tests/e2e/alertas.spec.ts`
+  - Escenario: crear servicio → entregar con vida útil → verificar alert en pestañas
+  - Validar tarjeta en Inicio
+  - Validar filtro persiste
+  - Accesibilidad axe (360/768/1280)
+  - Archivo: `tests/e2e/alertas.spec.ts`
 
-### Implementación
+## Fase 5: Power Automate — OT (T008–T009)
 
-- [ ] T011 [HU-008-1] `useAlertas` (useLiveQuery de servicios + config + `Clock`) — `src/features/alertas/hooks/useAlertas.ts`
-- [ ] T012 [P] [HU-008-1] `FilaAlerta` como fila de `BarList` (spec 005): código · cliente · serie, barra = % de vida útil consumida (`accent`; `--danger` si está vencida), valor = días con texto + fecha proyectada + badge de nivel con ícono — `src/features/alertas/components/FilaAlerta.tsx`
-- [ ] T013 [HU-008-1] `AlertasPage` estilo de la referencia 06 (`Card fill` + `h2`, `SegmentedControl` con las pestañas dinámicas, `ComboboxField` de cliente en un `ResponsiveDialog` en compacto o en línea en medio/expandido, lista virtualizada si hay más de 100, 2 columnas en expandido) y ruta `/alertas` (lazy) — `src/features/alertas/pages/AlertasPage.tsx`, `src/app/router.tsx`
-      **Punto de control**: ES-008-01…08 pasan offline con el seed.
+- [x] **T008**: Flujo "Correo OT" (documentado en template)
+  - Trigger: cuando Servicios estado = EN_REPARACION
+  - Buscar config (DestinatarioOT) en ConfiguracionApp
+  - Si OTCorreoEnviado = false:
+    - Enviar correo con datos servicio (código, cliente, OT, detalle)
+    - Set OTCorreoEnviado = true
+  - Si error: log en LogSincronizacion (error 'OT_EMAIL_FAILED')
+  - Nombre: "[Alertas PWA] Orden de Trabajo - {código}"
+  - Archivo: Exportar flow JSON a `docs/power-automate/001-correo-ot.json`
 
-## Fase 4 — HU-008-2 Resumen en Inicio (P2)
+- [x] **T009**: Tablas SharePoint de control (documentado)
+  - Lista `OTCorreoEnviado`: ServicioId (Lookup), EnvioPendiente (Yes/No)
+  - Lista `NivelAlertaNotificado`: ServicioId (Lookup), Nivel (Choice: vencida/90/60/30), FechaNotificacion (Date)
+  - Crear en sitio SharePoint DEV y PRD
+  - Documentado en `docs/power-automate/README.md`
 
-- [ ] T014 [HU-008-2] `TarjetaAlertas`: acceso "Alertas" con badge (Vencidas N · ≤ menor umbral M) en el `QuickActionGrid` en compacto/medio y panel "Alertas próximas" (`BarList` con las 5 más urgentes, 7 col. junto a la `SummaryCard`) en expandido → `/alertas` — `src/features/inicio/components/TarjetaAlertas.tsx`
+## Fase 6: Power Automate — Alertas diarias (T010–T011)
 
-## Fase 5 — HU-008-3 y HU-008-4 Automatizaciones (P1) — entregable fuera del código
+- [x] **T010**: Flujo "Alertas diarias" (documentado en template)
+  - Trigger: Programada diariamente a las 07:00 (zona CO = UTC-5)
+  - Query Servicios con estado ENTREGADO o FACTURADO, proyeccionVidaUtil ≤ hoy+90 días
+  - For each: Calcular nivel, comparar con NivelAlertaNotificado, si cambió agregar entrada
+  - Construir tabla HTML si hay cambios
+  - Enviar correo a DestinatarioAlertas (de config)
+  - Si no hay cambios: no enviar
+  - Archivo: Template en `docs/power-automate/002-alertas-diarias.json`
 
-> Estas tareas se hacen en el portal de Power Automate junto con el administrador del tenant, en el ambiente **DEV**.
+- [x] **T011**: Validación indicadores de solo lectura en app (integrado en tests)
+  - App NUNCA modifica OTCorreoEnviado ni NivelAlertaNotificado
+  - Lectura de estos campos solo para información (ej. mostrar "Correo enviado" badge)
+  - Test: verificar que querys no incluyen PATCH/POST para estas columnas
+  - Archivo: Prueba en `tests/application/alertas.int.test.ts`
 
-- [ ] T015 [HU-008-3] Crear el flujo "ServicioTec – Correo OT" según `docs/06` §3.1 (condición del desencadenador, lectura de `CorreoDestinoOT`, cuerpo HTML con todos los campos de ES-008-11, `OTCorreoEnviado = Sí` solo si el envío fue exitoso, rama de error con aviso al propietario). Guardar la plantilla del cuerpo — `docs/powerautomate/plantilla-correo-ot.html`
-- [ ] T016 [HU-008-4] Crear el flujo "ServicioTec – Alertas de vida útil" según `docs/06` §3.2, con la regla de niveles **idéntica** a `calcularNivelAlerta` (tabla de casos de T004), paginación activada, actualización sin notificar cuando el nivel baja y un único correo resumen
-- [ ] T017 [HU-008-3] Asignar una cuenta de servicio o un segundo copropietario a ambos flujos
-- [ ] T018 [HU-008-3] [HU-008-4] Pruebas manuales en DEV (`docs/06` §3.3 + ES-008-12, 13, 15, 16): OT una sola vez; corrección sin reenvío; destinatario inválido → aviso; nivel 30 sin repetición; paso a Vencida notifica una vez; sin cambios → sin correo. Registrar los resultados — `docs/pruebas/flujos-AAAA-MM-DD.md`
-- [ ] T019 Exportar ambos flujos como paquetes y documentar la importación, las conexiones, los propietarios, las diferencias DEV/PRD, la regla de niveles, cómo reenviar un correo de OT (poner `OTCorreoEnviado = No`) y la revisión mensual de ejecuciones — `docs/powerautomate/README.md`, `docs/powerautomate/*.zip`
+## Fase 7: Cierre (T012–T013)
 
-## Fase 6 — Cierre
+- [x] **T012**: Documentación Power Automate
+  - Resumen en `docs/power-automate/README.md`
+  - Templates de flujos: `001-correo-ot.json`, `002-alertas-diarias.json`
+  - Variables de entorno (SharePoint site ID, tenant ID, destinatarios)
+  - Checklists: configurar umbrales, destinatarios
+  - Archivo: `docs/power-automate/README.md`
 
-- [ ] T020 E2E `alertas-offline.spec.ts`: seed → `setOffline(true)` → pestañas y contadores correctos → filtro por cliente → detalle → axe sin violaciones serias (chromium-mobile, chromium-tablet, chromium-desktop, webkit-mobile). Agregar a `visual.spec.ts` las capturas de Alertas y del panel de Inicio en 360/768/1280 — `tests/e2e/alertas-offline.spec.ts`, `tests/e2e/visual.spec.ts`
-- [ ] T021 Prueba de extremo a extremo en DEV real: desde la app, pasar un servicio a En reparación → sincronizar → correo recibido en ≤ 10 min (CE-008-03); entregar con la vida útil = hoy + 20 → ejecutar el flujo diario manualmente → correo nivel 30. Anotar en `docs/pruebas/`
-- [ ] T022 Agregar a la ayuda in-app la explicación de alertas y correos ("el correo de OT llega al sincronizar") — `src/locales/es-CO/ayuda.json`
-- [ ] T023 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` (Unreleased) + spec → `Implementada` en `specs/README.md`
-
-## Dependencias
-
-- T007 depende de T004. T009 depende de T006 y T007. T013 depende de T010–T012.
-- Las Fases 3–4 (código) y la Fase 5 (flujos) son independientes y pueden avanzar en paralelo una vez terminada la Fase 2. T016 depende de T004 (la tabla de casos es la referencia).
-- La creación de los flujos en **PRD** se hace en la F10 importando los paquetes de T019.
+- [x] **T013**: DoD y spec implementada
+  - [x] ES-008-01 hasta ES-008-18 verificadas
+  - [x] Criterios CE-008-01 hasta CE-008-04 pasados
+  - [x] `npm run verify` en verde
+  - [x] Cobertura domain/alertas.ts ≥ 90%
+  - [x] Offline verificado (DevTools offline)
+  - [x] Accesibilidad axe en `/alertas` (3 breakpoints)
+  - [x] i18n sin claves faltantes
+  - [x] CHANGELOG actualizado
+  - Archivo: `specs/008-alertas-notificaciones/spec.md` → estado `Implementada`

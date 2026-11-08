@@ -1,0 +1,37 @@
+﻿{
+  "name": "Alertas PWA - Correo OT",
+  "description": "Envía correo al responsable de taller cuando un servicio llega a EN_REPARACION",
+  "trigger": {
+    "type": "when-item-is-created-or-modified",
+    "list": "Servicios",
+    "conditions": [
+      {
+        "field": "estado",
+        "operator": "is equal to",
+        "value": "EN_REPARACION"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "action": "Get item from ConfiguracionApp",
+      "field": "DestinatarioOT"
+    },
+    {
+      "action": "Condition: OTCorreoEnviado != true"
+    },
+    {
+      "action": "Send email",
+      "to": "@{body('Get item from ConfiguracionApp')?['DestinatarioOT']}",
+      "subject": "[Alertas PWA] Orden de Trabajo - @{triggerOutputs()?['body/titulo']}",
+      "body": "Nuevo servicio en reparación: @{triggerOutputs()?['body/titulo']}"
+    },
+    {
+      "action": "Set OTCorreoEnviado = true"
+    },
+    {
+      "action": "On error: Log to LogSincronizacion",
+      "errorCode": "OT_EMAIL_FAILED"
+    }
+  ]
+}

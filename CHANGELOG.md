@@ -9,6 +9,12 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Etapas del servicio y roles (spec 007)**: 9 historias de usuario completas (diagnóstico, cotización,
+  orden de trabajo, entrega, facturación, anulación, disposición final, PDFs validados, trabajos por rol).
+  Máquina de estados con 13 transiciones, validaciones cruzadas de fechas, rama condicional DF sin OT,
+  componentes de moneda COP y vida útil sugerida, diálogos de confirmación, dashboard de trabajos.
+  Offline-first comprobado en ciclo Borrador → Facturado.
+
 - Sincronización (spec 005): progreso por servicio y archivo con cancelación ordenada, cola con
   % sincronizado y segmentos En cola · Con error · Conflictos, mensajes de error por código,
   acción "Reintentar" (reinicia los intentos) y resumen al terminar o si otra ventana ya sincroniza.

@@ -1,0 +1,59 @@
+﻿{
+  "name": "Alertas PWA - Alertas diarias",
+  "description": "Envía resumen diario de equipos por vencer su vida útil a las 07:00 CO",
+  "trigger": {
+    "type": "schedule",
+    "frequency": "Day",
+    "interval": 1,
+    "timeZone": "SA Pacific Standard Time",
+    "startTime": "07:00:00"
+  },
+  "actions": [
+    {
+      "action": "Get list items from Servicios",
+      "filter": "estado in (ENTREGADO, FACTURADO) and proyeccionVidaUtil <= TODAY+90"
+    },
+    {
+      "action": "For each servicio",
+      "steps": [
+        {
+          "action": "Calculate alert level",
+          "function": "calcularNivelAlerta(proyeccionVidaUtil, [90, 60, 30])"
+        },
+        {
+          "action": "Get NivelAlertaNotificado",
+          "field": "Nivel where ServicioId = current"
+        },
+        {
+          "action": "Condition: nivel changed",
+          "steps": [
+            {
+              "action": "Add to table",
+              "table": "NivelAlertaNotificado",
+              "fields": {
+                "ServicioId": "current",
+                "Nivel": "calculated nivel",
+                "FechaNotificacion": "today"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "action": "Condition: hay cambios",
+      "steps": [
+        {
+          "action": "Create HTML table",
+          "columns": ["Código", "Cliente", "Serie", "Fecha", "Días", "Nivel"]
+        },
+        {
+          "action": "Send email",
+          "to": "@{Configuration['DestinatarioAlertas']}",
+          "subject": "Alertas PWA - Resumen de vida útil",
+          "body": "Equipos con cambios en nivel de alerta:\n@{htmlTable}"
+        }
+      ]
+    }
+  ]
+}

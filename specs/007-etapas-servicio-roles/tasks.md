@@ -7,25 +7,25 @@
 
 ## Fase 1 — Preparación
 
-- [ ] T001 Confirmar con el usuario PA-01, PA-02, PA-03 y PA-13 y anotar las respuestas en spec §8. Si cambian el flujo, crear un ADR que reemplace a ADR-0012 antes de seguir. Crear la rama y marcar la spec como `En implementación` — `specs/007-etapas-servicio-roles/spec.md`, `specs/README.md`
-- [ ] T002 [P] Agregar los fixtures de PDF (válido de 200 KB, 25 MB, `.pdf` falso de texto, con cabecera desplazada) — `tests/fixtures/pdf/`
-- [ ] T003 [P] Crear el namespace i18n `etapas` (etiquetas, acciones, faltantes, "Pendiente de <rol>", errores de PDF y fechas, avisos de DF) — `src/locales/es-CO/etapas.json`
+- [x] T001 Confirmar con el usuario PA-01, PA-02, PA-03 y PA-13 y anotar las respuestas en spec §8. Si cambian el flujo, crear un ADR que reemplace a ADR-0012 antes de seguir. Crear la rama y marcar la spec como `En implementación` — `specs/007-etapas-servicio-roles/spec.md`, `specs/README.md`
+- [x] T002 [P] Agregar los fixtures de PDF (válido de 200 KB, 25 MB, `.pdf` falso de texto, con cabecera desplazada) — `tests/fixtures/pdf/`
+- [x] T003 [P] Crear el namespace i18n `etapas` (etiquetas, acciones, faltantes, "Pendiente de <rol>", errores de PDF y fechas, avisos de DF) — `src/locales/es-CO/etapas.json`
 
 ## Fase 2 — Fundamentos de dominio (bloquean todas las historias)
 
 ### Pruebas
 
-- [ ] T004 [P] Pruebas de todas las transiciones posteriores a RECIBIDO (válida, falta requisito, rol incorrecto), incluidas DF, entrega sin reparación y anulación — `src/domain/estados.test.ts`
-- [ ] T005 [P] Pruebas de la matriz `camposEditables` estado × rol (incluido Admin en estados finales) — `src/domain/estados.camposEditables.test.ts`
-- [ ] T006 [P] Pruebas de los esquemas por etapa (diagnóstico, DF, cotización, OT, entrega, entrega sin reparación, facturación, anulación) — `src/domain/validaciones.test.ts`
-- [ ] T007 [P] Pruebas de `validacionesCruzadasFechas` y `sugerirVidaUtil` (31-ene + 1 mes, 29-feb) — `src/domain/fechas.test.ts`, `src/domain/vidaUtil.test.ts`
-- [ ] T008 [P] Pruebas de `esFirmaPdf` y `tarjetasPorRol` — `src/domain/pdf.test.ts`, `src/domain/tarjetasInicio.test.ts`
+- [x] T004 [P] Pruebas de todas las transiciones posteriores a RECIBIDO (válida, falta requisito, rol incorrecto), incluidas DF, entrega sin reparación y anulación — `src/domain/estados.test.ts`
+- [x] T005 [P] Pruebas de la matriz `camposEditables` estado × rol (incluido Admin en estados finales) — `src/domain/estados.camposEditables.test.ts`
+- [x] T006 [P] Pruebas de los esquemas por etapa (diagnóstico, DF, cotización, OT, entrega, entrega sin reparación, facturación, anulación) — `src/domain/validaciones.test.ts`
+- [x] T007 [P] Pruebas de `validacionesCruzadasFechas` y `sugerirVidaUtil` (31-ene + 1 mes, 29-feb) — `src/domain/fechas.test.ts`, `src/domain/vidaUtil.test.ts`
+- [x] T008 [P] Pruebas de `esFirmaPdf` y `tarjetasPorRol` — `src/domain/pdf.test.ts`, `src/domain/tarjetasInicio.test.ts`
 
 ### Implementación
 
-- [ ] T009 Completar `TRANSICIONES` y `camposEditables` hasta pasar T004–T005 (cobertura del 100 % de la tabla). Verificar que la anulación no borre datos — `src/domain/estados.ts`
-- [ ] T010 [P] Esquemas por etapa — `src/domain/validaciones.ts`
-- [ ] T011 [P] `fechas.ts`, `vidaUtil.ts`, `pdf.ts` y `tarjetasInicio.ts` — `src/domain/`
+- [x] T009 Completar `TRANSICIONES` y `camposEditables` hasta pasar T004–T005 (cobertura del 100 % de la tabla). Verificar que la anulación no borre datos — `src/domain/estados.ts`
+- [x] T010 [P] Esquemas por etapa — `src/domain/validaciones.ts`
+- [x] T011 [P] `fechas.ts`, `vidaUtil.ts`, `pdf.ts` y `tarjetasInicio.ts` — `src/domain/`
 - [ ] T012 [P] Verificar que los mappers de la 005 cubren ida y vuelta todos los campos de `docs/03` §2.3–§2.7 y los tipos de adjunto §3.1; agregar los casos faltantes a la prueba — `src/infrastructure/graph/mappers/*.test.ts`
 
 ## Fase 3 — Base de UI de etapas

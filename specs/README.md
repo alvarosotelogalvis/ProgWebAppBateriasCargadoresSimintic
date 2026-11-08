@@ -39,9 +39,9 @@ specify ─► clarify ─► plan ─► tasks ─► implement ─► verify �
 | 003 | [Recepción y adjuntos offline](003-recepcion-adjuntos-offline/spec.md)                   | F3               | 002                                                                                    | Implementada |
 | 004 | [Autenticación y configuración inicial](004-autenticacion-configuracion-inicial/spec.md) | F4               | 001, 002 (y el puerto `StoragePort` de la 003: si la 004 se implementa antes, lo crea) | Implementada |
 | 005 | [Sincronización: subida](005-sincronizacion-push/spec.md)                                | F5               | 003, 004                                                                               | Implementada |
-| 006 | [Sincronización: descarga y conflictos](006-sincronizacion-pull-conflictos/spec.md)      | F6               | 005                                                                                    | Aprobada     |
-| 007 | [Etapas del servicio y roles](007-etapas-servicio-roles/spec.md)                         | F7               | 003, 006                                                                               | Borrador     |
-| 008 | [Alertas de vida útil y notificaciones](008-alertas-notificaciones/spec.md)              | F8               | 007                                                                                    | Borrador     |
+| 006 | [Sincronización: descarga y conflictos](006-sincronizacion-pull-conflictos/spec.md)      | F6               | 005                                                                                    | Implementada |
+| 007 | [Etapas del servicio y roles](007-etapas-servicio-roles/spec.md)                         | F7               | 003, 006                                                                               | Implementada |
+| 008 | [Alertas de vida útil y notificaciones](008-alertas-notificaciones/spec.md)              | F8               | 007                                                                                    | Implementada |
 | 009 | [Soporte técnico, respaldo y purgas](009-soporte-respaldo-purgas/spec.md)                | F9               | 006                                                                                    | Borrador     |
 
 La Fase F10 (endurecimiento y release) no es una funcionalidad: se rige por `docs/07` §F10, `docs/08` §6 y `docs/09` §3.
