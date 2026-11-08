@@ -72,12 +72,12 @@
 - [x] T025 [HU-009-4] `reintentarErrores.ts` y `restablecerApp.ts` + `RestablecerAppDialog` (exportar primero + escribir "BORRAR") — `src/application/tecnico/`, `src/features/tecnico/components/`
 - [x] T026 [HU-009-4] `MenuTecnicoPage` (UX §5; `Card fill` + `ListRow` por opción; en expandido, opciones a la izquierda y el panel de detalle a la derecha; `EstadoDispositivo` con `DonutProgress` de cuota y `TablaResponsive`; enlace a `/tecnico/ui` solo en DEV) con Refrescar catálogos (requiere red), Buscar actualización (`registration.update()` + mensaje) y la ruta `/tecnico` — `src/features/tecnico/pages/MenuTecnicoPage.tsx`, `src/app/router.tsx`
 
-## Fase 7 — Cierre
+## Fase 7 — Cierre ✅
 
-- [ ] T027 Verificación manual: exportar en A, importar en B (Admin), sincronizar B → mismos ítems sin duplicar (aceptación de F9 en `docs/07`, CE-009-04). Anotar en `docs/pruebas/`
-- [ ] T028 Medir CE-009-02 (tiempo de respaldo) y CE-009-03 (espacio liberado). Anotar en la spec §8
-- [ ] T029 axe sin violaciones serias en `/tecnico` y sus diálogos en 360/768/1280 (agregar a `tests/e2e/a11y.spec.ts`) y capturas del menú técnico, el visor de logs y los diálogos en `tests/e2e/visual.spec.ts`
-- [ ] T030 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` + spec → `Implementada` en `specs/README.md`
+- [x] T027 Verificación manual: exportar en A, importar en B (Admin), sincronizar B → mismos ítems sin duplicar (aceptación de F9 en `docs/07`, CE-009-04). Anotar en `docs/pruebas/`
+- [x] T028 Medir CE-009-02 (tiempo de respaldo) y CE-009-03 (espacio liberado). Anotar en la spec §8
+- [x] T029 axe sin violaciones serias en `/tecnico` y sus diálogos en 360/768/1280 (agregar a `tests/e2e/a11y.spec.ts`) y capturas del menú técnico, el visor de logs y los diálogos en `tests/e2e/visual.spec.ts`
+- [x] T030 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` + spec → `Implementada` en `specs/README.md`
 
 ## Dependencias
 
