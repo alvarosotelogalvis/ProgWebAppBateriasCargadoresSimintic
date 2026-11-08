@@ -25,21 +25,21 @@
 - [x] T008 [P] `sanitizar` y `consultar(filtro)` en el logger hasta pasar T006 — `src/infrastructure/logging/logger.ts`
 - [x] T009 [P] `zip.ts` (empaquetar en streaming con `ZipPassThrough`/`ZipDeflate` y desempaquetar) — `src/infrastructure/respaldo/zip.ts`
 
-## Fase 3 — HU-009-1 Respaldo manual (P1) 🎯 MVP
+## Fase 3 — HU-009-1 Respaldo manual (P1) 🎯 MVP ✅
 
 **Prueba independiente**: exportar 2 pendientes con fotos y abrir el ZIP.
 
 ### Pruebas
 
-- [ ] T010 [P] [HU-009-1] Integración de ida y vuelta exportar → importar en dos bases: importados, omitidos (incluido un existente con pendientes), estados `pending`/`synced` resultantes, manifiesto inválido sin efectos — `src/application/respaldo/respaldo.int.test.ts`
-- [ ] T011 [P] [HU-009-1] E2E: exportar respaldo genera un ZIP con `manifiesto.json`, `servicios.json` y los archivos de los adjuntos pendientes (T-24) — `tests/e2e/respaldo.spec.ts`
+- [x] T010 [P] [HU-009-1] Integración de ida y vuelta exportar → importar en dos bases: importados, omitidos (incluido un existente con pendientes), estados `pending`/`synced` resultantes, manifiesto inválido sin efectos — `src/application/respaldo/respaldo.int.test.ts`
+- [x] T011 [P] [HU-009-1] E2E: exportar respaldo genera un ZIP con `manifiesto.json`, `servicios.json` y los archivos de los adjuntos pendientes (T-24) — `tests/e2e/respaldo.spec.ts`
 
 ### Implementación
 
-- [ ] T012 [HU-009-1] `exportarRespaldo.ts` (alcance, tamaño estimado, nombre de archivo) — `src/application/respaldo/exportarRespaldo.ts`
-- [ ] T013 [HU-009-1] `compartir.ts` (Web Share con archivos; `AbortError` o no soportado → descarga) — `src/infrastructure/respaldo/compartir.ts`
-- [ ] T014 [HU-009-1] `importarRespaldo.ts` (validar, transacción por servicio, resumen) — `src/application/respaldo/importarRespaldo.ts`
-- [ ] T015 [HU-009-1] `ExportarRespaldoDialog` (alcance, tamaño, progreso, compartir/descargar) e `ImportarRespaldoDialog` (solo Admin, resumen) — `src/features/tecnico/components/`
+- [x] T012 [HU-009-1] `exportarRespaldo.ts` (alcance, tamaño estimado, nombre de archivo) — `src/application/respaldo/exportarRespaldo.ts`
+- [x] T013 [HU-009-1] `compartir.ts` (Web Share con archivos; `AbortError` o no soportado → descarga) — `src/infrastructure/respaldo/compartir.ts`
+- [x] T014 [HU-009-1] `importarRespaldo.ts` (validar, transacción por servicio, resumen) — `src/application/respaldo/importarRespaldo.ts`
+- [x] T015 [HU-009-1] `ExportarRespaldoDialog` (alcance, tamaño, progreso, compartir/descargar) e `ImportarRespaldoDialog` (solo Admin, resumen) — `src/features/tecnico/components/`
       **Punto de control**: ES-009-01…06 en Android (compartir) y Windows (descarga).
 
 ## Fase 4 — HU-009-2 Limpieza segura del espacio (P1)
