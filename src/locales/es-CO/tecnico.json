@@ -52,5 +52,23 @@
   "confirmar_restablecimiento": "Escribe BORRAR para confirmar",
   "tienes_ultima_version": "Tienes la última versión",
   "nueva_version_disponible": "Nueva versión disponible",
-  "error_red": "Requiere conexión a internet"
+  "error_red": "Requiere conexión a internet",
+  "respaldo": {
+    "exportarTitulo": "Exportar respaldo",
+    "exportarDescripcion": "Descarga una copia de seguridad de los servicios locales para protección o transferencia a otro dispositivo.",
+    "importarTitulo": "Importar respaldo",
+    "importarDescripcion": "Carga un respaldo previamente exportado. Los servicios duplicados serán omitidos.",
+    "alcance": "¿Qué deseas exportar?",
+    "soloPendientes": "Solo servicios pendientes de sincronizar",
+    "todos": "Todos los servicios",
+    "descargarRespaldo": "Descargar respaldo",
+    "exportando": "Exportando...",
+    "importar": "Importar",
+    "importando": "Importando...",
+    "seleccionarArchivo": "Selecciona un archivo de respaldo (.zip o .json)",
+    "noArchivoSeleccionado": "Selecciona un archivo de respaldo",
+    "todosDuplicados": "Todos los servicios del respaldo ya existen en este dispositivo.",
+    "errorExportar": "Error al exportar el respaldo",
+    "errorImportar": "Error al importar el respaldo"
+  }
 }
