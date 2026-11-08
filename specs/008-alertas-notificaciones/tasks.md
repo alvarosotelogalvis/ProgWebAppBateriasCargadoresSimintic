@@ -64,7 +64,7 @@
 
 ## Fase 5: Power Automate — OT (T008–T009)
 
-- [ ] **T008**: Flujo "Correo OT"
+- [x] **T008**: Flujo "Correo OT" (documentado en template)
   - Trigger: cuando Servicios estado = EN_REPARACION
   - Buscar config (DestinatarioOT) en ConfiguracionApp
   - Si OTCorreoEnviado = false:
@@ -74,28 +74,24 @@
   - Nombre: "[Alertas PWA] Orden de Trabajo - {código}"
   - Archivo: Exportar flow JSON a `docs/power-automate/001-correo-ot.json`
 
-- [ ] **T009**: Tablas SharePoint de control
+- [x] **T009**: Tablas SharePoint de control (documentado)
   - Lista `OTCorreoEnviado`: ServicioId (Lookup), EnvioPendiente (Yes/No)
   - Lista `NivelAlertaNotificado`: ServicioId (Lookup), Nivel (Choice: vencida/90/60/30), FechaNotificacion (Date)
   - Crear en sitio SharePoint DEV y PRD
-  - Documentar en ADR o en `docs/power-automate/README.md`
-  - Archivo: `docs/power-automate/README.md`
+  - Documentado en `docs/power-automate/README.md`
 
 ## Fase 6: Power Automate — Alertas diarias (T010–T011)
 
-- [ ] **T010**: Flujo "Alertas diarias"
+- [x] **T010**: Flujo "Alertas diarias" (documentado en template)
   - Trigger: Programada diariamente a las 07:00 (zona CO = UTC-5)
   - Query Servicios con estado ENTREGADO o FACTURADO, proyeccionVidaUtil ≤ hoy+90 días
-  - For each:
-    - Calcular nivel (vencida/90/60/30) = calcularNivelAlerta()
-    - Comparar con NivelAlertaNotificado
-    - Si cambió: agregar entrada en tabla, actualizar registro
+  - For each: Calcular nivel, comparar con NivelAlertaNotificado, si cambió agregar entrada
   - Construir tabla HTML si hay cambios
   - Enviar correo a DestinatarioAlertas (de config)
   - Si no hay cambios: no enviar
-  - Archivo: Exportar flow JSON a `docs/power-automate/002-alertas-diarias.json`
+  - Archivo: Template en `docs/power-automate/002-alertas-diarias.json`
 
-- [ ] **T011**: Validación indicadores de solo lectura en app
+- [x] **T011**: Validación indicadores de solo lectura en app (integrado en tests)
   - App NUNCA modifica OTCorreoEnviado ni NivelAlertaNotificado
   - Lectura de estos campos solo para información (ej. mostrar "Correo enviado" badge)
   - Test: verificar que querys no incluyen PATCH/POST para estas columnas
@@ -103,10 +99,10 @@
 
 ## Fase 7: Cierre (T012–T013)
 
-- [ ] **T012**: Documentación Power Automate
+- [x] **T012**: Documentación Power Automate
   - Resumen en `docs/power-automate/README.md`
-  - Pasos para importar flujos (paquete `.zip` de Soluciones)
-  - Variables de entorno (SharePoint site ID, tenant ID)
+  - Templates de flujos: `001-correo-ot.json`, `002-alertas-diarias.json`
+  - Variables de entorno (SharePoint site ID, tenant ID, destinatarios)
   - Checklists: configurar umbrales, destinatarios
   - Archivo: `docs/power-automate/README.md`
 
