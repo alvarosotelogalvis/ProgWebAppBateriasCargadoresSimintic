@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ConfigApp } from '@/domain/config';
 import { useDb } from '@/shared/hooks/useDb';
+import { CLAVES_META } from '@/application/setup/claves';
 
 export interface EstadoSP {
   sitio: string;
-  idListaServicios: string;
-  idBibliotecaAdjuntos: string;
+  siteId: string;
+  webUrl: string;
+  listIds: string;
+  driveId: string;
   ultimaSincronizacion: string | null;
   metodoDescarga: string;
   idCorrelacion: string;
 }
 
-export function EstadoSharePoint({ config }: { readonly config: ConfigApp }): React.JSX.Element {
+export function EstadoSharePoint(): React.JSX.Element {
   const { t } = useTranslation('tecnico');
   const db = useDb();
   const [estado, setEstado] = useState<EstadoSP | null>(null);
@@ -21,28 +23,31 @@ export function EstadoSharePoint({ config }: { readonly config: ConfigApp }): Re
     if (!db) return;
 
     try {
-      // Obtener última sincronización desde logs
-      const logs = await db.logs
-        .orderBy('seq')
-        .reverse()
-        .filter((log) => log.evento === 'sincronizacion-completada')
-        .limit(1)
-        .toArray();
-
-      const ultimaSync = logs[0]?.ts || null;
+      // Leer datos de SharePoint desde meta
+      const sitio = (await db.meta.get(CLAVES_META.sitio))?.valor as string | undefined;
+      const siteId = (await db.meta.get(CLAVES_META.siteId))?.valor as string | undefined;
+      const webUrl = (await db.meta.get(CLAVES_META.webUrl))?.valor as string | undefined;
+      const listIds = (await db.meta.get(CLAVES_META.listIds))?.valor as string | undefined;
+      const driveId = (await db.meta.get(CLAVES_META.driveId))?.valor as string | undefined;
+      const ultimaSyncEn = (await db.meta.get(CLAVES_META.ultimaSyncEn))?.valor as
+        string | undefined;
+      const ultimoCorrelationId = (await db.meta.get(CLAVES_META.ultimoCorrelationId))?.valor as
+        string | undefined;
 
       setEstado({
-        sitio: config.SitioUrl || 'No configurado',
-        idListaServicios: config.IdListaServicios || 'No configurado',
-        idBibliotecaAdjuntos: config.IdBibliotecaAdjuntos || 'No configurado',
-        ultimaSincronizacion: ultimaSync,
+        sitio: sitio || 'No configurado',
+        siteId: siteId || 'No configurado',
+        webUrl: webUrl || 'No configurado',
+        listIds: listIds || 'No configurado',
+        driveId: driveId || 'No configurado',
+        ultimaSincronizacion: ultimaSyncEn || null,
         metodoDescarga: 'Microsoft Graph',
-        idCorrelacion: crypto.randomUUID?.() || 'N/A',
+        idCorrelacion: ultimoCorrelationId || 'N/A',
       });
     } catch (err) {
       console.error('Error cargando estado de SharePoint:', err);
     }
-  }, [db, config.SitioUrl, config.IdListaServicios, config.IdBibliotecaAdjuntos]);
+  }, [db]);
 
   useEffect(() => {
     cargarEstado();
