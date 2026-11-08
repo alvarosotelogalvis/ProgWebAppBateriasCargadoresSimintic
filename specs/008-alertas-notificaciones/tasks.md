@@ -106,7 +106,7 @@
   - Checklists: configurar umbrales, destinatarios
   - Archivo: `docs/power-automate/README.md`
 
-- [ ] **T013**: DoD y spec implementada
+- [x] **T013**: DoD y spec implementada
   - [x] ES-008-01 hasta ES-008-18 verificadas
   - [x] Criterios CE-008-01 hasta CE-008-04 pasados
   - [x] `npm run verify` en verde

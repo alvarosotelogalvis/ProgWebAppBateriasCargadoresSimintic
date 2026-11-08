@@ -1,6 +1,6 @@
 # Spec 008 — Alertas de vida útil y notificaciones
 
-- **Estado**: Aprobada
+- **Estado**: Implementada
 - **Fecha**: 2026-10-21 · **Rama**: `feature/008-alertas-notificaciones`
 - **Fase**: F8 (`docs/07`) · **Depende de**: 007 (etapas: OT y entrega con vida útil)
 - **Fuentes**: PRD [HU-06, HU-12; RF-14, RF-15; O5] · ADR [0013]
