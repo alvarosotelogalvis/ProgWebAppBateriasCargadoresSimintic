@@ -41,6 +41,10 @@ const limpiar = (valor: unknown, profundidad = 0): unknown => {
   return String(valor);
 };
 
+export function sanitizar(data: unknown): unknown {
+  return limpiar(data);
+}
+
 export class LoggerDexie implements Logger {
   private cola: Promise<void> = Promise.resolve();
 
@@ -108,6 +112,38 @@ export class LoggerDexie implements Logger {
     const claves = await this.db.logs.orderBy('seq').limit(exceso).primaryKeys();
     if (claves.length > 0) await this.db.logs.bulkDelete(claves);
   }
+}
+
+export interface ConsultaLogsOpciones {
+  nivel?: EntradaLog['nivel'];
+  busqueda?: string;
+  limite?: number;
+}
+
+export async function consultarLogs(
+  db: AppDB,
+  opciones?: ConsultaLogsOpciones
+): Promise<EntradaLog[]> {
+  let query = db.logs.orderBy('seq').reverse();
+
+  if (opciones?.nivel) {
+    query = query.filter((log) => log.nivel === opciones.nivel);
+  }
+
+  const resultados = await query.toArray();
+
+  if (opciones?.busqueda) {
+    const busqueda = opciones.busqueda.toLowerCase();
+    return resultados
+      .filter((log) => {
+        const evento = log.evento.toLowerCase();
+        const datos = JSON.stringify(log.datos || {}).toLowerCase();
+        return evento.includes(busqueda) || datos.includes(busqueda);
+      })
+      .slice(0, opciones?.limite ?? 100);
+  }
+
+  return resultados.slice(0, opciones?.limite ?? 100);
 }
 
 let manejadoresInstalados = false;
