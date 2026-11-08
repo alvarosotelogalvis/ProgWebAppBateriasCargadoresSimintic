@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Servicio } from '@/domain/servicio';
 import { exportarRespaldo } from '@/application/respaldo/respaldo';
+import { compartirRespaldo } from '@/infrastructure/respaldo/compartir';
 import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
@@ -25,15 +26,8 @@ export function ExportarRespaldoDialog({ abierto, servicios, onCerrar }: Props):
       setError(null);
       const resultado = await exportarRespaldo(servicios, alcance);
 
-      // Crear link de descarga
-      const url = URL.createObjectURL(resultado.blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = resultado.nombreArchivo;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Intentar compartir via Web Share API, fallback a descarga
+      await compartirRespaldo(resultado.blob, resultado.nombreArchivo);
 
       onCerrar();
     } catch (err) {

@@ -44,11 +44,11 @@ export async function ejecutarPurgas(
 
     // Eliminar adjuntos purgables
     for (const { adjunto } of purgables.archivos) {
-      // Marcar adjunto remoto para eliminación o borrar local si no existe en remoto
-      if (adjunto.tieneOriginal && adjunto.eliminarRemoto !== true) {
+      // Borrar blob pero conservar miniatura
+      if (adjunto.blob && adjunto.eliminarRemoto !== true) {
         await db.adjuntos.update(adjunto.id, {
-          eliminarRemoto: true,
-          tamaño: 0,
+          blob: null,
+          tamanoBytes: 0,
         });
       } else {
         await db.adjuntos.delete(adjunto.id);

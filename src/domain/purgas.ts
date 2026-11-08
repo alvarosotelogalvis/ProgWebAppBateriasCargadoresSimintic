@@ -43,9 +43,9 @@ export function seleccionarPurgables(
     if (servicio.syncState === 'synced') {
       const adjuntos = adjuntosMap.get(servicio.id) || [];
       for (const adj of adjuntos) {
-        if (!adj.tieneOriginal) continue;
+        if (!adj.blob) continue;
 
-        const fechaSinc = new Date(adj.ultimaSincronizacion || '');
+        const fechaSinc = new Date(adj.sincronizadoEn || '');
         fechaSinc.setHours(0, 0, 0, 0);
 
         const diasTranscurridos = Math.floor(
