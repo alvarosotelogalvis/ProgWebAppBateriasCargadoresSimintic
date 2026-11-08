@@ -117,13 +117,23 @@ describe('purgas', () => {
         } as Servicio,
       ];
 
+      const blob = new Blob(['imagen']);
       const adjuntos: Adjunto[] = [
         {
           id: 'adj-1',
           servicioId: 'srv-1',
-          tieneOriginal: true,
-          ultimaSincronizacion: new Date(hoy.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          tamaño: 1024,
+          tipo: 'FOTO_INGRESO',
+          nombreArchivo: 'foto.jpg',
+          mime: 'image/jpeg',
+          tamanoBytes: 1024,
+          sha256: 'abc123',
+          capturadoEn: hoy.toISOString(),
+          capturadoPor: 'usuario',
+          blob,
+          miniatura: new Blob(['thumb']),
+          syncState: 'synced',
+          sincronizadoEn: new Date(hoy.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          eliminarRemoto: false,
         } as Adjunto,
       ];
 
@@ -134,7 +144,7 @@ describe('purgas', () => {
       expect(resultado.archivos[0].adjunto.id).toBe('adj-1');
     });
 
-    it('no selecciona archivos sin original', () => {
+    it('no selecciona archivos sin blob original', () => {
       const servicios: Servicio[] = [
         {
           id: 'srv-1',
@@ -147,8 +157,18 @@ describe('purgas', () => {
         {
           id: 'adj-1',
           servicioId: 'srv-1',
-          tieneOriginal: false,
-          ultimaSincronizacion: new Date(hoy.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          tipo: 'FOTO_INGRESO',
+          nombreArchivo: 'foto.jpg',
+          mime: 'image/jpeg',
+          tamanoBytes: 1024,
+          sha256: 'abc123',
+          capturadoEn: hoy.toISOString(),
+          capturadoPor: 'usuario',
+          blob: null,
+          miniatura: new Blob(['thumb']),
+          syncState: 'synced',
+          sincronizadoEn: new Date(hoy.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          eliminarRemoto: false,
         } as Adjunto,
       ];
 
