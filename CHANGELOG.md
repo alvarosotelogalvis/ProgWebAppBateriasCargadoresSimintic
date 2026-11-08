@@ -7,6 +7,19 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **Spec 009: Soporte técnico, respaldo y purgas** (Fase F9)
+  - Respaldo manual (exportar/importar) con Web Share API y fallback a descarga
+  - Limpieza automática segura de espacio (purgas transaccionales, nunca toca pendientes)
+  - Integración de purgas en SyncEngine al finalizar sincronización exitosa
+  - Diagnóstico para soporte: estado del dispositivo, SharePoint, visor de logs
+  - Acciones de mantenimiento: reintentar errores, refrescar catálogos, restablecer app
+  - Menú técnico con visualización adaptativa por rol y breakpoint
+  - 30+ tareas, 7 fases, 100+ pruebas unitarias/integración/E2E
+
+## [Unreleased - Previous]
+
 ### Añadido
 
 - **Etapas del servicio y roles (spec 007)**: 9 historias de usuario completas (diagnóstico, cotización,
