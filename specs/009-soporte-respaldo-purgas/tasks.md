@@ -5,25 +5,25 @@
 - `[P]` = paralelizable. Las pruebas van antes que la implementación (Artículo VII). Commit por tarea: `feat(009): T### …`.
 - **Precondición**: specs 005 y 006 implementadas (engine con `alFinalizar`, `meta.metodoPull`, `ultimoCorrelationId`). Spec 004 (`useRoles`, `refrescarCatalogos`, `AuthPort.cerrarSesion`). Spec 001 (`registration.update()`).
 
-## Fase 1 — Preparación
+## Fase 1 — Preparación ✅
 
-- [ ] T001 Crear la rama `feature/009-soporte-respaldo-purgas` y marcar la spec como `En implementación` en `specs/README.md`
-- [ ] T002 [P] Namespace i18n `tecnico` (secciones, acciones, confirmaciones, resúmenes, errores de respaldo) — `src/locales/es-CO/tecnico.json`
-- [ ] T003 [P] Fixtures de respaldo: ZIP válido, manifiesto con formato inválido y con `esquemaDb` futuro — `tests/fixtures/respaldo/`
+- [x] T001 Crear la rama `feature/009-soporte-respaldo-purgas` y marcar la spec como `En implementación` en `specs/README.md`
+- [x] T002 [P] Namespace i18n `tecnico` (secciones, acciones, confirmaciones, resúmenes, errores de respaldo) — `src/locales/es-CO/tecnico.json`
+- [x] T003 [P] Fixtures de respaldo: ZIP válido, manifiesto con formato inválido y con `esquemaDb` futuro — `tests/fixtures/respaldo/`
 
-## Fase 2 — Fundamentos (bloquean las historias)
+## Fase 2 — Fundamentos (bloquean las historias) ✅
 
 ### Pruebas
 
-- [ ] T004 [P] Pruebas de `seleccionarPurgables` (T-08: ningún estado ≠ `synced`, límites de días y meses, cerrados vs. abiertos) — `src/domain/purgas.test.ts`
-- [ ] T005 [P] Pruebas de `validarManifiesto` — `src/domain/respaldo.test.ts`
-- [ ] T006 [P] Pruebas de `sanitizar` (claves sensibles, URLs sin query) — `src/infrastructure/logging/logger.test.ts`
+- [x] T004 [P] Pruebas de `seleccionarPurgables` (T-08: ningún estado ≠ `synced`, límites de días y meses, cerrados vs. abiertos) — `src/domain/purgas.test.ts`
+- [x] T005 [P] Pruebas de `validarManifiesto` — `src/domain/respaldo.test.ts`
+- [x] T006 [P] Pruebas de `sanitizar` (claves sensibles, URLs sin query) — `src/infrastructure/logging/logger.test.ts`
 
 ### Implementación
 
-- [ ] T007 Implementar `purgas.ts` y `respaldo.ts` hasta pasar T004–T005 — `src/domain/`
-- [ ] T008 [P] `sanitizar` y `consultar(filtro)` en el logger hasta pasar T006 — `src/infrastructure/logging/logger.ts`
-- [ ] T009 [P] `zip.ts` (empaquetar en streaming con `ZipPassThrough`/`ZipDeflate` y desempaquetar) — `src/infrastructure/respaldo/zip.ts`
+- [x] T007 Implementar `purgas.ts` y `respaldo.ts` hasta pasar T004–T005 — `src/domain/`
+- [x] T008 [P] `sanitizar` y `consultar(filtro)` en el logger hasta pasar T006 — `src/infrastructure/logging/logger.ts`
+- [x] T009 [P] `zip.ts` (empaquetar en streaming con `ZipPassThrough`/`ZipDeflate` y desempaquetar) — `src/infrastructure/respaldo/zip.ts`
 
 ## Fase 3 — HU-009-1 Respaldo manual (P1) 🎯 MVP
 
