@@ -76,6 +76,19 @@ select,
 textarea {
   font: inherit;
   color: inherit;
+  transition: all var(--duracion-media) var(--curva);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 /* Los numeros de tabla alinean para listas de importes y fechas. */

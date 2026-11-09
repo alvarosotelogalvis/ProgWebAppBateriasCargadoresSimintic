@@ -12,6 +12,19 @@
   text-decoration: none;
   color: inherit;
   cursor: pointer;
+  transition:
+    background-color var(--duracion-media) var(--curva),
+    transform var(--duracion-media) var(--curva);
+  border-radius: var(--radio-md);
+}
+
+.fila:hover {
+  background-color: var(--surface-sunken);
+  transform: translateX(2px);
+}
+
+.fila:active {
+  transform: translateX(0);
 }
 
 .fila:last-child {
