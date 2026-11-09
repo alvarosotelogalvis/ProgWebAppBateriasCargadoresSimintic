@@ -13,20 +13,25 @@
     },
     "sin-conexion": {
       "titulo": "Trabajar sin conexión",
-      "cuerpo": "Puedes registrar recepciones, tomar fotos y guardar PDFs sin internet. Todo se sincroniza cuando vuelvas a tener conexión.",
+      "cuerpo": "Puedes registrar recepciones, tomar fotos y guardar PDFs sin internet. Todo se sincroniza automáticamente cuando vuelvas a tener conexión.",
       "pasos": [
-        "Registra el servicio con normalidad.",
-        "Toma las fotos: se guardan optimizadas en el dispositivo.",
-        "Cuando tengas senal, ve a Sincronizar y confirma tu identidad."
+        "Registra el servicio con todos los datos: tipo de equipo, marca, motivo del daño.",
+        "Toma las fotos en cada etapa (recepción, diagnóstico, reparación, entrega). Se guardan optimizadas en el dispositivo.",
+        "Adjunta documentos PDF si es necesario (presupuestos, órdenes de trabajo).",
+        "Cuando tengas conexión, ve a Sincronización y confirma con tu identidad de empresa.",
+        "Los datos se enviarán a SharePoint de forma segura."
       ]
     },
     "preguntas-frecuentes": {
       "titulo": "Preguntas frecuentes",
       "cuerpo": "Respuestas a las dudas más comunes sobre el funcionamiento de la app.",
       "pasos": [
-        "La app borra mis datos? No. Los datos se guardan en el dispositivo y solo se purgan al confirmar que ya estan en SharePoint.",
-        "Necesito internet? Solo para sincronizar. Captura y consulta funcionan sin conexion.",
-        "Cambio de celular? Exporta un respaldo en el menu Tecnico e importalo en el nuevo dispositivo."
+        "¿La app borra mis datos? No. Los datos se guardan en el dispositivo y solo se purgan de forma segura después de confirmar que ya están en SharePoint.",
+        "¿Necesito internet para todo? No. Solo para sincronizar y configuración inicial. Captura de fotos, consulta de servicios y registro funcionan completamente sin conexión.",
+        "¿Qué pasa si cambio de celular? Exporta un respaldo en el menú Técnico (comprimido como ZIP) e importalo en el nuevo dispositivo. Todos tus datos se restaurarán.",
+        "¿Cuánto espacio ocupan las fotos? La app optimiza automáticamente: JPEG a 1920px con calidad 0.75. Puedes liberar espacio en Técnico > Liberar espacio.",
+        "¿Por qué un servicio tiene estado 'Error'? Verifica conexión y que completaste todos los campos requeridos. Intenta sincronizar nuevamente desde el menú de Sincronización.",
+        "¿Es seguro sincronizar con internet móvil? Sí. La app solo sincroniza después de tu confirmación explícita y usa conexión segura con SharePoint."
       ]
     }
   }

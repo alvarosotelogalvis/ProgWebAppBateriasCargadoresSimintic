@@ -7,7 +7,11 @@
   "novedades": "Novedades",
   "sinNovedades": "Sin novedades registradas en esta versión.",
   "licencia": "Licencia",
-  "licenciaTexto": "Uso interno autorizado. Todos los derechos reservados.",
-  "privacidad": "Privacidad",
-  "privacidadTexto": "Los datos de los servicios se guardan en el dispositivo y se sincronizan con SharePoint de la empresa cuando el usuario confirma su identidad."
+  "licenciaTexto": "Aplicación de gestión de servicios técnicos para baterías y cargadores. Uso interno autorizado. Todos los derechos reservados © 2026.",
+  "privacidad": "Privacidad y Seguridad",
+  "privacidadTexto": "Los datos de los servicios se guardan de forma segura en el dispositivo y se sincronizan con SharePoint de la empresa solo cuando el usuario confirma su identidad. La aplicación cumple con WCAG 2.2 AA para accesibilidad. Offline-first: funciona completamente sin internet.",
+  "equipo": "Equipo",
+  "equipoTexto": "Desarrollado como una Progressive Web App (PWA) con TypeScript, React y Vite. Diseño responsivo mobile-first con sistema de componentes accesible.",
+  "contacto": "Contacto",
+  "contactoTexto": "Para soporte técnico o reportar problemas, contacta al equipo de administración de sistemas de tu organización."
 }
