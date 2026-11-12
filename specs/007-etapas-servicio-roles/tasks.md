@@ -103,13 +103,13 @@
 
 ### Pruebas
 
-- [ ] T036 [P] [HU-007-8] Prueba de integración de `corregirCampos` (Admin ok sin cambio de estado y con `camposSucios`; no-Admin rechazado; fechas incoherentes rechazadas) — `src/application/servicios/corregirCampos.int.test.ts`
+- [x] T036 [P] [HU-007-8] Prueba de integración de `corregirCampos` (Admin ok sin cambio de estado y con `camposSucios`; no-Admin rechazado; fechas incoherentes rechazadas) — `src/application/servicios/corregirCampos.int.test.ts`
 
 ### Implementación
 
-- [ ] T037 [HU-007-8] `corregirCampos` — `src/application/servicios/corregirCampos.ts`
-- [ ] T038 [HU-007-8] `AccionesServicio` + `DialogoAnulacion` (`ResponsiveDialog`; motivo ≥ 10 caracteres en `TextField` multilínea, confirmación) y modo "Editar etapa" en `FormEtapa` para Admin — `src/features/servicios/components/`
-- [ ] T039 [HU-007-8] Ruta o diálogo de anulación según UX §2 — `src/features/servicios/pages/EtapaAnulacionPage.tsx`
+- [x] T037 [HU-007-8] `corregirCampos` — `src/application/servicios/corregirCampos.ts`
+- [x] T038 [HU-007-8] `AccionesServicio` + `DialogoAnulacion` (`ResponsiveDialog`; motivo ≥ 10 caracteres en `TextField` multilínea, confirmación) y modo "Editar etapa" en `FormEtapa` para Admin — `src/features/servicios/components/`
+- [x] T039 [HU-007-8] Ruta o diálogo de anulación según UX §2 — `src/features/servicios/pages/EtapaAnulacionPage.tsx`
 
 ## Fase 11 — HU-007-9 Mis trabajos por rol (P2)
 
