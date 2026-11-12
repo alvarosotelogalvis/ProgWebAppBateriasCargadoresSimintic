@@ -26,7 +26,7 @@
 - [x] T009 Completar `TRANSICIONES` y `camposEditables` hasta pasar T004–T005 (cobertura del 100 % de la tabla). Verificar que la anulación no borre datos — `src/domain/estados.ts`
 - [x] T010 [P] Esquemas por etapa — `src/domain/validaciones.ts`
 - [x] T011 [P] `fechas.ts`, `vidaUtil.ts`, `pdf.ts` y `tarjetasInicio.ts` — `src/domain/`
-- [ ] T012 [P] Verificar que los mappers de la 005 cubren ida y vuelta todos los campos de `docs/03` §2.3–§2.7 y los tipos de adjunto §3.1; agregar los casos faltantes a la prueba — `src/infrastructure/graph/mappers/*.test.ts`
+- [x] T012 [P] Verificar que los mappers de la 005 cubren ida y vuelta todos los campos de `docs/03` §2.3–§2.7 y los tipos de adjunto §3.1; agregar los casos faltantes a la prueba — `src/infrastructure/graph/mappers/*.test.ts`
 
 ## Fase 3 — Base de UI de etapas
 
