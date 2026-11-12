@@ -143,7 +143,14 @@
     "tamanoExcedido": "El PDF supera el tamaño máximo de {{maxMB}} MB.",
     "almacenamientoLleno": "No hay espacio suficiente en el dispositivo.",
     "error": "Error al adjuntar el PDF.",
-    "protegido": "PDF protegido con contraseña. El cliente necesitará la contraseña para abrirlo."
+    "protegido": "PDF protegido con contraseña. El cliente necesitará la contraseña para abrirlo.",
+    "ver": "Ver PDF",
+    "reemplazar": "Reemplazar PDF",
+    "eliminar": "Eliminar PDF",
+    "verEnSharePoint": "Abrir en SharePoint",
+    "confirmarEliminacion": "¿Eliminar este PDF?",
+    "confirmarSi": "Sí, eliminar",
+    "confirmarNo": "No"
   },
   "roles": {
     "Tecnico": "Técnico",
