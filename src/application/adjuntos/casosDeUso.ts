@@ -8,6 +8,7 @@ import {
 import { normalizarCodigoAlfanumerico } from '@/domain/normalizacion';
 import type { Servicio, TipoAdjunto } from '@/domain/servicio';
 import { sha256Blob } from '@/infrastructure/media/hash';
+import { crearAgregarPdf } from './agregarPdf';
 import type { DepsAdjuntos } from './deps';
 
 const limiteMaximo = (tipo: TipoAdjunto, config: ReturnType<DepsAdjuntos['config']>): number =>
@@ -105,6 +106,7 @@ export const crearEliminarAdjunto =
 
 export const crearCasosDeUsoAdjuntos = (deps: DepsAdjuntos) => ({
   agregarFoto: crearAgregarFoto(deps),
+  agregarPdf: crearAgregarPdf(deps),
   eliminarAdjunto: crearEliminarAdjunto(deps),
 });
 

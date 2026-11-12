@@ -1,87 +1,84 @@
-import type { Adjunto } from '@/domain/servicio';
+import type { Adjunto } from '@/domain/adjunto';
+import { NoEncontradoError } from '@/domain/errores';
+import { normalizarCodigoAlfanumerico } from '@/domain/normalizacion';
 import { esFirmaPdf } from '@/domain/pdf';
+import { leerBuffer, sha256Blob } from '@/infrastructure/media/hash';
+import type { DepsAdjuntos } from './deps';
 
 export type TipoPdf = 'FORMATO_DIAGNOSTICO' | 'DISPOSICION_FINAL' | 'COTIZACION' | 'FACTURA';
 
+export type ErrorAgregarPdf = 'NO_ES_PDF' | 'TAMANO_EXCEDIDO' | 'ALMACENAMIENTO_LLENO';
+
 export type AgregarPdfResultado =
-  | { ok: true; adjunto: Adjunto; reemplazado?: string }
-  | { ok: false; error: 'NO_ES_PDF' | 'TAMANO_EXCEDIDO' | 'ALMACENAMIENTO_LLENO' };
+  { ok: true; adjunto: Adjunto; reemplazado?: string } | { ok: false; error: ErrorAgregarPdf };
 
-interface AdjuntosTable {
-  where: (filter: Record<string, unknown>) => { first: () => Promise<Adjunto | undefined> };
-  add: (a: Adjunto) => Promise<void>;
-  delete: (id: string) => Promise<void>;
-  put: (a: Adjunto) => Promise<void>;
-  transaction: (mode: string, table: AdjuntosTable, cb: () => Promise<void>) => Promise<void>;
-}
-
-interface AppDatabase {
-  adjuntos: AdjuntosTable;
-}
+const BYTES_POR_MB = 1024 * 1024;
+const BYTES_CABECERA = 1024;
 
 /**
- * Valida y agrega un PDF a los adjuntos de un servicio.
- * Si ya existe un adjunto del mismo tipo, lo reemplaza:
- * - Si está local: se elimina directamente
- * - Si está sincronizado: se marca `eliminarRemoto` en la misma transacción
+ * Valida y guarda un PDF del servicio (un único adjunto por tipo).
+ * Si ya existe uno del mismo tipo lo reemplaza en la misma transacción:
+ * - local → se elimina;
+ * - ya sincronizado → se marca `eliminarRemoto` (nunca se pierde un dato sin subir).
  */
-export async function agregarPdf(
-  servicioId: string,
-  archivo: File,
-  tipo: TipoPdf,
-  db: AppDatabase,
-  maxTamanoPdfMB: number = 20
-): Promise<AgregarPdfResultado> {
-  // 1. Validar que sea PDF (firma)
-  const header = await archivo.slice(0, 1024).arrayBuffer();
-  const bytes = new Uint8Array(header);
-  if (!esFirmaPdf(bytes)) {
-    return { ok: false, error: 'NO_ES_PDF' };
-  }
+export const crearAgregarPdf =
+  (deps: DepsAdjuntos) =>
+  async (servicioId: string, archivo: Blob, tipo: TipoPdf): Promise<AgregarPdfResultado> => {
+    const servicio = await deps.servicios.obtener(servicioId);
+    if (!servicio) throw new NoEncontradoError(servicioId);
 
-  // 2. Validar tamaño
-  const tamanoPdf = archivo.size / (1024 * 1024); // MB
-  if (tamanoPdf > maxTamanoPdfMB) {
-    return { ok: false, error: 'TAMANO_EXCEDIDO' };
-  }
+    const cabecera = new Uint8Array(await leerBuffer(archivo.slice(0, BYTES_CABECERA)));
+    if (!esFirmaPdf(cabecera)) return { ok: false, error: 'NO_ES_PDF' };
 
-  // 3. Leer blob
-  const blob = new Blob([await archivo.arrayBuffer()], { type: 'application/pdf' });
+    if (archivo.size > deps.config().maxTamanoPdfMB * BYTES_POR_MB) {
+      return { ok: false, error: 'TAMANO_EXCEDIDO' };
+    }
 
-  // 4. Crear adjunto nuevo
-  const adjuntoNuevo: Adjunto = {
-    id: crypto.getRandomValues(new Uint8Array(16)).toString(),
-    servicioId,
-    tipo,
-    blob,
-    creadoEn: new Date().toISOString(),
-    actualizadoEn: new Date().toISOString(),
-    syncState: 'pending',
-    sp: undefined,
-    eliminarRemoto: false,
-  };
+    const estimacion = await deps.storage.estimar();
+    if (estimacion.porcentajeUsado >= 95) return { ok: false, error: 'ALMACENAMIENTO_LLENO' };
 
-  // 5. Reemplazar si existe
-  let reemplazado: string | undefined;
-  const adjuntoExistente = await db.adjuntos.where({ servicioId, tipo }).first();
+    const blob = new Blob([archivo], { type: 'application/pdf' });
+    const id = deps.ids.siguiente();
+    const cuenta = deps.auth.cuentaActiva();
+    const nuevo: Adjunto = {
+      id,
+      servicioId,
+      tipo,
+      nombreArchivo: `${normalizarCodigoAlfanumerico(servicio.codigo || servicio.id)}_${tipo}_${id}.pdf`,
+      mime: 'application/pdf',
+      tamanoBytes: blob.size,
+      sha256: await sha256Blob(blob),
+      capturadoEn: deps.clock.ahoraIso(),
+      capturadoPor: cuenta?.correo ?? 'local',
+      blob,
+      miniatura: null,
+      syncState: servicio.estado === 'BORRADOR' ? 'local' : 'pending',
+      eliminarRemoto: false,
+    };
 
-  if (adjuntoExistente) {
-    reemplazado = adjuntoExistente.id;
-
-    // En transacción: eliminar local o marcar para eliminar remoto
-    await db.adjuntos.transaction('rw', db.adjuntos, async () => {
-      if (adjuntoExistente.sp) {
-        adjuntoExistente.eliminarRemoto = true;
-        await db.adjuntos.put(adjuntoExistente);
-      } else {
-        await db.adjuntos.delete(adjuntoExistente.id);
+    const reemplazado = await deps.uow.ejecutar(async ({ adjuntos }) => {
+      const anterior = (await adjuntos.listarPorServicio(servicioId)).find(
+        (adjunto) => adjunto.tipo === tipo && !adjunto.eliminarRemoto
+      );
+      if (anterior) {
+        if (anterior.sp || anterior.syncState === 'synced') {
+          await adjuntos.guardar({
+            ...anterior,
+            blob: null,
+            miniatura: null,
+            eliminarRemoto: true,
+            syncState: 'pending',
+          });
+        } else {
+          await adjuntos.eliminarLocal(anterior.id);
+        }
       }
-
-      await db.adjuntos.add(adjuntoNuevo);
+      await adjuntos.guardar(nuevo);
+      return anterior?.id;
     });
-  } else {
-    await db.adjuntos.add(adjuntoNuevo);
-  }
 
-  return { ok: true, adjunto: adjuntoNuevo, reemplazado };
-}
+    deps.logger.info('adjunto.pdf.agregado', { servicioId, adjuntoId: id, tipo, bytes: blob.size });
+    return reemplazado === undefined
+      ? { ok: true, adjunto: nuevo }
+      : { ok: true, adjunto: nuevo, reemplazado };
+  };
