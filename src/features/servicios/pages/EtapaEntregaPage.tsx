@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useContainer } from '@/app/containerContext';
+import { CLAVES_CATALOGO } from '@/application/setup/claves';
+import { CONFIG_DEFECTO, type ConfigApp } from '@/domain/config';
+import { useCatalogo } from '@/infrastructure/db/hooks';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
 import { fechaLocalHoy } from '@/domain/validaciones';
@@ -19,9 +22,8 @@ export function EtapaEntregaPage() {
     return container.db.servicios.get(id);
   }, [id, container.db]);
 
-  const config = useLiveQuery(async () => {
-    return container.db.catalogos.where('id').equals('config').first();
-  }, [container.db]);
+  const configGuardada = useCatalogo<Partial<ConfigApp>>(CLAVES_CATALOGO.config, container.db);
+  const config: ConfigApp = { ...CONFIG_DEFECTO, ...configGuardada };
 
   const adjuntos = useLiveQuery(async () => {
     if (!servicio) return [];
@@ -32,7 +34,7 @@ export function EtapaEntregaPage() {
       .toArray();
   }, [servicio, container.db]);
 
-  if (!servicio || !config) return <div>{t('servicios:cargando')}</div>;
+  if (!servicio) return <div>{t('servicios:cargando')}</div>;
 
   const hoy = fechaLocalHoy();
   const fechaEntrega = (cambios.fechaEntrega as string) ?? servicio.fechaEntrega ?? hoy;

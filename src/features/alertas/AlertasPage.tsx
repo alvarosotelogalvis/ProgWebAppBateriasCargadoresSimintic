@@ -1,8 +1,11 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
 import { useContainer } from '@/app/containerContext';
+import type { ClienteCatalogo } from '@/application/ports/remoteGateway';
+import { CLAVES_CATALOGO } from '@/application/setup/claves';
+import { useCatalogo } from '@/infrastructure/db/hooks';
 import { filtrarAlertasActivas, DEFAULT_UMBRALES } from '@/domain/alertas';
 import type { NivelAlerta } from '@/domain/alertas';
 import styles from './AlertasPage.module.css';
@@ -26,10 +29,7 @@ export function AlertasPage() {
     [container.db]
   );
 
-  const clientes = useLiveQuery(
-    () => container.db.catalogos.where('tipo').equals('Cliente').toArray(),
-    [container.db]
-  );
+  const clientes = useCatalogo<readonly ClienteCatalogo[]>(CLAVES_CATALOGO.clientes, container.db);
 
   const alertas = servicios ? filtrarAlertasActivas(servicios, DEFAULT_UMBRALES) : [];
 
@@ -65,8 +65,8 @@ export function AlertasPage() {
           >
             <option value="">{t('todoClientes')}</option>
             {clientes?.map((c) => (
-              <option key={c.id} value={c.valor}>
-                {c.valor}
+              <option key={c.id} value={c.nombre}>
+                {c.nombre}
               </option>
             ))}
           </select>
