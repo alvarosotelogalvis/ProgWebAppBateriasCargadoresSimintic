@@ -47,7 +47,6 @@
     "estado": "Estado",
     "recepcion": "Recepción",
     "equipo": "Equipo",
-    "sinEtapa": "Esta etapa aún no está implementada.",
     "volver": "Volver a servicios",
     "anular": "Anular servicio",
     "timeline": {
@@ -61,7 +60,15 @@
       "actual": "Etapa actual",
       "pendiente": "Pendiente"
     },
-    "noEncontrado": "No se encontró el servicio."
+    "noEncontrado": "No se encontró el servicio.",
+    "irA": {
+      "diagnostico": "Registrar diagnóstico",
+      "cotizacion": "Registrar cotización",
+      "orden-trabajo": "Generar orden de trabajo",
+      "entrega": "Registrar entrega",
+      "facturacion": "Registrar facturación"
+    },
+    "cerrado": "Este servicio ya está cerrado."
   },
   "estado": {
     "BORRADOR": "Borrador",

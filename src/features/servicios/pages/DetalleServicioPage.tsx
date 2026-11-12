@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useContainer } from '@/app/containerContext';
+import { esFinal } from '@/domain/estados';
 import { useAdjuntos, useServicio } from '@/infrastructure/db/hooks';
+import { useSesionStore } from '@/shared/stores/sesionStore';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { LineaTiempoEtapas } from '@/shared/ui/LineaTiempoEtapas';
@@ -13,6 +15,7 @@ import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 
+import { etapasSiguientes, rolesPendientes } from '../etapasSiguientes';
 import styles from './DetalleServicioPage.module.css';
 
 export function DetalleServicioPage(): React.JSX.Element {
@@ -22,6 +25,7 @@ export function DetalleServicioPage(): React.JSX.Element {
   const container = useContainer();
   const servicio = useServicio(id);
   const adjuntos = useAdjuntos(id);
+  const roles = useSesionStore((estado) => estado.roles);
   const [confirmar, setConfirmar] = useState(false);
 
   if (!servicio) {
@@ -30,6 +34,7 @@ export function DetalleServicioPage(): React.JSX.Element {
 
   const estado = servicio.estado;
   const fotos = adjuntos.filter((adjunto) => adjunto.tipo === 'FOTO_INGRESO');
+  const siguientes = etapasSiguientes(estado, roles);
 
   return (
     <div className={styles.pagina!}>
@@ -87,8 +92,36 @@ export function DetalleServicioPage(): React.JSX.Element {
             {t('recepcion.completar')}
           </PrimaryButton>
         </div>
+      ) : esFinal(servicio.estado) ? (
+        <p className={styles.pendiente!}>{t('detalle.cerrado')}</p>
+      ) : siguientes.length > 0 ? (
+        <div className={styles.acciones!}>
+          {siguientes.map((ruta, indice) =>
+            indice === 0 ? (
+              <PrimaryButton
+                key={ruta}
+                onPress={() => navigate(`/servicios/${servicio.id}/etapa/${ruta}`)}
+              >
+                {t(`detalle.irA.${ruta}`)}
+              </PrimaryButton>
+            ) : (
+              <SecondaryButton
+                key={ruta}
+                onPress={() => navigate(`/servicios/${servicio.id}/etapa/${ruta}`)}
+              >
+                {t(`detalle.irA.${ruta}`)}
+              </SecondaryButton>
+            )
+          )}
+        </div>
       ) : (
-        <p className={styles.pendiente!}>{t('detalle.sinEtapa')}</p>
+        <p className={styles.pendiente!}>
+          {t('etapas:pendiente', {
+            rol: rolesPendientes(servicio.estado)
+              .map((rol) => t(`etapas:roles.${rol}`))
+              .join(', '),
+          })}
+        </p>
       )}
 
       <ResponsiveDialog
