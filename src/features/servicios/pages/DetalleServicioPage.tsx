@@ -15,6 +15,7 @@ import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 
+import AccionesServicio from '../components/AccionesServicio';
 import { etapasSiguientes, rolesPendientes } from '../etapasSiguientes';
 import styles from './DetalleServicioPage.module.css';
 
@@ -127,6 +128,15 @@ export function DetalleServicioPage(): React.JSX.Element {
           })}
         </p>
       )}
+
+      <AccionesServicio
+        servicio={servicio}
+        roles={roles}
+        onAnular={async (motivo) => {
+          await container.casosDeUso.anular(servicio.id, motivo, roles);
+        }}
+        onEditar={() => navigate(`/servicios/${servicio.id}/corregir`)}
+      />
 
       <ResponsiveDialog
         titulo={t('recepcion.descartarTitulo')}

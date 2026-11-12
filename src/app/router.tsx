@@ -117,6 +117,14 @@ export const router = createBrowserRouter([
                         .EtapaAnulacionPage,
                     }),
                   },
+                  {
+                    path: ':id/corregir',
+                    element: <RoleGuard roles={['Administrador']} />,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/CorregirServicioPage'))
+                        .CorregirServicioPage,
+                    }),
+                  },
                 ],
               },
               {

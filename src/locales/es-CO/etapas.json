@@ -138,7 +138,8 @@
     "confirmarTexto": "El servicio quedará de solo lectura y no se podrá reabrir. ¿Deseas continuar?",
     "confirmar": "Sí, anular",
     "faltante_motivo": "Motivo de la anulación (mín. 10 caracteres)",
-    "error_permisos": "Solo administradores pueden anular servicios"
+    "error_permisos": "Solo administradores pueden anular servicios",
+    "error": "No se pudo anular el servicio. Intenta de nuevo."
   },
   "pdf": {
     "noEsPdf": "El archivo no es un PDF válido.",
@@ -172,5 +173,13 @@
     "PERMISO": "No tienes permiso para esta acción",
     "ESTADO": "El estado actual no permite esta acción",
     "SINCRONIZACION": "Error al sincronizar. Intenta más tarde."
+  },
+  "corregir": {
+    "titulo": "Corregir datos del servicio",
+    "subtitulo": "Corrige datos de etapas ya registradas. El estado del servicio no cambia y la corrección queda pendiente de sincronizar.",
+    "guardar": "Guardar correcciones",
+    "sinCampos": "No hay datos para corregir en este servicio.",
+    "error": "No se pudieron guardar las correcciones. Intenta de nuevo.",
+    "revisar": "Revisa estos datos:"
   }
 }
