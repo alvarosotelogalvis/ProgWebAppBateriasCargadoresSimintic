@@ -1,5 +1,5 @@
 import type { AppDB } from '@/infrastructure/db/dexie';
-import type { Adjunto } from '@/domain/servicio';
+import type { Adjunto } from '@/domain/adjunto';
 import { seleccionarPurgables, calcularEspacioLiberado } from '@/domain/purgas';
 
 export interface ResultadoPurga {

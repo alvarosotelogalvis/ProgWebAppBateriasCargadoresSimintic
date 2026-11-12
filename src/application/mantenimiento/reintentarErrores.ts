@@ -1,4 +1,13 @@
+import type { UpdateSpec } from 'dexie';
+
+import type { Servicio } from '@/domain/servicio';
 import type { AppDB } from '@/infrastructure/db/dexie';
+
+/** En `Table.update` de Dexie, un valor `undefined` elimina la propiedad del registro. */
+const LIMPIAR_ERROR = {
+  ultimoError: undefined,
+  proximoIntentoEn: undefined,
+} as unknown as UpdateSpec<Servicio>;
 
 export interface ResultadoReintento {
   retintentados: string[];
@@ -19,10 +28,7 @@ export async function reintentarErrores(db: AppDB): Promise<ResultadoReintento> 
     for (const svc of conError) {
       if (svc.ultimoError) {
         // Limpiar error y reset proximoIntentoEn para permitir reintentos inmediatos
-        await db.servicios.update(svc.id, {
-          ultimoError: undefined,
-          proximoIntentoEn: undefined,
-        } as Record<string, unknown>);
+        await db.servicios.update(svc.id, LIMPIAR_ERROR);
 
         retintentados.push(svc.id);
       } else {
