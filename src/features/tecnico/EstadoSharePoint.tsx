@@ -7,8 +7,10 @@ export interface EstadoSP {
   sitio: string;
   siteId: string;
   webUrl: string;
-  listIds: string;
-  driveId: string;
+  /** Id de la lista `Servicios` (dentro del mapa de listas guardado en la configuración). */
+  idListaServicios: string;
+  /** Id de la biblioteca de adjuntos (drive). */
+  idBibliotecaAdjuntos: string;
   ultimaSincronizacion: string | null;
   metodoDescarga: string;
   idCorrelacion: string;
@@ -27,7 +29,8 @@ export function EstadoSharePoint(): React.JSX.Element {
       const sitio = (await db.meta.get(CLAVES_META.sitio))?.valor as string | undefined;
       const siteId = (await db.meta.get(CLAVES_META.siteId))?.valor as string | undefined;
       const webUrl = (await db.meta.get(CLAVES_META.webUrl))?.valor as string | undefined;
-      const listIds = (await db.meta.get(CLAVES_META.listIds))?.valor as string | undefined;
+      const listas = (await db.meta.get(CLAVES_META.listIds))?.valor as
+        Record<string, string> | undefined;
       const driveId = (await db.meta.get(CLAVES_META.driveId))?.valor as string | undefined;
       const ultimaSyncEn = (await db.meta.get(CLAVES_META.ultimaSyncEn))?.valor as
         string | undefined;
@@ -38,8 +41,8 @@ export function EstadoSharePoint(): React.JSX.Element {
         sitio: sitio || 'No configurado',
         siteId: siteId || 'No configurado',
         webUrl: webUrl || 'No configurado',
-        listIds: listIds || 'No configurado',
-        driveId: driveId || 'No configurado',
+        idListaServicios: listas?.Servicios || 'No configurado',
+        idBibliotecaAdjuntos: driveId || 'No configurado',
         ultimaSincronizacion: ultimaSyncEn || null,
         metodoDescarga: 'Microsoft Graph',
         idCorrelacion: ultimoCorrelationId || 'N/A',

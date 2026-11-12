@@ -12,13 +12,11 @@ interface InfoDispositivo {
 }
 
 const obtenerInfo = async (): Promise<InfoDispositivo> => {
-  const nav = navigator as Record<string, unknown>;
-
   // Plataforma
-  const plataforma = (nav.platform as string) || 'Desconocida';
+  const plataforma = navigator.platform || 'Desconocida';
 
   // Navegador
-  const ua = (nav.userAgent as string) || '';
+  const ua = navigator.userAgent || '';
   let navegador = 'Desconocido';
   if (ua.includes('Chrome')) navegador = 'Chrome';
   else if (ua.includes('Safari')) navegador = 'Safari';
@@ -30,12 +28,13 @@ const obtenerInfo = async (): Promise<InfoDispositivo> => {
   let tamanoUsado = 0;
   let persistenteHabilitado = false;
 
-  const storage = nav.storage as Record<string, unknown>;
+  // Los métodos de StorageManager deben llamarse sobre su objeto (extraerlos lanza "Illegal invocation").
+  const storage: StorageManager | undefined = navigator.storage;
   if (storage?.estimate) {
     try {
-      const est = (await (storage.estimate as () => Promise<Record<string, unknown>>)()) || {};
-      tamanoDisponible = (est.quota as number) || 0;
-      tamanoUsado = (est.usage as number) || 0;
+      const estimacion = await storage.estimate();
+      tamanoDisponible = estimacion.quota || 0;
+      tamanoUsado = estimacion.usage || 0;
     } catch {
       // Silenciar errores de StorageManager
     }
@@ -43,7 +42,7 @@ const obtenerInfo = async (): Promise<InfoDispositivo> => {
 
   if (storage?.persisted) {
     try {
-      persistenteHabilitado = (await (storage.persisted as () => Promise<boolean>)()) || false;
+      persistenteHabilitado = (await storage.persisted()) || false;
     } catch {
       // Silenciar errores
     }
