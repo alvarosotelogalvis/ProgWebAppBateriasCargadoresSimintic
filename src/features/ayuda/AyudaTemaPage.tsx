@@ -4,19 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 
-const TEMAS = ['instalar', 'sin-conexion', 'preguntas-frecuentes'] as const;
-
-type Tema = (typeof TEMAS)[number];
-
-function esTema(valor: string | undefined): valor is Tema {
-  return TEMAS.includes(valor as Tema);
-}
+import { esTemaAyuda } from './temas';
 
 export function AyudaTemaPage(): React.JSX.Element {
   const { tema } = useParams<{ tema: string }>();
   const { t } = useTranslation('ayuda');
 
-  if (!esTema(tema)) {
+  if (!esTemaAyuda(tema)) {
     return (
       <Card fill>
         <EmptyState titulo={t('temaNoEncontrado')} icono="ayuda" />

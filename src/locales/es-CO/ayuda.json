@@ -22,6 +22,42 @@
         "Los datos se enviarán a SharePoint de forma segura."
       ]
     },
+    "etapas-servicio": {
+      "titulo": "Etapas de un servicio y quién las hace",
+      "cuerpo": "Cada servicio avanza por etapas. En su detalle verás el botón de la etapa que te corresponde según tu rol; si le toca a otro rol, la línea de tiempo indica «Pendiente de…».",
+      "pasos": [
+        "Recepción (Técnico): registra cliente, equipo y al menos una foto de ingreso. Al completarla el servicio pasa a Recibido.",
+        "Diagnóstico (Técnico): elige el diagnóstico, escribe la observación y adjunta el PDF del formato. El servicio pasa a Diagnosticado.",
+        "Disposición final (Técnico): si el diagnóstico es «D. FINAL», indica la fecha en que se informó al cliente y adjunta el PDF de disposición final. El servicio se cierra sin más etapas.",
+        "Cotización (Comercial): registra la fecha de envío, el valor y, si lo tienes, el PDF. El servicio pasa a Cotizado.",
+        "Respuesta del cliente (Comercial): marca Aprobada o Rechazada. Puedes cambiarla mientras el servicio siga en Cotizado.",
+        "Orden de trabajo (Técnico): solo con la cotización aprobada. Describe la reparación y su costo; el servicio pasa a En reparación.",
+        "Entrega (Técnico): indica la fecha, adjunta al menos una foto de salida y la proyección de vida útil. Si el cliente rechazó la cotización la entrega es sin reparación y la vida útil es opcional.",
+        "Facturación (Comercial): indica la fecha, adjunta el PDF de la factura y, si quieres, su número. El servicio queda Facturado.",
+        "En Inicio, «Mis trabajos» muestra cuántos servicios esperan tu acción; tócalo para ver la lista filtrada."
+      ]
+    },
+    "adjuntar-pdf": {
+      "titulo": "Adjuntar un PDF",
+      "cuerpo": "Los PDF se validan por su contenido, no solo por la extensión. Cada etapa admite un único PDF de su tipo.",
+      "pasos": [
+        "Pulsa «Adjuntar PDF» y elige el archivo.",
+        "Si el archivo no es un PDF válido o supera el tamaño máximo (20 MB por defecto), la app lo rechaza y te explica el motivo.",
+        "Para cambiarlo usa «Reemplazar PDF»: el anterior se sustituye.",
+        "«Eliminar PDF» pide confirmación. Un PDF que ya estaba sincronizado se borra de SharePoint en la siguiente sincronización.",
+        "Sin conexión puedes adjuntar con normalidad; los archivos se suben al sincronizar."
+      ]
+    },
+    "corregir-anular": {
+      "titulo": "Corregir o anular un servicio (administradores)",
+      "cuerpo": "Solo los administradores ven estas opciones en el detalle del servicio.",
+      "pasos": [
+        "«Editar datos» abre las etapas ya registradas para corregir un dato. El estado no cambia y la corrección queda pendiente de sincronizar.",
+        "La app rechaza las fechas incoherentes, por ejemplo una entrega anterior a la recepción.",
+        "«Anular servicio» pide un motivo de al menos 10 caracteres y una confirmación. Un servicio anulado queda en solo lectura y no se puede reabrir.",
+        "Los servicios Facturados, en Disposición final o Anulados ya están cerrados: se pueden corregir, pero no anular ni reabrir."
+      ]
+    },
     "preguntas-frecuentes": {
       "titulo": "Preguntas frecuentes",
       "cuerpo": "Respuestas a las dudas más comunes sobre el funcionamiento de la app.",
