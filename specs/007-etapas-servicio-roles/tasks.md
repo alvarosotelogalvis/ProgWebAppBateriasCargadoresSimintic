@@ -120,7 +120,7 @@
 
 ## Fase 12 — Cierre
 
-- [ ] T041 E2E T-21 `ciclo-completo.spec.ts`: Técnico (diagnóstico) → Comercial (cotización aprobada) → Técnico (OT, entrega con 2 fotos) → Comercial (factura) hasta FACTURADO; caso DF; caso de entrega sin reparación; anulación por Admin; edición en `setOffline(true)`; axe sin violaciones serias (chromium-mobile, chromium-tablet, chromium-desktop, webkit-mobile). Agregar a `visual.spec.ts` las capturas de cada formulario de etapa, el detalle con carrusel e Inicio por rol — `tests/e2e/ciclo-completo.spec.ts`, `tests/e2e/visual.spec.ts`
+- [x] T041 E2E T-21 `ciclo-completo.spec.ts`: Técnico (diagnóstico) → Comercial (cotización aprobada) → Técnico (OT, entrega con 2 fotos) → Comercial (factura) hasta FACTURADO; caso DF; caso de entrega sin reparación; anulación por Admin; edición en `setOffline(true)`; axe sin violaciones serias (chromium-mobile, chromium-tablet, chromium-desktop, webkit-mobile). Agregar a `visual.spec.ts` las capturas de cada formulario de etapa, el detalle con carrusel e Inicio por rol — `tests/e2e/ciclo-completo.spec.ts`, `tests/e2e/visual.spec.ts`
 - [ ] T042 Prueba en DEV real: un servicio recorre todas las etapas en dos dispositivos con usuarios de roles distintos, con sincronización entre etapas (aceptación de la F7). Anotar en `docs/pruebas/`
 - [ ] T043 Medir CE-007-04 (tiempos por etapa) y anotarlo en la spec §8
 - [ ] T044 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` (Unreleased) + ayuda in-app por etapa (`locales/es-CO/ayuda.json`) + spec → `Implementada` en `specs/README.md`
