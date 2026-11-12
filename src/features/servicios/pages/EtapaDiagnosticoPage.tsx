@@ -5,7 +5,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useContainer } from '@/app/containerContext';
 import { CLAVES_CATALOGO } from '@/application/setup/claves';
 import { CONFIG_DEFECTO, type ConfigApp } from '@/domain/config';
-import { TransicionInvalidaError } from '@/domain/errores';
 import type { CamposServicio } from '@/domain/servicio';
 import { CampoPdf } from '@/features/adjuntos/components/CampoPdf';
 import { useAdjuntos, useCatalogo, useServicio } from '@/infrastructure/db/hooks';
@@ -18,6 +17,8 @@ import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
 import { TextField } from '@/shared/ui/TextField';
 import CampoDiagnostico from '../components/CampoDiagnostico';
+import { FaltantesEtapa } from '../components/FaltantesEtapa';
+import { useCompletarEtapa } from '../hooks/useCompletarEtapa';
 import { useAutoguardado } from '../hooks/useAutoguardado';
 import styles from './EtapaPage.module.css';
 
@@ -28,7 +29,7 @@ type CambiosDiagnostico = Partial<
 /** Diagnóstico (HU-007-1) y su rama Disposición Final (HU-007-2). */
 export function EtapaDiagnosticoPage(): React.JSX.Element {
   const { id = '' } = useParams();
-  const { t } = useTranslation(['etapas', 'servicios', 'errores']);
+  const { t } = useTranslation(['etapas', 'servicios']);
   const navigate = useNavigate();
   const container = useContainer();
   const servicio = useServicio(id);
@@ -38,10 +39,22 @@ export function EtapaDiagnosticoPage(): React.JSX.Element {
   const config: ConfigApp = { ...CONFIG_DEFECTO, ...configGuardada };
 
   const [cambios, setCambios] = useState<CambiosDiagnostico>({});
-  const [faltantes, setFaltantes] = useState<string[]>([]);
-  const [errorGeneral, setErrorGeneral] = useState<string>();
   const [confirmando, setConfirmando] = useState(false);
-  const [completando, setCompletando] = useState(false);
+  const {
+    completar: completarEtapa,
+    completando,
+    faltantes,
+    errorGeneral,
+  } = useCompletarEtapa({
+    servicioId: id,
+    roles,
+    etiquetaAdjunto: (tipo) =>
+      tipo === 'FORMATO_DIAGNOSTICO'
+        ? t('etapas:diagnostico.faltante_pdf')
+        : tipo === 'DISPOSICION_FINAL'
+          ? t('etapas:disposicionFinal.faltante_pdf')
+          : undefined,
+  });
 
   const {
     estado: estadoGuardado,
@@ -66,38 +79,15 @@ export function EtapaDiagnosticoPage(): React.JSX.Element {
     programar(siguientes);
   };
 
-  const traducirError = (clave: string, adjunto?: string): string => {
-    if (adjunto === 'FORMATO_DIAGNOSTICO') return t('etapas:diagnostico.faltante_pdf');
-    if (adjunto === 'DISPOSICION_FINAL') return t('etapas:disposicionFinal.faltante_pdf');
-    return clave.startsWith('errores.') ? t(`errores:${clave.slice('errores.'.length)}`) : t(clave);
-  };
-
   const completar = async (): Promise<void> => {
     setConfirmando(false);
-    setFaltantes([]);
-    setErrorGeneral(undefined);
-    setCompletando(true);
     cancelar();
-    try {
-      const parciales: CambiosDiagnostico = { ...cambios };
-      if (!esDisposicionFinal) delete parciales.fechaSocializacionDF;
-      if (Object.keys(parciales).length > 0) {
-        await container.casosDeUso.actualizarCampos(servicio.id, parciales, roles);
-      }
-      await container.casosDeUso.completarEtapa(
-        servicio.id,
-        esDisposicionFinal ? 'registrarDisposicionFinal' : 'completarDiagnostico',
-        roles
-      );
-      navigate(`/servicios/${servicio.id}`, { replace: true });
-    } catch (error) {
-      if (error instanceof TransicionInvalidaError && error.errores.length > 0) {
-        setFaltantes(error.errores.map((falla) => traducirError(falla.clave, falla.adjunto)));
-      } else {
-        setErrorGeneral(t('etapas:errores.ESTADO'));
-      }
-      setCompletando(false);
-    }
+    const parciales: CambiosDiagnostico = { ...cambios };
+    if (!esDisposicionFinal) delete parciales.fechaSocializacionDF;
+    await completarEtapa(
+      esDisposicionFinal ? 'registrarDisposicionFinal' : 'completarDiagnostico',
+      parciales
+    );
   };
 
   const adjuntosPdf = adjuntos.filter(
@@ -189,17 +179,7 @@ export function EtapaDiagnosticoPage(): React.JSX.Element {
         </Card>
       ) : null}
 
-      {faltantes.length > 0 ? (
-        <Banner tipo="peligro">
-          {t('etapas:faltantes')}
-          <ul className={styles.faltantes!}>
-            {[...new Set(faltantes)].map((faltante) => (
-              <li key={faltante}>{faltante}</li>
-            ))}
-          </ul>
-        </Banner>
-      ) : null}
-      {errorGeneral ? <Banner tipo="peligro">{errorGeneral}</Banner> : null}
+      <FaltantesEtapa faltantes={faltantes} error={errorGeneral} />
 
       <div className={styles.pie!}>
         <span className={styles.estado!} role="status">
