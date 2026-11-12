@@ -1,339 +1,497 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import type { Servicio, Adjunto, ConfigApp } from './servicio';
-import { servicioBuilder, adjuntoBuilder } from '../../tests/builders';
-import { transicionesDisponibles } from './estados';
+import { describe, expect, it } from 'vitest';
 
-describe('Transiciones después de RECIBIDO', () => {
-  let servicio: Servicio;
-  let adjuntos: Adjunto[];
-  let config: ConfigApp;
+import { adjuntoBuilder } from '../../tests/builders/adjuntoBuilder';
+import { servicioBuilder } from '../../tests/builders/servicioBuilder';
+import type { Adjunto } from './adjunto';
+import { CONFIG_DEFECTO } from './config';
+import { EstadoFinalError, SinPermisoError, TransicionInvalidaError } from './errores';
+import {
+  aplicarTransicion,
+  rolesTransicionSiguiente,
+  TRANSICIONES,
+  transicionesDisponibles,
+  type AccionEtapa,
+} from './estados';
+import type { CamposServicio, EstadoServicio, Rol, Servicio, TipoAdjunto } from './servicio';
 
-  beforeEach(() => {
-    servicio = servicioBuilder().estado('RECIBIDO').build();
-    adjuntos = [];
-    config = {
-      DiagnosticoValorDisposicionFinal: 'D. FINAL',
-      MaxTamanoPdfMB: 20,
-      MinFotosIngreso: 1,
-      MaxFotosIngreso: 5,
-      MinFotosSalida: 1,
-      MaxFotosSalida: 5,
-      ProyeccionVidaUtilMeses: 12,
-    };
+const AHORA = '2026-10-21T08:00:00.000Z';
+const NO_FINALES: EstadoServicio[] = [
+  'BORRADOR',
+  'RECIBIDO',
+  'DIAGNOSTICADO',
+  'COTIZADO',
+  'EN_REPARACION',
+  'ENTREGADO',
+];
+
+const con = (base: Servicio, campos: Partial<CamposServicio>): Servicio => ({ ...base, ...campos });
+const adj = (servicio: Servicio, ...tipos: TipoAdjunto[]): Adjunto[] =>
+  tipos.map((tipo, i) =>
+    adjuntoBuilder({ id: `adj-${i}`, servicioId: servicio.id, tipo }).construir()
+  );
+
+interface Caso {
+  readonly nombre: string;
+  readonly servicio: Servicio;
+  readonly accion: AccionEtapa;
+  readonly rol: Rol;
+  readonly adjuntos: TipoAdjunto[];
+  readonly hacia: EstadoServicio;
+  /** Qué quitar para que falle el requisito (campo o adjunto). */
+  readonly quitar: { campo?: keyof CamposServicio; adjunto?: TipoAdjunto };
+}
+
+const borrador = (): Servicio => ({
+  ...servicioBuilder().recibido().construir(),
+  estado: 'BORRADOR',
+});
+const recibido = () => servicioBuilder().recibido().construir();
+
+const CASOS: Caso[] = [
+  {
+    nombre: 'BORRADOR → RECIBIDO',
+    servicio: borrador(),
+    accion: 'completarRecepcion',
+    rol: 'Tecnico',
+    adjuntos: ['FOTO_INGRESO'],
+    hacia: 'RECIBIDO',
+    quitar: { adjunto: 'FOTO_INGRESO' },
+  },
+  {
+    nombre: 'RECIBIDO → DIAGNOSTICADO',
+    servicio: con(recibido(), {
+      diagnostico: 'Reparable',
+      observacionTecnica: 'Celdas con desbalance',
+    }),
+    accion: 'completarDiagnostico',
+    rol: 'Tecnico',
+    adjuntos: ['FORMATO_DIAGNOSTICO'],
+    hacia: 'DIAGNOSTICADO',
+    quitar: { campo: 'observacionTecnica' },
+  },
+  {
+    nombre: 'RECIBIDO → DISPOSICION_FINAL',
+    servicio: con(recibido(), {
+      diagnostico: CONFIG_DEFECTO.diagnosticoValorDisposicionFinal,
+      observacionTecnica: 'Celdas irrecuperables',
+      fechaSocializacionDF: '2026-10-05',
+    }),
+    accion: 'registrarDisposicionFinal',
+    rol: 'Tecnico',
+    adjuntos: ['FORMATO_DIAGNOSTICO', 'DISPOSICION_FINAL'],
+    hacia: 'DISPOSICION_FINAL',
+    quitar: { campo: 'fechaSocializacionDF' },
+  },
+  {
+    nombre: 'DIAGNOSTICADO → COTIZADO',
+    servicio: con(servicioBuilder().diagnosticado().construir(), {
+      cotizacionFechaEnvio: '2026-10-10',
+    }),
+    accion: 'registrarCotizacion',
+    rol: 'Comercial',
+    adjuntos: [],
+    hacia: 'COTIZADO',
+    quitar: { campo: 'cotizacionFechaEnvio' },
+  },
+  {
+    nombre: 'COTIZADO → EN_REPARACION (orden de trabajo)',
+    servicio: con(servicioBuilder().cotizado().construir(), {
+      cotizacionEstado: 'APROBADA',
+      otDetalle: 'Cambio de celdas y prueba',
+      otCostoReparacion: 150_000,
+    }),
+    accion: 'generarOT',
+    rol: 'Tecnico',
+    adjuntos: [],
+    hacia: 'EN_REPARACION',
+    quitar: { campo: 'otDetalle' },
+  },
+  {
+    nombre: 'COTIZADO → ENTREGADO (sin reparación)',
+    servicio: con(servicioBuilder().cotizado().construir(), {
+      cotizacionEstado: 'RECHAZADA',
+      fechaEntrega: '2026-10-15',
+    }),
+    accion: 'registrarEntregaSinReparacion',
+    rol: 'Tecnico',
+    adjuntos: ['FOTO_SALIDA'],
+    hacia: 'ENTREGADO',
+    quitar: { adjunto: 'FOTO_SALIDA' },
+  },
+  {
+    nombre: 'EN_REPARACION → ENTREGADO',
+    servicio: con(servicioBuilder().enReparacion().construir(), {
+      fechaEntrega: '2026-10-15',
+      proyeccionVidaUtil: '2027-10-15',
+    }),
+    accion: 'registrarEntrega',
+    rol: 'Tecnico',
+    adjuntos: ['FOTO_SALIDA'],
+    hacia: 'ENTREGADO',
+    quitar: { campo: 'proyeccionVidaUtil' },
+  },
+  {
+    nombre: 'ENTREGADO → FACTURADO',
+    servicio: con(servicioBuilder().entregado().construir(), { facturaFecha: '2026-10-16' }),
+    accion: 'registrarFacturacion',
+    rol: 'Comercial',
+    adjuntos: ['FACTURA'],
+    hacia: 'FACTURADO',
+    quitar: { adjunto: 'FACTURA' },
+  },
+];
+
+describe('transiciones de la máquina de estados (T004)', () => {
+  it.each(CASOS)('$nombre: se aplica con los requisitos cumplidos', (caso) => {
+    const resultado = aplicarTransicion(
+      caso.servicio,
+      caso.accion,
+      [caso.rol],
+      adj(caso.servicio, ...caso.adjuntos),
+      CONFIG_DEFECTO,
+      AHORA
+    );
+
+    expect(resultado.estado).toBe(caso.hacia);
+    expect(resultado.syncState).toBe('pending');
+    expect(resultado.actualizadoEn).toBe(AHORA);
+    expect(resultado.camposSucios).toContain('estado');
   });
 
-  describe('RECIBIDO → DIAGNOSTICADO', () => {
-    it('debe permitir completarDiagnostico con diagnóstico, observación y PDF', () => {
-      servicio = servicioBuilder()
-        .estado('RECIBIDO')
-        .diagnostico('Reparable')
-        .observacionTecnica('El equipo funciona pero falta batería')
-        .build();
+  it.each(CASOS)('$nombre: el Administrador también puede', (caso) => {
+    const resultado = aplicarTransicion(
+      caso.servicio,
+      caso.accion,
+      ['Administrador'],
+      adj(caso.servicio, ...caso.adjuntos),
+      CONFIG_DEFECTO,
+      AHORA
+    );
 
-      adjuntos = [
-        adjuntoBuilder()
-          .tipoAdjunto('FORMATO_DIAGNOSTICO')
-          .blob(new Blob(['pdf'], { type: 'application/pdf' }))
-          .build(),
-      ];
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'completarDiagnostico')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores).toHaveLength(0);
-    });
-
-    it('debe rechazar sin diagnóstico', () => {
-      servicio = servicioBuilder()
-        .estado('RECIBIDO')
-        .diagnostico(undefined)
-        .observacionTecnica('Observación válida')
-        .build();
-
-      adjuntos = [adjuntoBuilder().tipoAdjunto('FORMATO_DIAGNOSTICO').build()];
-
-      const transicion = transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config).find(
-        (t) => t.accion === 'completarDiagnostico'
-      );
-      expect(transicion).toBeDefined();
-
-      const errores = transicion?.requisitos(servicio, adjuntos, config) ?? [];
-      expect(errores.some((e) => e.campo === 'diagnostico')).toBe(true);
-    });
-
-    it('debe rechazar sin observación técnica', () => {
-      servicio = servicioBuilder()
-        .estado('RECIBIDO')
-        .diagnostico('Reparable')
-        .observacionTecnica('')
-        .build();
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'completarDiagnostico')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores.some((e) => e.campo === 'observacionTecnica')).toBe(true);
-    });
-
-    it('debe rechazar sin PDF de formato de diagnóstico', () => {
-      servicio = servicioBuilder()
-        .estado('RECIBIDO')
-        .diagnostico('Reparable')
-        .observacionTecnica('Observación válida')
-        .build();
-
-      adjuntos = [];
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'completarDiagnostico')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores.some((e) => e.codigo === 'FALTA_ADJUNTO_FORMATO_DIAGNOSTICO')).toBe(true);
-    });
-
-    it('debe rechazar si el usuario no es Técnico', () => {
-      const transicion = transicionesDisponibles(servicio, ['Comercial'], adjuntos, config).find(
-        (t) => t.accion === 'completarDiagnostico'
-      );
-      expect(transicion).toBeUndefined();
-    });
+    expect(resultado.estado).toBe(caso.hacia);
   });
 
-  describe('RECIBIDO → DISPOSICION_FINAL', () => {
-    it('debe permitir registrarDisposicionFinal con diagnóstico DF, fecha y PDF', () => {
-      servicio = servicioBuilder()
-        .estado('RECIBIDO')
-        .diagnostico('D. FINAL')
-        .observacionTecnica('Equipo irrecuperable')
-        .fechaSocializacionDF('2026-11-07')
-        .build();
+  it.each(CASOS)('$nombre: rechaza a un rol sin permiso', (caso) => {
+    const otro: Rol = caso.rol === 'Tecnico' ? 'Comercial' : 'Tecnico';
 
-      adjuntos = [
-        adjuntoBuilder().tipoAdjunto('FORMATO_DIAGNOSTICO').build(),
-        adjuntoBuilder().tipoAdjunto('DISPOSICION_FINAL').build(),
-      ];
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'registrarDisposicionFinal')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores).toHaveLength(0);
-    });
-
-    it('debe rechazar si diagnóstico no es DF', () => {
-      servicio = servicioBuilder().estado('RECIBIDO').diagnostico('Reparable').build();
-
-      const transicion = transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config).find(
-        (t) => t.accion === 'registrarDisposicionFinal'
-      );
-      expect(transicion).toBeUndefined();
-    });
+    expect(() =>
+      aplicarTransicion(
+        caso.servicio,
+        caso.accion,
+        [otro],
+        adj(caso.servicio, ...caso.adjuntos),
+        CONFIG_DEFECTO,
+        AHORA
+      )
+    ).toThrow(SinPermisoError);
   });
 
-  describe('DIAGNOSTICADO → COTIZADO', () => {
-    beforeEach(() => {
-      servicio = servicioBuilder().estado('DIAGNOSTICADO').build();
-    });
+  it.each(CASOS)('$nombre: rechaza cuando falta un requisito y lo indica', (caso) => {
+    const servicio = caso.quitar.campo
+      ? con(caso.servicio, { [caso.quitar.campo]: undefined } as Partial<CamposServicio>)
+      : caso.servicio;
+    const tipos = caso.adjuntos.filter((tipo) => tipo !== caso.quitar.adjunto);
 
-    it('debe permitir registrarCotizacion con fecha de envío', () => {
-      servicio.cotizacionFechaEnvio = '2026-11-07';
-
-      const errores =
-        transicionesDisponibles(servicio, ['Comercial'], adjuntos, config)
-          .find((t) => t.accion === 'registrarCotizacion')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores).toHaveLength(0);
-    });
-
-    it('debe rechazar sin fecha de envío', () => {
-      servicio.cotizacionFechaEnvio = undefined;
-
-      const errores =
-        transicionesDisponibles(servicio, ['Comercial'], adjuntos, config)
-          .find((t) => t.accion === 'registrarCotizacion')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores.some((e) => e.campo === 'cotizacionFechaEnvio')).toBe(true);
-    });
-
-    it('debe rechazar si el usuario no es Comercial', () => {
-      servicio.cotizacionFechaEnvio = '2026-11-07';
-
-      const transicion = transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config).find(
-        (t) => t.accion === 'registrarCotizacion'
-      );
-      expect(transicion).toBeUndefined();
-    });
-  });
-
-  describe('COTIZADO + respuesta Aprobada → EN_REPARACION', () => {
-    beforeEach(() => {
-      servicio = servicioBuilder().estado('COTIZADO').cotizacionEstado('Aprobada').build();
-    });
-
-    it('debe permitir generarOT con detalle y costo', () => {
-      servicio.otDetalle = 'Cambio de batería y revisión general';
-      servicio.otCostoReparacion = 150000;
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'generarOT')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores).toHaveLength(0);
-    });
-
-    it('debe rechazar sin detalle', () => {
-      servicio.otDetalle = '';
-      servicio.otCostoReparacion = 150000;
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'generarOT')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores.some((e) => e.campo === 'otDetalle')).toBe(true);
-    });
-
-    it('debe rechazar si cotización está Pendiente', () => {
-      servicio.cotizacionEstado = 'Pendiente';
-
-      const transicion = transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config).find(
-        (t) => t.accion === 'generarOT'
-      );
-      expect(transicion).toBeUndefined();
-    });
-  });
-
-  describe('COTIZADO + respuesta Rechazada → ENTREGADO (sin OT)', () => {
-    beforeEach(() => {
-      servicio = servicioBuilder().estado('COTIZADO').cotizacionEstado('Rechazada').build();
-    });
-
-    it('debe permitir registrarEntregaSinReparacion sin OT', () => {
-      servicio.fechaEntrega = '2026-11-07';
-
-      adjuntos = [
-        adjuntoBuilder()
-          .tipoAdjunto('FOTO_SALIDA')
-          .blob(new Blob(['image'], { type: 'image/jpeg' }))
-          .build(),
-      ];
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'registrarEntregaSinReparacion')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores).toHaveLength(0);
-    });
-  });
-
-  describe('EN_REPARACION → ENTREGADO', () => {
-    beforeEach(() => {
-      servicio = servicioBuilder().estado('EN_REPARACION').build();
-    });
-
-    it('debe permitir registrarEntrega con fecha, fotos y vida útil', () => {
-      servicio.fechaEntrega = '2026-11-07';
-      servicio.proyeccionVidaUtil = '2027-11-07';
-
-      adjuntos = [adjuntoBuilder().tipoAdjunto('FOTO_SALIDA').build()];
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'registrarEntrega')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores).toHaveLength(0);
-    });
-
-    it('debe rechazar sin fotos de salida', () => {
-      servicio.fechaEntrega = '2026-11-07';
-      servicio.proyeccionVidaUtil = '2027-11-07';
-      adjuntos = [];
-
-      const errores =
-        transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config)
-          .find((t) => t.accion === 'registrarEntrega')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores.some((e) => e.codigo === 'FALTA_FOTOS_SALIDA')).toBe(true);
-    });
-  });
-
-  describe('ENTREGADO → FACTURADO', () => {
-    beforeEach(() => {
-      servicio = servicioBuilder().estado('ENTREGADO').build();
-    });
-
-    it('debe permitir registrarFacturacion con PDF y fecha', () => {
-      servicio.facturaFecha = '2026-11-07';
-
-      adjuntos = [
-        adjuntoBuilder()
-          .tipoAdjunto('FACTURA')
-          .blob(new Blob(['pdf'], { type: 'application/pdf' }))
-          .build(),
-      ];
-
-      const errores =
-        transicionesDisponibles(servicio, ['Comercial'], adjuntos, config)
-          .find((t) => t.accion === 'registrarFacturacion')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores).toHaveLength(0);
-    });
-
-    it('debe rechazar si el usuario no es Comercial', () => {
-      servicio.facturaFecha = '2026-11-07';
-      adjuntos = [adjuntoBuilder().tipoAdjunto('FACTURA').build()];
-
-      const transicion = transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config).find(
-        (t) => t.accion === 'registrarFacturacion'
-      );
-      expect(transicion).toBeUndefined();
-    });
-  });
-
-  describe('Cualquier estado no final → ANULADO', () => {
-    it('debe permitir anularServicio con motivo ≥ 10 caracteres solo si es Admin', () => {
-      servicio = servicioBuilder().estado('DIAGNOSTICADO').build();
-      servicio.anulacionMotivo = 'Error administrativo importante';
-
-      const errores =
-        transicionesDisponibles(servicio, ['Administrador'], adjuntos, config)
-          .find((t) => t.accion === 'anular')
-          ?.requisitos(servicio, adjuntos, config) ?? [];
-
-      expect(errores).toHaveLength(0);
-    });
-
-    it('debe rechazar anulación sin permiso de Admin', () => {
-      servicio = servicioBuilder().estado('DIAGNOSTICADO').build();
-
-      const transicion = transicionesDisponibles(servicio, ['Tecnico'], adjuntos, config).find(
-        (t) => t.accion === 'anular'
-      );
-      expect(transicion).toBeUndefined();
-    });
-
-    it('debe rechazar anulación desde estado final', () => {
-      servicio = servicioBuilder().estado('FACTURADO').build();
-
-      const transicion = transicionesDisponibles(
+    let error: unknown;
+    try {
+      aplicarTransicion(
         servicio,
+        caso.accion,
+        [caso.rol],
+        adj(servicio, ...tipos),
+        CONFIG_DEFECTO,
+        AHORA
+      );
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error).toBeInstanceOf(TransicionInvalidaError);
+    const { errores } = error as TransicionInvalidaError;
+    expect(errores.length).toBeGreaterThan(0);
+    const referencia = caso.quitar.campo ?? caso.quitar.adjunto;
+    expect(errores.some((e) => e.campo === referencia || e.adjunto === referencia)).toBe(true);
+  });
+
+  it('desde un estado la acción de otra etapa no existe', () => {
+    expect(() =>
+      aplicarTransicion(
+        recibido(),
+        'registrarFacturacion',
         ['Administrador'],
-        adjuntos,
-        config
-      ).find((t) => t.accion === 'anular');
-      expect(transicion).toBeUndefined();
+        [],
+        CONFIG_DEFECTO,
+        AHORA
+      )
+    ).toThrow(TransicionInvalidaError);
+  });
+
+  it.each(['FACTURADO', 'DISPOSICION_FINAL', 'ANULADO'] as const)(
+    '%s es un estado final: ninguna acción lo reabre',
+    (estado) => {
+      const servicio: Servicio = { ...servicioBuilder().facturado().construir(), estado };
+
+      for (const accion of ['completarDiagnostico', 'registrarFacturacion', 'anular'] as const) {
+        expect(() =>
+          aplicarTransicion(servicio, accion, ['Administrador'], [], CONFIG_DEFECTO, AHORA)
+        ).toThrow(EstadoFinalError);
+      }
+    }
+  );
+
+  it('un servicio de estado desconocido no admite transiciones', () => {
+    const servicio: Servicio = { ...recibido(), estado: 'DESCONOCIDO' };
+
+    expect(() =>
+      aplicarTransicion(
+        servicio,
+        'completarDiagnostico',
+        ['Administrador'],
+        [],
+        CONFIG_DEFECTO,
+        AHORA
+      )
+    ).toThrow(TransicionInvalidaError);
+  });
+});
+
+describe('diagnóstico vs disposición final', () => {
+  const datos = { observacionTecnica: 'Celdas con desbalance', fechaSocializacionDF: '2026-10-05' };
+
+  it('el valor de disposición final no puede completarse como diagnóstico normal', () => {
+    const servicio = con(recibido(), {
+      ...datos,
+      diagnostico: CONFIG_DEFECTO.diagnosticoValorDisposicionFinal,
     });
+
+    expect(() =>
+      aplicarTransicion(
+        servicio,
+        'completarDiagnostico',
+        ['Tecnico'],
+        adj(servicio, 'FORMATO_DIAGNOSTICO'),
+        CONFIG_DEFECTO,
+        AHORA
+      )
+    ).toThrow(TransicionInvalidaError);
+  });
+
+  it('un diagnóstico normal no puede cerrarse como disposición final', () => {
+    const servicio = con(recibido(), { ...datos, diagnostico: 'Reparable' });
+
+    expect(() =>
+      aplicarTransicion(
+        servicio,
+        'registrarDisposicionFinal',
+        ['Tecnico'],
+        adj(servicio, 'FORMATO_DIAGNOSTICO', 'DISPOSICION_FINAL'),
+        CONFIG_DEFECTO,
+        AHORA
+      )
+    ).toThrow(TransicionInvalidaError);
+  });
+
+  it('la disposición final exige los dos PDF (formato y disposición)', () => {
+    const servicio = con(recibido(), {
+      ...datos,
+      diagnostico: CONFIG_DEFECTO.diagnosticoValorDisposicionFinal,
+    });
+
+    expect(() =>
+      aplicarTransicion(
+        servicio,
+        'registrarDisposicionFinal',
+        ['Tecnico'],
+        adj(servicio, 'FORMATO_DIAGNOSTICO'),
+        CONFIG_DEFECTO,
+        AHORA
+      )
+    ).toThrow(TransicionInvalidaError);
+  });
+});
+
+describe('cotización y ruta de entrega', () => {
+  it('la orden de trabajo exige la cotización aprobada', () => {
+    for (const estado of ['PENDIENTE', 'RECHAZADA'] as const) {
+      const servicio = con(servicioBuilder().cotizado().construir(), {
+        cotizacionEstado: estado,
+        otDetalle: 'Cambio de celdas y prueba',
+        otCostoReparacion: 100_000,
+      });
+
+      expect(() =>
+        aplicarTransicion(servicio, 'generarOT', ['Tecnico'], [], CONFIG_DEFECTO, AHORA)
+      ).toThrow(TransicionInvalidaError);
+    }
+  });
+
+  it('la entrega sin reparación exige la cotización rechazada', () => {
+    for (const estado of ['PENDIENTE', 'APROBADA'] as const) {
+      const servicio = con(servicioBuilder().cotizado().construir(), {
+        cotizacionEstado: estado,
+        fechaEntrega: '2026-10-15',
+      });
+
+      expect(() =>
+        aplicarTransicion(
+          servicio,
+          'registrarEntregaSinReparacion',
+          ['Tecnico'],
+          adj(servicio, 'FOTO_SALIDA'),
+          CONFIG_DEFECTO,
+          AHORA
+        )
+      ).toThrow(TransicionInvalidaError);
+    }
+  });
+
+  it('la entrega sin reparación no exige vida útil', () => {
+    const servicio = con(servicioBuilder().cotizado().construir(), {
+      cotizacionEstado: 'RECHAZADA',
+      fechaEntrega: '2026-10-15',
+    });
+
+    const resultado = aplicarTransicion(
+      servicio,
+      'registrarEntregaSinReparacion',
+      ['Tecnico'],
+      adj(servicio, 'FOTO_SALIDA'),
+      CONFIG_DEFECTO,
+      AHORA
+    );
+
+    expect(resultado.proyeccionVidaUtil).toBeUndefined();
+  });
+
+  it('registrar la cotización deja la respuesta en PENDIENTE si no había una', () => {
+    const servicio = con(servicioBuilder().diagnosticado().construir(), {
+      cotizacionFechaEnvio: '2026-10-10',
+    });
+    delete servicio.cotizacionEstado;
+
+    const resultado = aplicarTransicion(
+      servicio,
+      'registrarCotizacion',
+      ['Comercial'],
+      [],
+      CONFIG_DEFECTO,
+      AHORA
+    );
+
+    expect(resultado.cotizacionEstado).toBe('PENDIENTE');
+  });
+
+  it('la cantidad de fotos de salida respeta el máximo configurado', () => {
+    const servicio = con(servicioBuilder().enReparacion().construir(), {
+      fechaEntrega: '2026-10-15',
+      proyeccionVidaUtil: '2027-10-15',
+    });
+    const fotos = Array.from(
+      { length: CONFIG_DEFECTO.maxFotosSalida + 1 },
+      () => 'FOTO_SALIDA' as const
+    );
+
+    expect(() =>
+      aplicarTransicion(
+        servicio,
+        'registrarEntrega',
+        ['Tecnico'],
+        adj(servicio, ...fotos),
+        CONFIG_DEFECTO,
+        AHORA
+      )
+    ).toThrow(TransicionInvalidaError);
+  });
+
+  it('un adjunto marcado para eliminar no cuenta como presente', () => {
+    const servicio = con(servicioBuilder().entregado().construir(), { facturaFecha: '2026-10-16' });
+    const eliminada = adjuntoBuilder({
+      servicioId: servicio.id,
+      tipo: 'FACTURA',
+      eliminarRemoto: true,
+    }).construir();
+
+    expect(() =>
+      aplicarTransicion(
+        servicio,
+        'registrarFacturacion',
+        ['Comercial'],
+        [eliminada],
+        CONFIG_DEFECTO,
+        AHORA
+      )
+    ).toThrow(TransicionInvalidaError);
+  });
+});
+
+describe('anulación', () => {
+  it.each(NO_FINALES)('el Administrador anula desde %s con un motivo válido', (estado) => {
+    const servicio: Servicio = {
+      ...servicioBuilder().facturado().construir(),
+      estado,
+      anulacionMotivo: 'Registro duplicado por error',
+    };
+
+    const resultado = aplicarTransicion(
+      servicio,
+      'anular',
+      ['Administrador'],
+      [],
+      CONFIG_DEFECTO,
+      AHORA
+    );
+
+    expect(resultado.estado).toBe('ANULADO');
+    expect(resultado.anulacionFecha).toBe('2026-10-21');
+  });
+
+  it('exige un motivo de al menos 10 caracteres', () => {
+    const servicio: Servicio = { ...recibido(), anulacionMotivo: 'corto' };
+
+    expect(() =>
+      aplicarTransicion(servicio, 'anular', ['Administrador'], [], CONFIG_DEFECTO, AHORA)
+    ).toThrow(TransicionInvalidaError);
+  });
+
+  it.each([['Tecnico'], ['Comercial']] as const)('rechaza a %s', (rol) => {
+    const servicio: Servicio = { ...recibido(), anulacionMotivo: 'Registro duplicado por error' };
+
+    expect(() => aplicarTransicion(servicio, 'anular', [rol], [], CONFIG_DEFECTO, AHORA)).toThrow(
+      SinPermisoError
+    );
+  });
+});
+
+describe('tabla de transiciones', () => {
+  it('no hay transiciones que salgan de estados finales', () => {
+    const finales: EstadoServicio[] = ['FACTURADO', 'DISPOSICION_FINAL', 'ANULADO'];
+
+    expect(TRANSICIONES.filter((t) => finales.includes(t.desde))).toEqual([]);
+  });
+
+  it('hay exactamente una acción de anular por cada estado no final', () => {
+    const anular = TRANSICIONES.filter((t) => t.accion === 'anular').map((t) => t.desde);
+
+    expect(anular.sort()).toEqual([...NO_FINALES].sort());
+  });
+
+  it('transicionesDisponibles solo lista las del rol y marca lo que falta', () => {
+    const servicio = recibido();
+
+    const tecnico = transicionesDisponibles(servicio, ['Tecnico'], [], CONFIG_DEFECTO);
+    const comercial = transicionesDisponibles(servicio, ['Comercial'], [], CONFIG_DEFECTO);
+
+    expect(tecnico.map((d) => d.t.accion).sort()).toEqual([
+      'completarDiagnostico',
+      'registrarDisposicionFinal',
+    ]);
+    expect(tecnico.every((d) => d.errores.length > 0)).toBe(true); // sin diagnóstico ni PDF
+    expect(comercial).toEqual([]);
+  });
+
+  it('rolesTransicionSiguiente informa quién avanza cada estado (sin contar anular)', () => {
+    expect(rolesTransicionSiguiente('DIAGNOSTICADO')).toEqual(['Comercial', 'Administrador']);
+    expect(rolesTransicionSiguiente('RECIBIDO')).toEqual(['Tecnico', 'Administrador']);
+    expect(rolesTransicionSiguiente('FACTURADO')).toEqual([]);
   });
 });
