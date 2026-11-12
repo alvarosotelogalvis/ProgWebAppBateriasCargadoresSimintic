@@ -102,6 +102,8 @@
   "lista": {
     "sinCodigo": "Sin código",
     "sinCliente": "Sin cliente",
-    "sinSerie": "Sin serie"
+    "sinSerie": "Sin serie",
+    "filtroTarjeta": "Mostrando: {{nombre}}",
+    "quitarFiltro": "Quitar filtro"
   }
 }

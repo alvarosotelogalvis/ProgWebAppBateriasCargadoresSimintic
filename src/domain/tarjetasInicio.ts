@@ -1,76 +1,76 @@
-import type { Rol, FiltroServicios } from './servicio';
+import type { EstadoCotizacion, EstadoServicio, Rol, Servicio } from './servicio';
+
+export type ClaveTarjeta =
+  | 'borradores'
+  | 'recibidos'
+  | 'porOT'
+  | 'porEntregar'
+  | 'porCotizar'
+  | 'cotizadosPendientes'
+  | 'porFacturar';
+
+/** Qué servicios cuenta una tarjeta: un estado y, si aplica, la respuesta de la cotización. */
+export interface CriterioTarjeta {
+  readonly estado: EstadoServicio;
+  readonly cotizacionEstado?: EstadoCotizacion;
+}
 
 export interface TarjetaInicio {
-  clave: string;
-  labelI18n: string;
-  filtro: FiltroServicios;
-  badge?: number;
+  readonly clave: ClaveTarjeta;
+  readonly criterio: CriterioTarjeta;
 }
+
+const TARJETAS_TECNICO: readonly TarjetaInicio[] = [
+  { clave: 'borradores', criterio: { estado: 'BORRADOR' } },
+  { clave: 'recibidos', criterio: { estado: 'RECIBIDO' } },
+  { clave: 'porOT', criterio: { estado: 'COTIZADO', cotizacionEstado: 'APROBADA' } },
+  { clave: 'porEntregar', criterio: { estado: 'EN_REPARACION' } },
+];
+
+const TARJETAS_COMERCIAL: readonly TarjetaInicio[] = [
+  { clave: 'porCotizar', criterio: { estado: 'DIAGNOSTICADO' } },
+  { clave: 'cotizadosPendientes', criterio: { estado: 'COTIZADO', cotizacionEstado: 'PENDIENTE' } },
+  { clave: 'porFacturar', criterio: { estado: 'ENTREGADO' } },
+];
+
+const TODAS: readonly TarjetaInicio[] = [...TARJETAS_TECNICO, ...TARJETAS_COMERCIAL];
 
 /**
- * Calcula las tarjetas de trabajo que debe ver un usuario según sus roles.
- * Evita duplicados: si una tarjeta aparece en múltiples roles, solo sale una vez.
+ * Tarjetas de trabajo que ve un usuario según sus roles (HU-007-9): la unión de las de cada
+ * rol sin duplicados. El Administrador puede avanzar cualquier etapa, así que ve todas.
  */
 export function tarjetasPorRol(roles: readonly Rol[]): TarjetaInicio[] {
-  const tarjetas = new Map<string, TarjetaInicio>();
-
-  if (roles.includes('Tecnico')) {
-    // Borradores: registros sin completar recepción
-    tarjetas.set('borradores', {
-      clave: 'borradores',
-      labelI18n: 'tareas.diagnostico',
-      filtro: { estados: ['BORRADOR'] },
-    });
-
-    // Recibidos (por diagnosticar)
-    tarjetas.set('recibidos', {
-      clave: 'recibidos',
-      labelI18n: 'tareas.diagnostico',
-      filtro: { estados: ['RECIBIDO'] },
-    });
-
-    // Cotizados aprobados (por crear OT)
-    tarjetas.set('porOT', {
-      clave: 'porOT',
-      labelI18n: 'tareas.ordenTrabajo',
-      filtro: { estados: ['COTIZADO'] }, // filtro refinado: solo Aprobados en lógica de aplicación
-    });
-
-    // En reparación (por entregar)
-    tarjetas.set('porEntregar', {
-      clave: 'porEntregar',
-      labelI18n: 'tareas.entregar',
-      filtro: { estados: ['EN_REPARACION'] },
-    });
-  }
-
-  if (roles.includes('Comercial')) {
-    // Diagnosticados (por cotizar)
-    tarjetas.set('porCotizar', {
-      clave: 'porCotizar',
-      labelI18n: 'tareas.cotizar',
-      filtro: { estados: ['DIAGNOSTICADO'] },
-    });
-
-    // Cotizados (respondiendo)
-    tarjetas.set('cotizandoRespuesta', {
-      clave: 'cotizandoRespuesta',
-      labelI18n: 'etapas.cotizacion.respuestaPendiente',
-      filtro: { estados: ['COTIZADO'] },
-    });
-
-    // Entregados (por facturar)
-    tarjetas.set('porFacturar', {
-      clave: 'porFacturar',
-      labelI18n: 'tareas.facturar',
-      filtro: { estados: ['ENTREGADO'] },
-    });
-  }
-
-  if (roles.includes('Administrador')) {
-    // Los administradores ven todo, pero no duplicamos
-    // (las otras tarjetas los incluyen en sus roles permitidos)
-  }
-
-  return [...tarjetas.values()];
+  const esAdmin = roles.includes('Administrador');
+  const tarjetas: TarjetaInicio[] = [];
+  if (esAdmin || roles.includes('Tecnico')) tarjetas.push(...TARJETAS_TECNICO);
+  if (esAdmin || roles.includes('Comercial')) tarjetas.push(...TARJETAS_COMERCIAL);
+  return tarjetas;
 }
+
+export const tarjetaPorClave = (clave: string): TarjetaInicio | undefined =>
+  TODAS.find((tarjeta) => tarjeta.clave === clave);
+
+/** Un cotizado sin respuesta registrada se considera pendiente de respuesta. */
+export const cumpleTarjeta = (
+  servicio: Pick<Servicio, 'estado' | 'cotizacionEstado'>,
+  tarjeta: TarjetaInicio
+): boolean => {
+  const { estado, cotizacionEstado } = tarjeta.criterio;
+  if (servicio.estado !== estado) return false;
+  if (cotizacionEstado === undefined) return true;
+  return (servicio.cotizacionEstado ?? 'PENDIENTE') === cotizacionEstado;
+};
+
+export const contarTarjetas = (
+  servicios: readonly Pick<Servicio, 'estado' | 'cotizacionEstado'>[],
+  tarjetas: readonly TarjetaInicio[]
+): Record<ClaveTarjeta, number> => {
+  const conteo = Object.fromEntries(TODAS.map((tarjeta) => [tarjeta.clave, 0])) as Record<
+    ClaveTarjeta,
+    number
+  >;
+  for (const tarjeta of tarjetas) {
+    conteo[tarjeta.clave] = servicios.filter((servicio) => cumpleTarjeta(servicio, tarjeta)).length;
+  }
+  return conteo;
+};

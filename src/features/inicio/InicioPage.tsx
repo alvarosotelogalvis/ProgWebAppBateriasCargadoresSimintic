@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useContainer } from '@/app/containerContext';
 import { useAntiguedadPendientes, useServicios } from '@/infrastructure/db/hooks';
+import { useSesionStore } from '@/shared/stores/sesionStore';
 import { AvisoAlmacenamiento } from '@/shared/ui/AvisoAlmacenamiento';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
@@ -12,6 +13,7 @@ import { QuickActionGrid } from '@/shared/ui/QuickActionGrid';
 
 import { AvisoIniciarSesion } from './AvisoIniciarSesion';
 import { RecordatorioPendientes } from './components/RecordatorioPendientes';
+import { TarjetasTrabajo } from './components/TarjetasTrabajo';
 
 export function InicioPage(): React.JSX.Element {
   const { t } = useTranslation(['inicio', 'servicios', 'navegacion']);
@@ -19,6 +21,7 @@ export function InicioPage(): React.JSX.Element {
   const container = useContainer();
   const servicios = useServicios();
   const pendientes = useAntiguedadPendientes();
+  const roles = useSesionStore((estado) => estado.roles);
   const borradores = servicios.filter((servicio) => servicio.estado === 'BORRADOR').length;
 
   return (
@@ -46,6 +49,11 @@ export function InicioPage(): React.JSX.Element {
         ) : (
           <>
             <h1>{t('navegacion:inicio')}</h1>
+            <TarjetasTrabajo
+              servicios={servicios}
+              roles={roles}
+              onAbrir={(clave) => navigate(`/servicios?tarjeta=${clave}`)}
+            />
             <QuickActionGrid
               acciones={[
                 {
