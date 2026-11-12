@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Spec 009 - Ciclo completo A→B', () => {
-  test.skip('exporta respaldo A → importa B → sincroniza B → idénticos', async ({ _page }) => {
+  test.skip('exporta respaldo A → importa B → sincroniza B → idénticos', async ({
+    page: _page,
+  }) => {
     // TODO: Implementar tras MenuTecnicoPage integrada a App
     // 1. Setup: Crear servicios en dispositivo A (A1)
     // 2. Exportar respaldo desde A1 (/tecnico → Exportar)
@@ -15,7 +17,7 @@ test.describe('Spec 009 - Ciclo completo A→B', () => {
     expect(true).toBe(true);
   });
 
-  test.skip('purgas en A no afectan B después de importar', async ({ _page }) => {
+  test.skip('purgas en A no afectan B después de importar', async ({ page: _page }) => {
     // TODO: Implementar tras LiberarEspacioDialog
     // 1. Crear servicios en A (algunos cerrados hace >3 meses)
     // 2. Exportar A
@@ -26,7 +28,7 @@ test.describe('Spec 009 - Ciclo completo A→B', () => {
     expect(true).toBe(true);
   });
 
-  test.skip('offline: respaldo funciona sin red', async ({ _page }) => {
+  test.skip('offline: respaldo funciona sin red', async ({ page: _page }) => {
     // TODO: Implementar con DevTools offline
     // 1. Ir a /tecnico
     // 2. DevTools: Network → Offline
@@ -36,7 +38,7 @@ test.describe('Spec 009 - Ciclo completo A→B', () => {
     expect(true).toBe(true);
   });
 
-  test.skip('reintentar errores limpia estado', async ({ _page }) => {
+  test.skip('reintentar errores limpia estado', async ({ page: _page }) => {
     // TODO: Implementar en MenuTecnicoPage
     // 1. Crear servicio con error forzado
     // 2. Verificar que tiene ultimoError
@@ -46,7 +48,7 @@ test.describe('Spec 009 - Ciclo completo A→B', () => {
     expect(true).toBe(true);
   });
 
-  test.skip('restablecer app rechaza si hay pendientes', async ({ _page }) => {
+  test.skip('restablecer app rechaza si hay pendientes', async ({ page: _page }) => {
     // TODO: Implementar en MenuTecnicoPage
     // 1. Crear servicios con syncState='pending'
     // 2. Click "Restablecer app"
@@ -56,7 +58,7 @@ test.describe('Spec 009 - Ciclo completo A→B', () => {
     expect(true).toBe(true);
   });
 
-  test.skip('VisorLogs filtra por nivel y búsqueda', async ({ _page }) => {
+  test.skip('VisorLogs filtra por nivel y búsqueda', async ({ page: _page }) => {
     // TODO: Implementar tras VisorLogs
     // 1. Navegar a /tecnico → "Registros"
     // 2. Seleccionar filtro Nivel="error"

@@ -52,7 +52,7 @@ test.describe('E2E: Ciclo A→B con sincronización', () => {
     expect(true).toBe(true);
   });
 
-  test('importa respaldo sin duplicar servicios existentes', async ({ _page }) => {
+  test('importa respaldo sin duplicar servicios existentes', async ({ page: _page }) => {
     // Fase 1: Setup B con servicios existentes
     // await page.goto('http://localhost:5173/');
     // await page.click('text=Nuevo servicio');
@@ -77,7 +77,7 @@ test.describe('E2E: Ciclo A→B con sincronización', () => {
     expect(true).toBe(true);
   });
 
-  test('purgas no eliminan servicios pendientes tras importar', async ({ _page }) => {
+  test('purgas no eliminan servicios pendientes tras importar', async ({ page: _page }) => {
     // Fase 1: Importar respaldo
     // await page.goto('http://localhost:5173/tecnico');
     // await page.click('text=Importar respaldo');
@@ -126,7 +126,7 @@ test.describe('E2E: Ciclo A→B con sincronización', () => {
     expect(true).toBe(true);
   });
 
-  test('MenuTecnicoPage: tabs y diálogos funcionan', async ({ _page }) => {
+  test('MenuTecnicoPage: tabs y diálogos funcionan', async ({ page: _page }) => {
     // Fase 1: Navegar a /tecnico
     // await page.goto('http://localhost:5173/tecnico');
     // expect(await page.locator('text=Menú técnico').isVisible()).toBe(true);
@@ -148,7 +148,7 @@ test.describe('E2E: Ciclo A→B con sincronización', () => {
     expect(true).toBe(true);
   });
 
-  test('VisorLogs filtra por nivel y búsqueda', async ({ _page }) => {
+  test('VisorLogs filtra por nivel y búsqueda', async ({ page: _page }) => {
     // Fase 1: Navegar a logs
     // await page.goto('http://localhost:5173/tecnico');
     // await page.click('text=Registros');
