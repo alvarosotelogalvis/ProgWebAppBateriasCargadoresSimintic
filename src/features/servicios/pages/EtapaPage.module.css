@@ -1,0 +1,37 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.faltantes {
+  margin: var(--espacio-1) 0 0;
+  padding-left: var(--espacio-4);
+}
+
+.pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+}
+
+.estado {
+  font-size: var(--texto-sm);
+  color: var(--text-secondary);
+}
+
+.acciones {
+  display: flex;
+  gap: var(--espacio-3);
+  flex-wrap: wrap;
+}
