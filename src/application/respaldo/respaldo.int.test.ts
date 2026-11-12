@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import type { AppDB } from '@/infrastructure/db/dexie';
-import type { Servicio, Adjunto } from '@/domain/servicio';
+import type { Adjunto } from '@/domain/adjunto';
+import type { Servicio } from '@/domain/servicio';
 
 describe('Respaldo - Integración exportar ↔ importar', () => {
   let dbA: AppDB;

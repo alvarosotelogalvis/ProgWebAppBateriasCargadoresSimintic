@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import type { AppDB } from '@/infrastructure/db/dexie';
-import type { Servicio, Adjunto } from '@/domain/servicio';
+import type { Adjunto } from '@/domain/adjunto';
+import type { Servicio } from '@/domain/servicio';
 import { ejecutarPurgas } from './purgas';
 
 describe('HU-009-2: Limpieza segura del espacio', () => {
@@ -28,7 +29,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
       ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+    } as unknown as Servicio;
 
     const adjunto: Adjunto = {
       id: 'adj-1',
@@ -75,7 +76,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
       ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+    } as unknown as Servicio;
 
     const servicioError: Servicio = {
       id: 'srv-error',
@@ -90,7 +91,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
       ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+    } as unknown as Servicio;
 
     await db.servicios.add(servicioPending);
     await db.servicios.add(servicioError);
@@ -117,7 +118,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
       ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+    } as unknown as Servicio;
 
     const adjunto: Adjunto = {
       id: 'adj-blob-test',
@@ -162,7 +163,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
       ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+    } as unknown as Servicio;
 
     await db.servicios.add(servicio);
 

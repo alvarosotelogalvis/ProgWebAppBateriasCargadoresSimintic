@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { seleccionarPurgables, puedeEliminarse } from './purgas';
-import type { Servicio, Adjunto } from './servicio';
+import type { Adjunto } from './adjunto';
+import type { Servicio } from './servicio';
 
 describe('purgas', () => {
   describe('puedeEliminarse', () => {
@@ -10,7 +11,7 @@ describe('purgas', () => {
         tipoEquipo: 'BATERIA',
         estado: 'FACTURADO',
         syncState: 'synced',
-      } as Servicio;
+      } as unknown as Servicio;
 
       expect(puedeEliminarse(servicio)).toBe(true);
     });
@@ -21,7 +22,7 @@ describe('purgas', () => {
         tipoEquipo: 'BATERIA',
         estado: 'FACTURADO',
         syncState: 'pending',
-      } as Servicio;
+      } as unknown as Servicio;
 
       expect(puedeEliminarse(servicio)).toBe(false);
     });
@@ -32,7 +33,7 @@ describe('purgas', () => {
         tipoEquipo: 'BATERIA',
         estado: 'EN_REPARACION',
         syncState: 'synced',
-      } as Servicio;
+      } as unknown as Servicio;
 
       expect(puedeEliminarse(servicio)).toBe(false);
     });
@@ -46,7 +47,7 @@ describe('purgas', () => {
           tipoEquipo: 'BATERIA',
           estado,
           syncState: 'synced',
-        } as Servicio;
+        } as unknown as Servicio;
 
         expect(puedeEliminarse(servicio)).toBe(true);
       }
@@ -64,13 +65,13 @@ describe('purgas', () => {
           estado: 'FACTURADO',
           syncState: 'pending',
           ultimaSincronizacion: new Date(hoy.getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
-        } as Servicio,
+        } as unknown as Servicio,
         {
           id: 'error-1',
           estado: 'FACTURADO',
           syncState: 'error',
           ultimaSincronizacion: new Date(hoy.getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
-        } as Servicio,
+        } as unknown as Servicio,
       ];
 
       const resultado = seleccionarPurgables(servicios, new Map());
@@ -85,12 +86,12 @@ describe('purgas', () => {
           estado: 'FACTURADO',
           syncState: 'synced',
           ultimaSincronizacion: new Date(hoy.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString(),
-        } as Servicio,
+        } as unknown as Servicio,
       ];
 
       const resultado = seleccionarPurgables(servicios, new Map(), 7, 3);
       expect(resultado.servicios).toHaveLength(1);
-      expect(resultado.servicios[0].id).toBe('facturado-1');
+      expect(resultado.servicios[0]?.id).toBe('facturado-1');
     });
 
     it('no selecciona servicios cerrados que no superan el período de retención', () => {
@@ -100,7 +101,7 @@ describe('purgas', () => {
           estado: 'FACTURADO',
           syncState: 'synced',
           ultimaSincronizacion: new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        } as Servicio,
+        } as unknown as Servicio,
       ];
 
       const resultado = seleccionarPurgables(servicios, new Map(), 7, 3);
@@ -114,7 +115,7 @@ describe('purgas', () => {
           estado: 'FACTURADO',
           syncState: 'synced',
           ultimaSincronizacion: new Date(hoy.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString(),
-        } as Servicio,
+        } as unknown as Servicio,
       ];
 
       const blob = new Blob(['imagen']);
@@ -141,7 +142,7 @@ describe('purgas', () => {
       const resultado = seleccionarPurgables(servicios, map, 7, 3);
 
       expect(resultado.archivos).toHaveLength(1);
-      expect(resultado.archivos[0].adjunto.id).toBe('adj-1');
+      expect(resultado.archivos[0]?.adjunto.id).toBe('adj-1');
     });
 
     it('no selecciona archivos sin blob original', () => {
@@ -150,7 +151,7 @@ describe('purgas', () => {
           id: 'srv-1',
           estado: 'FACTURADO',
           syncState: 'synced',
-        } as Servicio,
+        } as unknown as Servicio,
       ];
 
       const adjuntos: Adjunto[] = [

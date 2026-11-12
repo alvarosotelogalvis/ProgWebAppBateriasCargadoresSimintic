@@ -136,10 +136,10 @@ describe('sanitizar', () => {
 
     const resultado = sanitizar(arr) as Array<Record<string, unknown>>;
     expect(resultado).toHaveLength(2);
-    expect(resultado[0].token).toBeUndefined();
-    expect(resultado[0].nombre).toBe('item1');
-    expect(resultado[1].token).toBeUndefined();
-    expect(resultado[1].nombre).toBe('item2');
+    expect(resultado[0]?.token).toBeUndefined();
+    expect(resultado[0]?.nombre).toBe('item1');
+    expect(resultado[1]?.token).toBeUndefined();
+    expect(resultado[1]?.nombre).toBe('item2');
   });
 
   it('es case-insensitive para claves sensibles (TOKEN, Authorization, etc.)', () => {

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ImportarRespaldoDialog } from './ImportarRespaldoDialog';
 import * as respaldoModule from '@/application/respaldo/respaldo';
+import type { Servicio } from '@/domain/servicio';
 
 vi.mock('@/application/respaldo/respaldo');
 vi.mock('react-i18next', () => ({

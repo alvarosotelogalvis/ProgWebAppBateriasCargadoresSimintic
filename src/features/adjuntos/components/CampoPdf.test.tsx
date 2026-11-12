@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AgregarPdfResultado } from '@/application/adjuntos/agregarPdf';
+import type { AgregarPdfResultado, TipoPdf } from '@/application/adjuntos/agregarPdf';
 import '@/shared/i18n';
 import { adjuntoBuilder } from '../../../../tests/builders/adjuntoBuilder';
 import { CampoPdf } from './CampoPdf';
@@ -10,7 +10,7 @@ const archivo = () => new File(['%PDF-1.4'], 'diag.pdf', { type: 'application/pd
 
 const montar = (
   props: Partial<React.ComponentProps<typeof CampoPdf>> & {
-    onAgregar?: (a: File) => Promise<AgregarPdfResultado>;
+    onAgregar?: (archivo: File, tipo: TipoPdf) => Promise<AgregarPdfResultado>;
   } = {}
 ) => {
   const onAgregar = vi.fn(props.onAgregar ?? (async () => ({ ok: true }) as AgregarPdfResultado));
