@@ -15,8 +15,7 @@ export const fechaLocalHoy = (referencia: Date = new Date()): string => {
   return `${anio}-${mes}-${dia}`;
 };
 
-const texto = (claveRequerida: string) =>
-  z.string({ required_error: claveRequerida, invalid_type_error: claveRequerida });
+const texto = (claveRequerida: string) => z.string({ error: claveRequerida });
 
 const textoConEspaciosProhibidos = (
   requerida: string,
@@ -37,7 +36,7 @@ const fechaISO = (requerida: string, formato: string) =>
 
 const numeroEntero = (requerida: string, min: number, max: number) =>
   z
-    .number({ required_error: requerida, invalid_type_error: formatoNumero(requerida) })
+    .number({ error: formatoNumero(requerida) })
     .int({ message: formatoNumero(requerida) })
     .min(min, { message: formatoNumero(requerida) })
     .max(max, { message: formatoNumero(requerida) });
@@ -52,8 +51,7 @@ export const esquemaRecepcion = (hoy: string = fechaLocalHoy()) =>
   z
     .object({
       tipoEquipo: z.enum(['BATERIA', 'CARGADOR'], {
-        required_error: 'errores.servicio.tipoEquipoRequerido',
-        invalid_type_error: 'errores.servicio.tipoEquipoRequerido',
+        error: 'errores.servicio.tipoEquipoRequerido',
       }),
       fechaRecepcion: fechaISO(
         'errores.servicio.fechaRecepcionRequerida',
@@ -132,12 +130,12 @@ export const esquemaCotizacion = (hoy: string, fechaRecepcion: string) =>
       })
       .refine((valor) => noPasada(valor, hoy), { message: 'errores.servicio.fechaFutura' }),
     cotizacionValor: z
-      .number({ invalid_type_error: 'errores.servicio.cotizacionValorInvalido' })
+      .number({ error: 'errores.servicio.cotizacionValorInvalido' })
       .min(0, { message: 'errores.servicio.cotizacionValorInvalido' })
       .optional(),
     cotizacionEstado: z
       .enum(['PENDIENTE', 'APROBADA', 'RECHAZADA'], {
-        invalid_type_error: 'errores.servicio.cotizacionEstadoInvalido',
+        error: 'errores.servicio.cotizacionEstadoInvalido',
       })
       .optional(),
   });
@@ -150,7 +148,7 @@ export const esquemaOrdenTrabajo = () =>
       .min(5, { message: 'errores.servicio.otDetalleFormato' })
       .max(4000, { message: 'errores.servicio.otDetalleFormato' }),
     otCostoReparacion: z
-      .number({ invalid_type_error: 'errores.servicio.otCostoInvalido' })
+      .number({ error: 'errores.servicio.otCostoInvalido' })
       .min(0, { message: 'errores.servicio.otCostoInvalido' }),
   });
 
