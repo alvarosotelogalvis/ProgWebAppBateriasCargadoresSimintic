@@ -81,22 +81,22 @@
 
 ## Fase 7 — HU-007-4 Orden de trabajo (P1)
 
-- [ ] T031 [HU-007-4] `EtapaOrdenTrabajoPage` (detalle, costo con `CampoMoneda`; acción solo con cotización Aprobada; texto "Esperando la respuesta del cliente") — `src/features/servicios/pages/EtapaOrdenTrabajoPage.tsx`
+- [x] T031 [HU-007-4] `EtapaOrdenTrabajoPage` (detalle, costo con `CampoMoneda`; acción solo con cotización Aprobada; texto "Esperando la respuesta del cliente") — `src/features/servicios/pages/EtapaOrdenTrabajoPage.tsx`
 
 ## Fase 8 — HU-007-5 Entrega (P1)
 
 ### Pruebas
 
-- [ ] T032 [P] [HU-007-5] Prueba de componente de `CampoVidaUtil` (sugerencia, chips, error si ≤ entrega) — `src/features/servicios/components/CampoVidaUtil.test.tsx`
+- [x] T032 [P] [HU-007-5] Prueba de componente de `CampoVidaUtil` (sugerencia, chips, error si ≤ entrega) — `src/features/servicios/components/CampoVidaUtil.test.tsx`
 
 ### Implementación
 
-- [ ] T033 [P] [HU-007-5] `CampoVidaUtil` (`DateChip` + `Calendar` de la 003 con `minValue` = entrega + 1 día, chips +6/+12/+18/+24 m) — `src/features/servicios/components/CampoVidaUtil.tsx`
-- [ ] T034 [HU-007-5] `EtapaEntregaPage` (fecha, `AdjuntosEtapa` FOTO_SALIDA con `Min/MaxFotosSalida`, vida útil; variante sin reparación con vida útil opcional) — `src/features/servicios/pages/EtapaEntregaPage.tsx`
+- [x] T033 [P] [HU-007-5] `CampoVidaUtil` (`DateChip` + `Calendar` de la 003 con `minValue` = entrega + 1 día, chips +6/+12/+18/+24 m) — `src/features/servicios/components/CampoVidaUtil.tsx`
+- [x] T034 [HU-007-5] `EtapaEntregaPage` (fecha, `AdjuntosEtapa` FOTO_SALIDA con `Min/MaxFotosSalida`, vida útil; variante sin reparación con vida útil opcional) — `src/features/servicios/pages/EtapaEntregaPage.tsx`
 
 ## Fase 9 — HU-007-6 Facturación (P1)
 
-- [ ] T035 [HU-007-6] `EtapaFacturacionPage` (`AdjuntoPdf` FACTURA, fecha, número con validación) — `src/features/servicios/pages/EtapaFacturacionPage.tsx`
+- [x] T035 [HU-007-6] `EtapaFacturacionPage` (`AdjuntoPdf` FACTURA, fecha, número con validación) — `src/features/servicios/pages/EtapaFacturacionPage.tsx`
       **Punto de control**: un servicio llega a FACTURADO offline cambiando de rol con auth mock.
 
 ## Fase 10 — HU-007-8 Anular y corregir (P2)
