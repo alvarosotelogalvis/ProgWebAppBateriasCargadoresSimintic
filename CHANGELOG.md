@@ -9,6 +9,19 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Spec 007: Etapas del servicio y roles.** Cada etapa guarda sus datos y avanza el estado por los
+  casos de uso: diagnóstico (con rama de disposición final y confirmación), cotización con respuesta
+  del cliente, orden de trabajo, entrega (con y sin reparación), facturación y anulación con motivo.
+  - El detalle ofrece la siguiente etapa según estado y rol, muestra las fotos de salida, un resumen
+    por etapa y «Pendiente de <rol>» en la línea de tiempo.
+  - Adjuntar, reemplazar y eliminar PDF validados por contenido (`agregarPdf`, `CampoPdf`).
+  - Administrador: «Editar datos» para corregir etapas ya registradas sin cambiar el estado
+    (rechaza fechas incoherentes) y anulación con motivo de al menos 10 caracteres.
+  - Inicio: «Mis trabajos» con contador por rol y filtro en la lista de servicios.
+  - Ayuda in-app: temas de etapas y roles, adjuntar PDF y corregir o anular.
+  - Pruebas: unitarias, de integración (ciclo completo Recibido → Facturado) y E2E del ciclo,
+    la disposición final, la entrega sin reparación, la anulación y las correcciones.
+
 - **Spec 009: Soporte técnico, respaldo y purgas** (Fase F9)
   - Respaldo manual (exportar/importar) con Web Share API y fallback a descarga
   - Limpieza automática segura de espacio (purgas transaccionales, nunca toca pendientes)
@@ -17,6 +30,23 @@ adopta [SemVer](https://semver.org/lang/es/).
   - Acciones de mantenimiento: reintentar errores, refrescar catálogos, restablecer app
   - Menú técnico con visualización adaptativa por rol y breakpoint
   - 30+ tareas, 7 fases, 100+ pruebas unitarias/integración/E2E
+
+### Fixed
+
+- Los mensajes de validación ausentes salían en inglés (API de Zod 3 con Zod 4): ahora son claves
+  de traducción también cuando el campo falta.
+- Alertas de vida útil: la fecha se trata como texto `yyyy-MM-dd` (antes se desplazaba un día por la
+  zona horaria), los textos pasaron a i18n y los niveles conservan su nombre con umbrales distintos.
+- Respaldo: el paquete exportado perdía los archivos (`_archivos` era un arreglo) y la estimación de
+  tamaño tenía un error de redondeo.
+- Pantalla técnica: ids de lista y biblioteca de SharePoint mostraban vacío; el almacenamiento del
+  dispositivo siempre mostraba 0 en navegadores reales («Illegal invocation»); faltaban 14 claves
+  de traducción; las etiquetas del visor de logs no estaban asociadas a sus campos.
+- El namespace i18n `etapas` no estaba registrado y las pantallas de etapa mostraban claves crudas.
+- Las pantallas de etapa leían los catálogos con un índice inexistente (`where('id')`).
+- Crear un servicio sin sesión activa dejaba la pantalla en «Creando servicio…» sin mensaje.
+- `npm run typecheck` y `npm run build:dev` vuelven a funcionar (130 errores de tipos previos) y se
+  rehicieron las pruebas de transiciones, campos editables y esquemas, que nunca se ejecutaban.
 
 ## [Unreleased - Previous]
 
