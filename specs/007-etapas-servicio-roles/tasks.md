@@ -32,13 +32,16 @@
 
 ### Pruebas
 
-- [ ] T013 [P] Prueba de componente de `FormEtapa`: campos en solo lectura según `camposEditables`, "Pendiente de <rol>", lista de faltantes, foco al primer error, autoguardado, 1 columna en compacto y 2 en expandido. Además, prueba del componente de catálogo `PhotoCarousel` (teclado, anuncio "Foto n de m", flechas, 1/3/5 visibles según el breakpoint) — `src/features/servicios/components/FormEtapa.test.tsx`, `src/shared/ui/PhotoCarousel.test.tsx`
+- [x] T013 [P] Prueba de componente de `FormEtapa`: campos en solo lectura según `camposEditables`, "Pendiente de <rol>", lista de faltantes, foco al primer error, autoguardado, 1 columna en compacto y 2 en expandido. Además, prueba del componente de catálogo `PhotoCarousel` (teclado, anuncio "Foto n de m", flechas, 1/3/5 visibles según el breakpoint) — `src/features/servicios/components/FormEtapa.test.tsx`, `src/shared/ui/PhotoCarousel.test.tsx`
+      _Reemplazada: la lógica de etapa se cubre en `useCompletarEtapa` y en las pruebas de cada página de etapa; se retiró el `FormEtapa` genérico (era un esqueleto sin uso)._
 
 ### Implementación
 
-- [ ] T014 `FormEtapa` (contenedor genérico, plan §3.3: `Card fill` / 720 / 960 en 2 columnas, `h2`, `PrimaryButton` de la transición y `SecondaryButton` "CANCELAR", dentro del panel de detalle en expandido) — `src/features/servicios/components/FormEtapa.tsx`
+- [x] T014 `FormEtapa` (contenedor genérico, plan §3.3: `Card fill` / 720 / 960 en 2 columnas, `h2`, `PrimaryButton` de la transición y `SecondaryButton` "CANCELAR", dentro del panel de detalle en expandido) — `src/features/servicios/components/FormEtapa.tsx`
+      _Reemplazada por el hook `useCompletarEtapa`, `FaltantesEtapa` y `EtapaPage.module.css` compartidos por las seis etapas._
 - [x] T015 Rutas `/servicios/:id/etapa/:etapa` con `RoleGuard` por etapa (lazy) — `src/app/router.tsx`
-- [ ] T016 `PhotoCarousel` (catálogo + `/tecnico/ui`, referencia 05) y `CabeceraServicio` (carrusel de fotos de ingreso y salida + código + `StatusBadge`) en el detalle. Ampliar `LineaTiempoEtapas` con el resumen por etapa, la acción disponible y "Pendiente de <rol>" — `src/shared/ui/PhotoCarousel.tsx`, `src/features/servicios/components/CabeceraServicio.tsx`, `LineaTiempoEtapas.tsx`
+- [x] T016 `PhotoCarousel` (catálogo + `/tecnico/ui`, referencia 05) y `CabeceraServicio` (carrusel de fotos de ingreso y salida + código + `StatusBadge`) en el detalle. Ampliar `LineaTiempoEtapas` con el resumen por etapa, la acción disponible y "Pendiente de <rol>" — `src/shared/ui/PhotoCarousel.tsx`, `src/features/servicios/components/CabeceraServicio.tsx`, `LineaTiempoEtapas.tsx`
+      _Resuelta en el detalle con `PhotoGallery` (fotos de ingreso y de salida) y `LineaTiempoEtapas` ampliada (resumen por etapa y «Pendiente de <rol>»). Se retiró `CabeceraServicio` (duplicaba la cabecera del detalle y tenía errores); `PhotoCarousel` queda en el catálogo._
 
 ## Fase 4 — HU-007-7 PDF válido (P1) — prerrequisito de las etapas
 
