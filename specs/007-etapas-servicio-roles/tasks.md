@@ -37,7 +37,7 @@
 ### Implementación
 
 - [ ] T014 `FormEtapa` (contenedor genérico, plan §3.3: `Card fill` / 720 / 960 en 2 columnas, `h2`, `PrimaryButton` de la transición y `SecondaryButton` "CANCELAR", dentro del panel de detalle en expandido) — `src/features/servicios/components/FormEtapa.tsx`
-- [ ] T015 Rutas `/servicios/:id/etapa/:etapa` con `RoleGuard` por etapa (lazy) — `src/app/router.tsx`
+- [x] T015 Rutas `/servicios/:id/etapa/:etapa` con `RoleGuard` por etapa (lazy) — `src/app/router.tsx`
 - [ ] T016 `PhotoCarousel` (catálogo + `/tecnico/ui`, referencia 05) y `CabeceraServicio` (carrusel de fotos de ingreso y salida + código + `StatusBadge`) en el detalle. Ampliar `LineaTiempoEtapas` con el resumen por etapa, la acción disponible y "Pendiente de <rol>" — `src/shared/ui/PhotoCarousel.tsx`, `src/features/servicios/components/CabeceraServicio.tsx`, `LineaTiempoEtapas.tsx`
 
 ## Fase 4 — HU-007-7 PDF válido (P1) — prerrequisito de las etapas
