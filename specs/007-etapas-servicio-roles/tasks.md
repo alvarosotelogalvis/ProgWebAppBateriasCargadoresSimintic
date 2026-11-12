@@ -70,14 +70,14 @@
 
 ### Pruebas
 
-- [ ] T026 [P] [HU-007-3] Prueba de integración de `cambiarRespuestaCotizacion` (solo en COTIZADO, solo Comercial o Admin) — `src/application/servicios/cambiarRespuestaCotizacion.int.test.ts`
-- [ ] T027 [P] [HU-007-3] Prueba de los componentes `AmountInput` (catálogo: RAC NumberField, formato es-CO COP, entero, separadores) y `CampoMoneda` (negativos rechazados, puntos y comas) — `src/shared/ui/AmountInput.test.tsx`, `src/features/servicios/components/CampoMoneda.test.tsx`
+- [x] T026 [P] [HU-007-3] Prueba de integración de `cambiarRespuestaCotizacion` (solo en COTIZADO, solo Comercial o Admin) — `src/application/servicios/cambiarRespuestaCotizacion.int.test.ts`
+- [x] T027 [P] [HU-007-3] Prueba de los componentes `AmountInput` (catálogo: RAC NumberField, formato es-CO COP, entero, separadores) y `CampoMoneda` (negativos rechazados, puntos y comas) — `src/shared/ui/AmountInput.test.tsx`, `src/features/servicios/components/CampoMoneda.test.tsx`
 
 ### Implementación
 
-- [ ] T028 [HU-007-3] `cambiarRespuestaCotizacion` — `src/application/servicios/cambiarRespuestaCotizacion.ts`
-- [ ] T029 [P] [HU-007-3] `AmountInput` (catálogo + `/tecnico/ui`; "COP" en `primary` a la izquierda y el monto en `amount-xl`, referencia 10) y `CampoMoneda` como envoltorio de formulario — `src/shared/ui/AmountInput.tsx`, `src/features/servicios/components/CampoMoneda.tsx`
-- [ ] T030 [HU-007-3] `EtapaCotizacionPage` (fecha de envío, valor, `AdjuntoPdf` COTIZACION opcional, selector de respuesta habilitado en COTIZADO) — `src/features/servicios/pages/EtapaCotizacionPage.tsx`
+- [x] T028 [HU-007-3] `cambiarRespuestaCotizacion` — `src/application/servicios/cambiarRespuestaCotizacion.ts`
+- [x] T029 [P] [HU-007-3] `AmountInput` (catálogo + `/tecnico/ui`; "COP" en `primary` a la izquierda y el monto en `amount-xl`, referencia 10) y `CampoMoneda` como envoltorio de formulario — `src/shared/ui/AmountInput.tsx`, `src/features/servicios/components/CampoMoneda.tsx`
+- [x] T030 [HU-007-3] `EtapaCotizacionPage` (fecha de envío, valor, `AdjuntoPdf` COTIZACION opcional, selector de respuesta habilitado en COTIZADO) — `src/features/servicios/pages/EtapaCotizacionPage.tsx`
 
 ## Fase 7 — HU-007-4 Orden de trabajo (P1)
 
