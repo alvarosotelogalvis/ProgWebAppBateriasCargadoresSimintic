@@ -113,7 +113,7 @@
 
 ## Fase 11 — HU-007-9 Mis trabajos por rol (P2)
 
-- [ ] T040 [HU-007-9] `TarjetasTrabajo` en Inicio: accesos del `QuickActionGrid` con badge numérico (usa `tarjetasPorRol` + `filtrarServicios`; enlaces a la lista filtrada; 3/4/6 columnas según el breakpoint) — `src/features/inicio/components/TarjetasTrabajo.tsx`
+- [x] T040 [HU-007-9] `TarjetasTrabajo` en Inicio: accesos del `QuickActionGrid` con badge numérico (usa `tarjetasPorRol` + `filtrarServicios`; enlaces a la lista filtrada; 3/4/6 columnas según el breakpoint) — `src/features/inicio/components/TarjetasTrabajo.tsx`
 
 ## Fase 12 — Cierre
 
