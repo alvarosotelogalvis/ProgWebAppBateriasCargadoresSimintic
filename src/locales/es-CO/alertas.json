@@ -7,5 +7,9 @@
   "resumen": "Vencidas {{vencidas}} · ≤30 días {{dias30}}",
   "dias30": "≤30 días",
   "dias60": "≤60 días",
-  "dias90": "≤90 días"
+  "dias90": "≤90 días",
+  "venceEn_one": "Vence en {{count}} día",
+  "venceEn_other": "Vence en {{count}} días",
+  "vencioHace_one": "Venció hace {{count}} día",
+  "vencioHace_other": "Venció hace {{count}} días"
 }
