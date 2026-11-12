@@ -1,50 +1,39 @@
-import type { Servicio, Rol, CamposServicio } from '@/domain/servicio';
-import type { AppDatabase } from '@/infrastructure/db/AppDatabase';
-import { camposEditables } from '@/domain/estados';
+import {
+  CampoNoEditableError,
+  NoEncontradoError,
+  SinPermisoError,
+  ValidacionError,
+} from '@/domain/errores';
+import { validacionesCruzadasFechas } from '@/domain/fechas';
+import type { CamposServicio, Rol, Servicio } from '@/domain/servicio';
+import { crearActualizarCampos } from './actualizarCampos';
+import type { DepsServicios } from './deps';
 
-export type CorregirCamposResultado =
-  | {
-      ok: true;
-      servicio: Servicio;
-    }
-  | {
-      ok: false;
-      error: 'SIN_PERMISO' | 'NO_ENCONTRADO' | 'CAMPO_NO_EDITABLE';
-    };
+/**
+ * Corrección de datos de etapas ya completadas, solo para el Administrador (HU-007-8).
+ * No cambia el estado (un servicio cerrado no se reabre) y deja los campos pendientes de
+ * sincronizar. Se rechazan las fechas incoherentes que la corrección introduce; una
+ * incoherencia previa no bloquea la corrección de otro campo.
+ */
+export const crearCorregirCampos =
+  (deps: DepsServicios) =>
+  async (
+    id: string,
+    cambios: Partial<CamposServicio>,
+    roles: readonly Rol[]
+  ): Promise<Servicio> => {
+    if (!roles.includes('Administrador')) throw new SinPermisoError();
+    const servicio = await deps.servicios.obtener(id);
+    if (!servicio) throw new NoEncontradoError(id);
+    if ('estado' in cambios) throw new CampoNoEditableError('estado');
 
-export async function corregirCampos(
-  servicioId: string,
-  cambios: Partial<CamposServicio>,
-  rolUsuario: Rol,
-  db: AppDatabase
-): Promise<CorregirCamposResultado> {
-  if (rolUsuario !== 'Administrador') {
-    return { ok: false, error: 'SIN_PERMISO' };
-  }
+    const hoy = deps.clock.fechaHoyIso();
+    const antes = validacionesCruzadasFechas(servicio, hoy);
+    const nuevos = validacionesCruzadasFechas({ ...servicio, ...cambios }, hoy).filter(
+      (error) =>
+        !antes.some((previo) => previo.campo === error.campo && previo.clave === error.clave)
+    );
+    if (nuevos.length > 0) throw new ValidacionError(nuevos);
 
-  const servicio = await db.servicios.get(servicioId);
-  if (!servicio) {
-    return { ok: false, error: 'NO_ENCONTRADO' };
-  }
-
-  const camposPermitidos = camposEditables(servicio.estado, rolUsuario);
-  for (const campo of Object.keys(cambios)) {
-    if (!camposPermitidos.includes(campo as keyof CamposServicio)) {
-      return { ok: false, error: 'CAMPO_NO_EDITABLE' };
-    }
-  }
-
-  const actualizado: Servicio = {
-    ...servicio,
-    ...cambios,
-    actualizadoEn: new Date().toISOString(),
-    syncState: 'pending',
+    return crearActualizarCampos(deps)(id, cambios, roles);
   };
-
-  await db.servicios.put(actualizado);
-
-  return {
-    ok: true,
-    servicio: actualizado,
-  };
-}
