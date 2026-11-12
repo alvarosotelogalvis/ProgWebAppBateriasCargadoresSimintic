@@ -20,7 +20,7 @@ export async function empaquetar(archivos: ArchivoEnZip[]): Promise<Blob> {
   // Crear un contenedor JSON simple (será reemplazado por ZIP real)
   const contenedor = {
     _manifiesto: manifiesto,
-    _archivos: [] as Record<string, string>,
+    _archivos: {} as Record<string, string>,
   };
 
   for (const archivo of archivos) {
@@ -40,8 +40,19 @@ export async function empaquetar(archivos: ArchivoEnZip[]): Promise<Blob> {
   return new Blob([json], { type: 'application/json' });
 }
 
+/** `Blob.text()` con alternativa para entornos sin esa API (p. ej. jsdom, navegadores antiguos). */
+export const leerTexto = (blob: Blob): Promise<string> => {
+  if (typeof blob.text === 'function') return blob.text();
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = () => resolve(String(lector.result));
+    lector.onerror = () => reject(lector.error);
+    lector.readAsText(blob);
+  });
+};
+
 export async function desempaquetar(blob: Blob): Promise<ArchivoEnZip[]> {
-  const texto = await blob.text();
+  const texto = await leerTexto(blob);
   const contenedor = JSON.parse(texto);
 
   const archivos: ArchivoEnZip[] = [];
@@ -76,5 +87,5 @@ export function estimarTamano(archivos: ArchivoEnZip[]): number {
   }
 
   // Agregar ~10% por overhead de compresión y metadatos
-  return Math.ceil(bytes * 1.1);
+  return Math.ceil((bytes * 110) / 100);
 }

@@ -1,4 +1,4 @@
-﻿import { crearManifiesto } from '@/domain/respaldo';
+import { crearManifiesto } from '@/domain/respaldo';
 import { empaquetar, estimarTamano, type ArchivoEnZip } from '@/infrastructure/respaldo/zip';
 import type { Servicio } from '@/domain/servicio';
 
@@ -26,7 +26,7 @@ export async function exportarRespaldo(
   appVersion: string = '0.1.0',
   dispositivoId: string = 'dispositivo-local'
 ): Promise<ResultadoExportar> {
-  // Filtrar servicios segÃºn alcance
+  // Filtrar servicios según alcance
   const aExportar =
     alcance === 'solo-pendientes' ? servicios.filter((s) => s.syncState === 'pending') : servicios;
 
@@ -82,7 +82,7 @@ export async function importarRespaldo(
   const serviciosArchivo = archivos.find((a) => a.ruta === 'servicios.json');
 
   if (!manifestoArchivo || !serviciosArchivo) {
-    throw new Error('Formato de respaldo no vÃ¡lido');
+    throw new Error('Formato de respaldo no válido');
   }
 
   const serviciosImportados = JSON.parse(

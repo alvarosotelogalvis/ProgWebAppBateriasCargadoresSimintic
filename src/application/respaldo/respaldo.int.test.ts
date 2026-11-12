@@ -111,7 +111,7 @@ describe('Respaldo - Integración exportar ↔ importar', () => {
     const original = await dbA.servicios.get(servicioId);
 
     // Simular que se importaría en dbB
-    if (original && !dbB.servicios.get(servicioId)) {
+    if (original && !(await dbB.servicios.get(servicioId))) {
       await dbB.servicios.add({ ...original, syncState: 'pending' });
     }
 
