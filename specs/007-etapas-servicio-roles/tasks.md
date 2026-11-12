@@ -44,26 +44,26 @@
 
 ### Pruebas
 
-- [ ] T017 [P] [HU-007-7] Prueba de integración de `agregarPdf`: ok, NO_ES_PDF, TAMANO_EXCEDIDO, ALMACENAMIENTO_LLENO, reemplazo local y reemplazo de uno sincronizado (`eliminarRemoto`) — `src/application/adjuntos/agregarPdf.int.test.ts`
-- [ ] T018 [P] [HU-007-7] Prueba de componente de `AdjuntoPdf` (ver, reemplazar, eliminar con confirmación, solo lectura) — `src/features/adjuntos/components/AdjuntoPdf.test.tsx`
+- [x] T017 [P] [HU-007-7] Prueba de integración de `agregarPdf`: ok, NO_ES_PDF, TAMANO_EXCEDIDO, ALMACENAMIENTO_LLENO, reemplazo local y reemplazo de uno sincronizado (`eliminarRemoto`) — `src/application/adjuntos/agregarPdf.int.test.ts`
+- [x] T018 [P] [HU-007-7] Prueba de componente de `AdjuntoPdf` (ver, reemplazar, eliminar con confirmación, solo lectura) — `src/features/adjuntos/components/AdjuntoPdf.test.tsx`
 
 ### Implementación
 
-- [ ] T019 [HU-007-7] Caso de uso `agregarPdf` — `src/application/adjuntos/agregarPdf.ts`
-- [ ] T020 [HU-007-7] `AdjuntoPdf` (vista previa en un `CardInner` centrado al estilo de la referencia 10, ícono `picture_as_pdf`, nombre y tamaño; Ver = object URL en pestaña nueva; Reemplazar y Eliminar con `ResponsiveDialog`) — `src/features/adjuntos/components/AdjuntoPdf.tsx`
+- [x] T019 [HU-007-7] Caso de uso `agregarPdf` — `src/application/adjuntos/agregarPdf.ts`
+- [x] T020 [HU-007-7] `AdjuntoPdf` (vista previa en un `CardInner` centrado al estilo de la referencia 10, ícono `picture_as_pdf`, nombre y tamaño; Ver = object URL en pestaña nueva; Reemplazar y Eliminar con `ResponsiveDialog`) — `src/features/adjuntos/components/AdjuntoPdf.tsx`
 
 ## Fase 5 — HU-007-1 y HU-007-2 Diagnóstico y disposición final (P1) 🎯
 
 ### Pruebas
 
-- [ ] T021 [P] [HU-007-2] Prueba de integración de la rama DF → normal: completar como DIAGNOSTICADO limpia `fechaSocializacionDF` y elimina el adjunto DISPOSICION_FINAL — `src/application/servicios/completarEtapa.df.int.test.ts`
+- [x] T021 [P] [HU-007-2] Prueba de integración de la rama DF → normal: completar como DIAGNOSTICADO limpia `fechaSocializacionDF` y elimina el adjunto DISPOSICION_FINAL — `src/application/servicios/completarEtapa.df.int.test.ts`
 
 ### Implementación
 
-- [ ] T022 [P] [HU-007-1] `CampoDiagnostico` (valores de `choices:Diagnostico`, marca "valor anterior") — `src/features/servicios/components/CampoDiagnostico.tsx`
-- [ ] T023 [HU-007-1] `EtapaDiagnosticoPage` (diagnóstico, observación, `AdjuntoPdf` FORMATO_DIAGNOSTICO) — `src/features/servicios/pages/EtapaDiagnosticoPage.tsx`
-- [ ] T024 [HU-007-2] Rama DF en `EtapaDiagnosticoPage`: campos condicionales, aviso, `AdjuntoPdf` DISPOSICION_FINAL, diálogo de confirmación, ocultar la rama si el valor configurado no existe — `src/features/servicios/pages/EtapaDiagnosticoPage.tsx`
-- [ ] T025 [HU-007-2] Limpieza de datos DF al completar como DIAGNOSTICADO (pasa T021) — `src/application/servicios/completarEtapa.ts`
+- [x] T022 [P] [HU-007-1] `CampoDiagnostico` (valores de `choices:Diagnostico`, marca "valor anterior") — `src/features/servicios/components/CampoDiagnostico.tsx`
+- [x] T023 [HU-007-1] `EtapaDiagnosticoPage` (diagnóstico, observación, `AdjuntoPdf` FORMATO_DIAGNOSTICO) — `src/features/servicios/pages/EtapaDiagnosticoPage.tsx`
+- [x] T024 [HU-007-2] Rama DF en `EtapaDiagnosticoPage`: campos condicionales, aviso, `AdjuntoPdf` DISPOSICION_FINAL, diálogo de confirmación, ocultar la rama si el valor configurado no existe — `src/features/servicios/pages/EtapaDiagnosticoPage.tsx`
+- [x] T025 [HU-007-2] Limpieza de datos DF al completar como DIAGNOSTICADO (pasa T021) — `src/application/servicios/completarEtapa.ts`
       **Punto de control**: ES-007-01…08 pasan offline.
 
 ## Fase 6 — HU-007-3 Cotización (P1)
