@@ -1,3 +1,4 @@
+import { ROLES_RESPUESTA_COTIZACION } from '@/application/servicios/cambiarRespuestaCotizacion';
 import { rolesTransicionSiguiente, TRANSICIONES } from '@/domain/estados';
 import type { AccionEtapa } from '@/domain/estados';
 import type { EstadoServicio, Rol } from '@/domain/servicio';
@@ -29,6 +30,15 @@ export const etapasSiguientes = (
     if (!transicion.roles.some((rol) => roles.includes(rol))) continue;
     const ruta = RUTA_POR_ACCION[transicion.accion];
     if (ruta && !rutas.includes(ruta)) rutas.push(ruta);
+  }
+  // En COTIZADO el Comercial registra la respuesta del cliente en la pantalla de cotización,
+  // aunque la siguiente transición (OT / entrega) sea del Técnico.
+  if (
+    estado === 'COTIZADO' &&
+    !rutas.includes('cotizacion') &&
+    roles.some((rol) => ROLES_RESPUESTA_COTIZACION.includes(rol))
+  ) {
+    rutas.push('cotizacion');
   }
   return rutas;
 };

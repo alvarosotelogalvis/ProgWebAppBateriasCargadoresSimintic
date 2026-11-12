@@ -17,6 +17,15 @@ describe('etapasSiguientes', () => {
     expect(etapasSiguientes('COTIZADO', ['Tecnico'])).toEqual(['orden-trabajo', 'entrega']);
   });
 
+  it('COTIZADO: el Comercial registra la respuesta del cliente; el Admin ve todo', () => {
+    expect(etapasSiguientes('COTIZADO', ['Comercial'])).toEqual(['cotizacion']);
+    expect(etapasSiguientes('COTIZADO', ['Administrador'])).toEqual([
+      'orden-trabajo',
+      'entrega',
+      'cotizacion',
+    ]);
+  });
+
   it('EN_REPARACION + Técnico: entrega', () => {
     expect(etapasSiguientes('EN_REPARACION', ['Tecnico'])).toEqual(['entrega']);
   });

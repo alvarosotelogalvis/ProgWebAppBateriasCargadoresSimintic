@@ -66,7 +66,8 @@
       "cotizacion": "Registrar cotización",
       "orden-trabajo": "Generar orden de trabajo",
       "entrega": "Registrar entrega",
-      "facturacion": "Registrar facturación"
+      "facturacion": "Registrar facturación",
+      "respuesta": "Registrar respuesta del cliente"
     },
     "cerrado": "Este servicio ya está cerrado."
   },

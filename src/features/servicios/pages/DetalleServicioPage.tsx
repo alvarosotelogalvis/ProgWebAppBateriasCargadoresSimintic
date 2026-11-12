@@ -18,6 +18,10 @@ import { StatusBadge } from '@/shared/ui/StatusBadge';
 import { etapasSiguientes, rolesPendientes } from '../etapasSiguientes';
 import styles from './DetalleServicioPage.module.css';
 
+/** En COTIZADO la pantalla de cotización sirve para registrar la respuesta del cliente. */
+const etiquetaEtapa = (ruta: string, estado: string): string =>
+  ruta === 'cotizacion' && estado === 'COTIZADO' ? 'respuesta' : ruta;
+
 export function DetalleServicioPage(): React.JSX.Element {
   const { id = '' } = useParams();
   const { t } = useTranslation('servicios');
@@ -102,14 +106,14 @@ export function DetalleServicioPage(): React.JSX.Element {
                 key={ruta}
                 onPress={() => navigate(`/servicios/${servicio.id}/etapa/${ruta}`)}
               >
-                {t(`detalle.irA.${ruta}`)}
+                {t(`detalle.irA.${etiquetaEtapa(ruta, estado)}`)}
               </PrimaryButton>
             ) : (
               <SecondaryButton
                 key={ruta}
                 onPress={() => navigate(`/servicios/${servicio.id}/etapa/${ruta}`)}
               >
-                {t(`detalle.irA.${ruta}`)}
+                {t(`detalle.irA.${etiquetaEtapa(ruta, estado)}`)}
               </SecondaryButton>
             )
           )}
