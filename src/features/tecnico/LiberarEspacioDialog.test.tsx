@@ -9,7 +9,7 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const map: Record<string, string> = {
-        'tecnico:tecnico.liberar_espacio': 'Liberar espacio',
+        'tecnico:liberar_espacio': 'Liberar espacio',
         'tecnico:respaldo.liberado': 'Espacio liberado',
         'tecnico:respaldo.limpiarAdvertencia': 'Se eliminarán datos...',
         'tecnico:respaldo.serviciosPurgados': 'Servicios purgados',

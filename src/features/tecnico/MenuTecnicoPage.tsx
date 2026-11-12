@@ -99,7 +99,7 @@ export function MenuTecnicoPage({
             borderRadius: 'var(--radio-2)',
           }}
         >
-          <h3>{t('respaldo')}</h3>
+          <h3>{t('respaldo.titulo')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-2)' }}>
             <PrimaryButton onPress={handleExportar} size="small">
               {t('exportar_respaldo')}
