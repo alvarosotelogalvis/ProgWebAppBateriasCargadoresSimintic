@@ -6,7 +6,7 @@ import type { TipoEquipo } from './servicio';
 const SERIE_REGEX = /^[A-Z0-9][A-Z0-9\-/.]{0,49}$/;
 const REFERENCIA_REGEX = /^[A-Z0-9][A-Z0-9\-/.]{0,49}$/;
 const FECHA_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-const FACTURA_REGEX = /^[A-Za-z0-9-]{1,30}$/;
+export const FACTURA_REGEX = /^[A-Za-z0-9-]{1,30}$/;
 
 export const fechaLocalHoy = (referencia: Date = new Date()): string => {
   const anio = referencia.getFullYear();
