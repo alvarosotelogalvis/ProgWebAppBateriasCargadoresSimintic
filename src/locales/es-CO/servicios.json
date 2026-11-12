@@ -69,7 +69,8 @@
       "facturacion": "Registrar facturación",
       "respuesta": "Registrar respuesta del cliente"
     },
-    "cerrado": "Este servicio ya está cerrado."
+    "cerrado": "Este servicio ya está cerrado.",
+    "fotosSalida": "Fotos de salida"
   },
   "estado": {
     "BORRADOR": "Borrador",

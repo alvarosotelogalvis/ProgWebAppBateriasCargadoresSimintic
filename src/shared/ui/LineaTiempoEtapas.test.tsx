@@ -43,4 +43,32 @@ describe('LineaTiempoEtapas', () => {
 
     expect(screen.queryByRole('listitem', { current: 'step' })).not.toBeInTheDocument();
   });
+
+  it('muestra el resumen bajo el paso correspondiente', () => {
+    render(
+      <LineaTiempoEtapas
+        estado="DIAGNOSTICADO"
+        resumenes={{ recepcion: '2026-10-01', diagnostico: 'Reparable' }}
+      />
+    );
+
+    const pasos = screen.getAllByRole('listitem');
+    expect(within(pasos[0]!).getByText('2026-10-01')).toBeInTheDocument();
+    expect(within(pasos[1]!).getByText('Reparable')).toBeInTheDocument();
+    expect(within(pasos[2]!).queryByText('Reparable')).not.toBeInTheDocument();
+  });
+
+  it('muestra "Pendiente de <rol>" solo en la etapa actual', () => {
+    render(<LineaTiempoEtapas estado="DIAGNOSTICADO" pendienteDe="Pendiente de Comercial" />);
+
+    const pasos = screen.getAllByRole('listitem');
+    expect(within(pasos[2]!).getByText('Pendiente de Comercial')).toBeInTheDocument();
+    expect(screen.getAllByText('Pendiente de Comercial')).toHaveLength(1);
+  });
+
+  it('en un servicio cerrado no hay etapa actual y por tanto no muestra el pendiente', () => {
+    render(<LineaTiempoEtapas estado="FACTURADO" pendienteDe="Pendiente de Comercial" />);
+
+    expect(screen.queryByText('Pendiente de Comercial')).not.toBeInTheDocument();
+  });
 });

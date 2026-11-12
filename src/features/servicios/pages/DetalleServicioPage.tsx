@@ -17,11 +17,18 @@ import { StatusBadge } from '@/shared/ui/StatusBadge';
 
 import AccionesServicio from '../components/AccionesServicio';
 import { etapasSiguientes, rolesPendientes } from '../etapasSiguientes';
+import { resumenEtapas } from '../resumenEtapas';
 import styles from './DetalleServicioPage.module.css';
 
 /** En COTIZADO la pantalla de cotización sirve para registrar la respuesta del cliente. */
 const etiquetaEtapa = (ruta: string, estado: string): string =>
   ruta === 'cotizacion' && estado === 'COTIZADO' ? 'respuesta' : ruta;
+
+const CLAVE_RESPUESTA = {
+  PENDIENTE: 'respuestaPendiente',
+  APROBADA: 'respuestaAprobada',
+  RECHAZADA: 'respuestaRechazada',
+} as const;
 
 export function DetalleServicioPage(): React.JSX.Element {
   const { id = '' } = useParams();
@@ -39,7 +46,16 @@ export function DetalleServicioPage(): React.JSX.Element {
 
   const estado = servicio.estado;
   const fotos = adjuntos.filter((adjunto) => adjunto.tipo === 'FOTO_INGRESO');
+  const fotosSalida = adjuntos.filter((adjunto) => adjunto.tipo === 'FOTO_SALIDA');
   const siguientes = etapasSiguientes(estado, roles);
+  const pendienteDe =
+    estado !== 'BORRADOR' && !esFinal(estado) && siguientes.length === 0
+      ? t('etapas:pendiente', {
+          rol: rolesPendientes(estado)
+            .map((rol) => t(`etapas:roles.${rol}`))
+            .join(', '),
+        })
+      : undefined;
 
   return (
     <div className={styles.pagina!}>
@@ -79,7 +95,13 @@ export function DetalleServicioPage(): React.JSX.Element {
           </div>
         </dl>
         <div className={styles.timeline!}>
-          <LineaTiempoEtapas estado={estado} />
+          <LineaTiempoEtapas
+            estado={estado}
+            resumenes={resumenEtapas(servicio, (respuesta) =>
+              t(`etapas:cotizacion.${CLAVE_RESPUESTA[respuesta]}`)
+            )}
+            pendienteDe={pendienteDe}
+          />
         </div>
       </Card>
 
@@ -87,6 +109,13 @@ export function DetalleServicioPage(): React.JSX.Element {
         <h2>{t('adjuntos:titulo')}</h2>
         {fotos.length > 0 ? <PhotoGallery adjuntos={fotos} /> : null}
       </Card>
+
+      {fotosSalida.length > 0 ? (
+        <Card fill>
+          <h2>{t('detalle.fotosSalida')}</h2>
+          <PhotoGallery adjuntos={fotosSalida} />
+        </Card>
+      ) : null}
 
       {servicio.estado === 'BORRADOR' ? (
         <div className={styles.acciones!}>
@@ -119,15 +148,7 @@ export function DetalleServicioPage(): React.JSX.Element {
             )
           )}
         </div>
-      ) : (
-        <p className={styles.pendiente!}>
-          {t('etapas:pendiente', {
-            rol: rolesPendientes(servicio.estado)
-              .map((rol) => t(`etapas:roles.${rol}`))
-              .join(', '),
-          })}
-        </p>
-      )}
+      ) : null}
 
       <AccionesServicio
         servicio={servicio}

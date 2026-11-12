@@ -6,8 +6,10 @@ import { Icon } from '@/shared/ui/Icon';
 
 import styles from './LineaTiempoEtapas.module.css';
 
+export type PasoClave = 'recepcion' | 'diagnostico' | 'orden' | 'entrega' | 'facturacion';
+
 interface Paso {
-  readonly clave: 'recepcion' | 'diagnostico' | 'orden' | 'entrega' | 'facturacion';
+  readonly clave: PasoClave;
 }
 
 const PASOS: readonly Paso[] = [
@@ -38,9 +40,13 @@ const PROGRESO: Readonly<Record<EstadoServicio, Progreso>> = {
 
 interface Props {
   readonly estado: EstadoServicio;
+  /** Una línea de resumen bajo cada paso que ya tiene datos (p. ej. el diagnóstico). */
+  readonly resumenes?: Partial<Record<PasoClave, string>>;
+  /** Quién debe avanzar la etapa actual cuando el usuario no puede (p. ej. "Pendiente de Comercial"). */
+  readonly pendienteDe?: string | undefined;
 }
 
-export function LineaTiempoEtapas({ estado }: Props): React.JSX.Element {
+export function LineaTiempoEtapas({ estado, resumenes, pendienteDe }: Props): React.JSX.Element {
   const { t } = useTranslation('servicios');
   const progreso = PROGRESO[estado];
 
@@ -68,7 +74,15 @@ export function LineaTiempoEtapas({ estado }: Props): React.JSX.Element {
                 <span className={styles.numero!}>{indice + 1}</span>
               )}
             </span>
-            <span className={styles.etiqueta!}>{t(`detalle.timeline.${paso.clave}`)}</span>
+            <span className={styles.texto!}>
+              <span className={styles.etiqueta!}>{t(`detalle.timeline.${paso.clave}`)}</span>
+              {resumenes?.[paso.clave] ? (
+                <span className={styles.resumen!}>{resumenes[paso.clave]}</span>
+              ) : null}
+              {actual && pendienteDe ? (
+                <span className={styles['pendiente-de']!}>{pendienteDe}</span>
+              ) : null}
+            </span>
             <span className={styles.oculto!}>{estadoPaso}</span>
           </li>
         );

@@ -68,3 +68,22 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  min-width: 0;
+}
+
+.resumen {
+  font-size: var(--texto-xs);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.pendiente-de {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+  color: var(--advertencia);
+}
