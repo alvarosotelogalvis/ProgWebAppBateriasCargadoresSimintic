@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { CONFIG_DEFECTO } from '@/domain/config';
 import { MenuTecnicoPage } from './MenuTecnicoPage';
 
 vi.mock('./EstadoDispositivo', () => ({
@@ -42,17 +43,17 @@ describe('MenuTecnicoPage', () => {
   });
 
   it('renderiza tab dispositivo por defecto', () => {
-    const config = {} as Record<string, unknown>;
+    const config = CONFIG_DEFECTO;
     render(<MenuTecnicoPage config={config} />);
 
     expect(screen.getByTestId('estado-dispositivo')).toBeInTheDocument();
   });
 
   it('cambia tab al hacer clic', async () => {
-    const config = {} as Record<string, unknown>;
+    const config = CONFIG_DEFECTO;
     render(<MenuTecnicoPage config={config} />);
 
-    const sharePointTab = screen.getAllByRole('button')[1];
+    const sharePointTab = screen.getAllByRole('button')[1]!;
     fireEvent.click(sharePointTab);
 
     await waitFor(() => {
@@ -61,10 +62,10 @@ describe('MenuTecnicoPage', () => {
   });
 
   it('navega a tab logs', async () => {
-    const config = {} as Record<string, unknown>;
+    const config = CONFIG_DEFECTO;
     render(<MenuTecnicoPage config={config} />);
 
-    const logsTab = screen.getAllByRole('button')[2];
+    const logsTab = screen.getAllByRole('button')[2]!;
     fireEvent.click(logsTab);
 
     await waitFor(() => {
@@ -73,7 +74,7 @@ describe('MenuTecnicoPage', () => {
   });
 
   it('renderiza botones de acciones', () => {
-    const config = {} as Record<string, unknown>;
+    const config = CONFIG_DEFECTO;
     render(<MenuTecnicoPage config={config} />);
 
     const buttons = screen.getAllByRole('button');
@@ -82,18 +83,17 @@ describe('MenuTecnicoPage', () => {
 
   it('llama callback onRestablecerApp cuando se hace clic', async () => {
     const mockRestablecer = vi.fn();
-    const config = {} as Record<string, unknown>;
+    const config = CONFIG_DEFECTO;
 
     render(<MenuTecnicoPage config={config} onRestablecerApp={mockRestablecer} />);
 
     const buttons = screen.getAllByRole('button');
     const restablecerBtn = buttons.find((btn) => btn.textContent === 'restablecer_app');
 
-    if (restablecerBtn) {
-      fireEvent.click(restablecerBtn);
-      await waitFor(() => {
-        expect(mockRestablecer).toHaveBeenCalled();
-      });
-    }
+    expect(restablecerBtn).toBeDefined();
+    fireEvent.click(restablecerBtn!);
+    await waitFor(() => {
+      expect(mockRestablecer).toHaveBeenCalled();
+    });
   });
 });

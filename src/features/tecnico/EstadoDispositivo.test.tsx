@@ -37,7 +37,7 @@ describe('EstadoDispositivo', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Linux x86_64')).toBeInTheDocument();
-      expect(screen.getByText(/Chrome/)).toBeInTheDocument();
+      expect(screen.getByText('Chrome')).toBeInTheDocument();
     });
   });
 

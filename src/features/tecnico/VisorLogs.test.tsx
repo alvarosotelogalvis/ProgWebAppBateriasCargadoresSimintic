@@ -45,7 +45,7 @@ describe('VisorLogs', () => {
 
     render(<VisorLogs />);
 
-    const selectNivel = screen.getByDisplayValue('');
+    const selectNivel = screen.getByLabelText('Nivel');
     fireEvent.change(selectNivel, { target: { value: 'error' } });
 
     await waitFor(() => {
@@ -63,7 +63,7 @@ describe('VisorLogs', () => {
 
     render(<VisorLogs />);
 
-    const inputBusqueda = screen.getByPlaceholderText('Filtrar');
+    const inputBusqueda = screen.getByLabelText('Evento');
     fireEvent.change(inputBusqueda, { target: { value: 'sync' } });
 
     await waitFor(() => {
@@ -81,16 +81,29 @@ describe('VisorLogs', () => {
 
     render(<VisorLogs />);
 
-    expect(screen.getByText('Fecha')).toBeInTheDocument();
-    expect(screen.getByText('Nivel')).toBeInTheDocument();
-    expect(screen.getByText('Evento')).toBeInTheDocument();
-    expect(screen.getByText('Mensaje')).toBeInTheDocument();
+    for (const nombre of ['Fecha', 'Nivel', 'Evento', 'Mensaje']) {
+      expect(screen.getByRole('columnheader', { name: nombre })).toBeInTheDocument();
+    }
+    await waitFor(() => expect(screen.getByText('Sin cambios')).toBeInTheDocument());
+  });
+
+  it('muestra una fila por log con su nivel en mayúsculas y su evento', async () => {
+    vi.spyOn(loggerModule, 'consultarLogs').mockResolvedValue([
+      {
+        seq: 1,
+        ts: '2026-10-21T08:00:00.000Z',
+        nivel: 'error',
+        evento: 'sync.fallo',
+        datos: { x: 1 },
+      },
+      { seq: 2, ts: '2026-10-21T08:01:00.000Z', nivel: 'info', evento: 'sync.ok' },
+    ]);
 
     render(<VisorLogs />);
 
-    await waitFor(() => {
-      const errorCell = screen.getByText('ERROR');
-      expect(errorCell).toHaveStyle('color: var(--color-peligro)');
-    });
+    expect(await screen.findByRole('cell', { name: 'ERROR' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'INFO' })).toBeInTheDocument();
+    expect(screen.getByText('sync.fallo')).toBeInTheDocument();
+    expect(screen.getByText('{"x":1}')).toBeInTheDocument();
   });
 });

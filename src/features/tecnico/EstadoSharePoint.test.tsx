@@ -1,95 +1,81 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { EstadoSharePoint } from './EstadoSharePoint';
-import type { ConfigApp } from '@/domain/config';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => {
-      const map: Record<string, string> = {
-        'tecnico:estado_sharepoint': 'Estado de SharePoint',
-        'tecnico:sitio_sharepoint': 'Sitio de SharePoint',
-        'tecnico:id_lista_servicios': 'ID de lista Servicios',
-        'tecnico:id_biblioteca_adjuntos': 'ID de biblioteca Adjuntos',
-        'tecnico:ultima_sincronizacion': 'Última sincronización',
-        'tecnico:metodo_descarga': 'Método de descarga',
-        'tecnico:id_correlacion': 'ID de correlación',
-        'comun:comun.cargando': 'Cargando...',
-      };
-      return map[`tecnico:${key}`] || map[`comun:${key}`] || key;
-    },
-  }),
-}));
+import { CLAVES_META } from '@/application/setup/claves';
+import '@/shared/i18n';
+import { EstadoSharePoint } from './EstadoSharePoint';
+
+let meta: Record<string, unknown> = {};
 
 vi.mock('@/shared/hooks/useDb', () => ({
   useDb: () => ({
-    logs: {
-      orderBy: () => ({
-        reverse: () => ({
-          filter: () => ({
-            limit: () => ({
-              toArray: vi.fn().mockResolvedValue([]),
-            }),
-          }),
-        }),
-      }),
+    meta: {
+      get: async (clave: string) => (clave in meta ? { clave, valor: meta[clave] } : undefined),
     },
   }),
 }));
 
+const CONFIGURADO = {
+  [CLAVES_META.sitio]: 'ServicioTecnicoBC-DEV',
+  [CLAVES_META.siteId]: 'site-123',
+  [CLAVES_META.webUrl]: 'https://tenant.sharepoint.com/sites/baterias',
+  [CLAVES_META.listIds]: { Servicios: 'lista-servicios-1', Clientes: 'lista-clientes-2' },
+  [CLAVES_META.driveId]: 'biblioteca-adjuntos-9',
+  [CLAVES_META.ultimaSyncEn]: '2026-10-21T08:00:00.000Z',
+  [CLAVES_META.ultimoCorrelationId]: 'corr-abc',
+};
+
+beforeEach(() => {
+  meta = {};
+});
+
 describe('EstadoSharePoint', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  it('muestra la configuración del sitio guardada en la base local', async () => {
+    meta = { ...CONFIGURADO };
+    render(<EstadoSharePoint />);
+
+    expect(await screen.findByText('ServicioTecnicoBC-DEV')).toBeInTheDocument();
   });
 
-  it('muestra configuración del sitio', async () => {
-    const config: ConfigApp = {
-      SitioUrl: 'https://tenant.sharepoint.com/sites/baterias',
-      IdListaServicios: 'list-123',
-      IdBibliotecaAdjuntos: 'lib-456',
-      TenantId: 'tenant-789',
-      ClientId: 'client-000',
-      DiagnosticoValorDisposicionFinal: 'Disposición Final',
-    };
+  it('muestra el id de la lista Servicios y el de la biblioteca de adjuntos', async () => {
+    meta = { ...CONFIGURADO };
+    render(<EstadoSharePoint />);
 
-    render(<EstadoSharePoint config={config} />);
-
-    await waitFor(() => {
-      expect(screen.getByText('https://tenant.sharepoint.com/sites/baterias')).toBeInTheDocument();
-      expect(screen.getByText('list-123')).toBeInTheDocument();
-      expect(screen.getByText('lib-456')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('lista-servicios-1')).toBeInTheDocument();
+    expect(screen.getByText('biblioteca-adjuntos-9')).toBeInTheDocument();
   });
 
-  it('muestra método de descarga como Microsoft Graph', async () => {
-    const config = {
-      SitioUrl: 'https://example.sharepoint.com',
-    } as unknown as ConfigApp;
+  it('muestra el método de descarga y el último id de correlación', async () => {
+    meta = { ...CONFIGURADO };
+    render(<EstadoSharePoint />);
 
-    render(<EstadoSharePoint config={config} />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Microsoft Graph')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Microsoft Graph')).toBeInTheDocument();
+    expect(screen.getByText('corr-abc')).toBeInTheDocument();
   });
 
-  it('muestra "Nunca" si no hay sincronización', async () => {
-    const config = {} as unknown as ConfigApp;
+  it('muestra la fecha de la última sincronización cuando existe', async () => {
+    meta = { ...CONFIGURADO };
+    render(<EstadoSharePoint />);
 
-    render(<EstadoSharePoint config={config} />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Nunca')).toBeInTheDocument();
-    });
+    const esperado = new Date('2026-10-21T08:00:00.000Z').toLocaleString('es-CO');
+    const normalizar = (texto: string) => texto.replace(/\s/g, ' ');
+    expect(
+      await screen.findByText((contenido) => normalizar(contenido) === normalizar(esperado))
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Nunca')).not.toBeInTheDocument();
   });
 
-  it('muestra valores por defecto si no están configurados', async () => {
-    const config = {} as unknown as ConfigApp;
+  it('muestra "Nunca" si todavía no hubo sincronización', async () => {
+    meta = { ...CONFIGURADO, [CLAVES_META.ultimaSyncEn]: undefined };
+    render(<EstadoSharePoint />);
 
-    render(<EstadoSharePoint config={config} />);
+    expect(await screen.findByText('Nunca')).toBeInTheDocument();
+  });
 
-    await waitFor(() => {
-      expect(screen.getByText('No configurado')).toBeInTheDocument();
-    });
+  it('sin configuración muestra "No configurado" en los datos del sitio', async () => {
+    render(<EstadoSharePoint />);
+
+    await waitFor(() => expect(screen.getAllByText('No configurado')).toHaveLength(3));
+    expect(screen.getByText('N/A')).toBeInTheDocument();
   });
 });

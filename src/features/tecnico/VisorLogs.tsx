@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EntradaLog } from '@/infrastructure/db/dexie';
 import { consultarLogs } from '@/infrastructure/logging/logger';
@@ -12,6 +12,8 @@ interface FiltrosLogs {
 export function VisorLogs(): React.JSX.Element {
   const { t } = useTranslation('tecnico');
   const db = useDb();
+  const idNivel = useId();
+  const idBusqueda = useId();
   const [logs, setLogs] = useState<EntradaLog[]>([]);
   const [filtros, setFiltros] = useState<FiltrosLogs>({});
   const [cargando, setCargando] = useState(false);
@@ -55,10 +57,11 @@ export function VisorLogs(): React.JSX.Element {
         }}
       >
         <div>
-          <label style={{ display: 'block', marginBottom: 'var(--espacio-1)' }}>
+          <label htmlFor={idNivel} style={{ display: 'block', marginBottom: 'var(--espacio-1)' }}>
             <strong>{t('nivel_log')}</strong>
           </label>
           <select
+            id={idNivel}
             value={filtros.nivel || ''}
             onChange={(e) =>
               setFiltros({
@@ -83,10 +86,14 @@ export function VisorLogs(): React.JSX.Element {
         </div>
 
         <div>
-          <label style={{ display: 'block', marginBottom: 'var(--espacio-1)' }}>
+          <label
+            htmlFor={idBusqueda}
+            style={{ display: 'block', marginBottom: 'var(--espacio-1)' }}
+          >
             <strong>{t('evento')}</strong>
           </label>
           <input
+            id={idBusqueda}
             type="text"
             value={filtros.busqueda || ''}
             onChange={(e) => setFiltros({ ...filtros, busqueda: e.target.value })}
