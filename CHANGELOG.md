@@ -62,6 +62,11 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- La PWA no se podía instalar: faltaban los íconos que referencia el manifest (`public/icons/`).
+  Se agregaron los provisionales y una pantalla de arranque estática que se ve antes de cargar el JS.
+- Una trampa de configuración: el build de producción también falla ahora si faltan o son
+  placeholders el cliente/tenant de Entra ID y el sitio de SharePoint (`.env.production.example`).
+- Los registros no deben contener credenciales en URLs: se redactan `token`, `sig`, `tempauth`, etc.
 - Los servicios cerrados nunca se purgaban (la purga leía un campo inexistente): ahora se usa la
   última modificación y se borran también sus adjuntos (antes quedaban huérfanos). Se eliminó la
   segunda implementación de purgas, que nadie usaba.

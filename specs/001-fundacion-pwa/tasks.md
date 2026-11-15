@@ -36,7 +36,7 @@
 - [ ] T019 `escalaFuente.ts`, `useBreakpoint.ts` y `breakpoints.ts` (600 / 1024 / 1440) + `providers.tsx` (I18nextProvider, `RouterProvider` de React Aria con `useNavigate`, `I18nProvider locale="es-CO"` de React Aria, ErrorBoundary raíz) — `src/app/`, `src/shared/hooks/`, `src/shared/ui/breakpoints.ts`
 - [ ] T020 Vitest (jsdom, setup de jest-dom, `coverage.thresholds`: domain/application 90 %, global 70 %) + Playwright (proyectos chromium-mobile 360×740, chromium-tablet 768×1024, chromium-desktop 1280×800 y webkit-mobile; `webServer` = `npm run preview`) con una prueba trivial de cada uno — `vitest.config.ts`, `playwright.config.ts`
 - [ ] T021 `vite-plugin-pwa`: manifest de SDD §11.1 con `theme_color #4A4AF8` y `background_color #1F6FE5`, `registerType: 'prompt'`, precaché (**incluye `woff2` y `svg`**), `navigateFallback`, sin runtime caching de Graph ni login, `cleanupOutdatedCaches`. `index.html` con `apple-touch-icon`, `apple-mobile-web-app-capable`, `robots noindex`, `lang="es-CO"` y `viewport-fit=cover` — `vite.config.ts`, `index.html`
-- [ ] T022 [P] Íconos provisionales de la app ("ST" en un círculo blanco sobre el degradado principal; 192, 512, maskable 512, apple 180) — `public/icons/`
+- [x] T022 [P] Íconos provisionales de la app ("ST" en un círculo blanco sobre el degradado principal; 192, 512, maskable 512, apple 180) — `public/icons/`
 - [ ] T023 [P] `public/_headers` (SDD §14.2 **sin** `style-src 'unsafe-inline'`, con `font-src 'self'`) y `public/robots.txt` (`Disallow: /`) — `public/`
 
 ## Fase 3 — Sistema de diseño base (bloquea las pantallas) — HU-001-7 (P1)

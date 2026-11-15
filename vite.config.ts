@@ -30,12 +30,35 @@ export default defineConfig(({ mode }) => {
     );
   }
 
+  if (mode === 'production') {
+    const pendientes = [
+      'VITE_ENTRA_CLIENT_ID',
+      'VITE_ENTRA_TENANT_ID',
+      'VITE_SHAREPOINT_SITE_URL',
+      'VITE_SHAREPOINT_SITE_NAME',
+    ].filter((nombre) => {
+      const valor = env[nombre] ?? process.env[nombre] ?? '';
+      return (
+        valor === '' ||
+        /^0{8}-0{4}-0{4}-0{4}-0{12}$/.test(valor) ||
+        /contoso|TU-TENANT/i.test(valor)
+      );
+    });
+    if (pendientes.length > 0) {
+      throw new Error(
+        `El build de producción tiene valores sin configurar: ${pendientes.join(', ')}. ` +
+          'Completa .env.production a partir de .env.production.example.'
+      );
+    }
+  }
+
   return {
     plugins: [
       react(),
       svgr(),
       VitePWA({
         registerType: 'prompt',
+        injectRegister: 'script-defer',
         includeAssets: ['icons/*.png'],
         manifest: {
           name: 'Servicio Técnico Baterías y Cargadores',
