@@ -183,4 +183,18 @@ describe('sanitizar', () => {
 
     expect(nivel5).toBe('[profundidad-maxima]');
   });
+
+  it('redacta credenciales en la query de las URLs y conserva el resto', () => {
+    const limpio = sanitizar({
+      url: 'https://graph.microsoft.com/v1.0/me?token=abc123&select=mail',
+      subida: 'https://x.sharepoint.com/up?tempauth=zzz&sig=qq',
+      sinQuery: 'https://graph.microsoft.com/v1.0/me',
+      texto: 'no es una url?token=visible',
+    }) as Record<string, string>;
+
+    expect(limpio.url).toBe('https://graph.microsoft.com/v1.0/me?token=[redactado]&select=mail');
+    expect(limpio.subida).toBe('https://x.sharepoint.com/up?tempauth=[redactado]&sig=[redactado]');
+    expect(limpio.sinQuery).toBe('https://graph.microsoft.com/v1.0/me');
+    expect(limpio.texto).toBe('no es una url?token=visible');
+  });
 });

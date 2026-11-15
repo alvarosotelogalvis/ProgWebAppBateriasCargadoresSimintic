@@ -22,12 +22,18 @@ const esSensible = (clave: string): boolean => {
   return CLAVES_SENSIBLES.some((sensible) => normalizada.includes(sensible));
 };
 
+const PARAMETROS_SENSIBLES =
+  /([?&](?:token|access_token|sig|signature|tempauth|code|key)=)[^&#\s]*/gi;
+
+/** Las URLs con credenciales en la query (sesiones de subida, miniaturas) no deben llegar al log. */
+const limpiarTexto = (texto: string): string =>
+  /^https?:\/\//i.test(texto) ? texto.replace(PARAMETROS_SENSIBLES, '$1[redactado]') : texto;
+
 const limpiar = (valor: unknown, profundidad = 0): unknown => {
   if (profundidad > 4) return '[profundidad-maxima]';
   if (valor === null || valor === undefined) return valor;
-  if (typeof valor === 'string' || typeof valor === 'number' || typeof valor === 'boolean') {
-    return valor;
-  }
+  if (typeof valor === 'string') return limpiarTexto(valor);
+  if (typeof valor === 'number' || typeof valor === 'boolean') return valor;
   if (typeof Blob !== 'undefined' && valor instanceof Blob) return '[blob]';
   if (Array.isArray(valor)) return valor.map((elemento) => limpiar(elemento, profundidad + 1));
   if (typeof valor === 'object') {
