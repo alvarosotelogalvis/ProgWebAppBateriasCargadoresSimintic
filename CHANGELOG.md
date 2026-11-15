@@ -62,6 +62,9 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- El arranque descarga MSAL bajo demanda (chunk aparte de 64 KB gzip): el bundle inicial baja de 333 a
+  269 KB gzip y en modo `mock` MSAL no se descarga. Un arranque normal ya no espera a MSAL para el
+  primer render; si la URL trae la respuesta del login, se resuelve antes de pintar, como antes.
 - La PWA no se podía instalar: faltaban los íconos que referencia el manifest (`public/icons/`).
   Se agregaron los provisionales y una pantalla de arranque estática que se ve antes de cargar el JS.
 - Una trampa de configuración: el build de producción también falla ahora si faltan o son

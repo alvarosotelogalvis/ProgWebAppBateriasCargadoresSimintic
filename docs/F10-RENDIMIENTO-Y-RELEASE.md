@@ -40,3 +40,11 @@ Medir de nuevo contra la URL de DEV real (esta medición fue local y sin HTTP/2 
 ## Pendiente de F10 (no automatizable)
 
 F10.1 matriz de dispositivos (Android, iOS, Windows), revisión con TalkBack/VoiceOver, F10.7 piloto de una semana y el despliegue a PRD con el tenant real.
+
+## Carga diferida de MSAL (2026-11-15)
+
+`@azure/msal-browser` ya no está en el bundle inicial: `msalInstance.ts` lo importa dinámicamente y lo inicializa una sola vez. En modo `mock` (DEV y pruebas) nunca se descarga. En producción se descarga en paralelo mientras la app arranca, y el contenedor lo espera antes de leer la cuenta. Si la URL trae la respuesta del login (`#code=`, `error=`, `state=`…), el redirect se resuelve **antes** de pintar la app, igual que antes; en un arranque normal ya no se bloquea el primer render. `handleRedirectPromise` se sigue llamando siempre (limpia el estado de un login abandonado).
+
+Verificado en un build con `VITE_AUTH_MODE=msal`: el chunk se descarga, la app llega al asistente sin errores de consola, incluso con una respuesta de login falsa en la URL.
+
+**Efecto sobre Lighthouse**: el bundle bajó 64 KB gzip, pero la nota móvil simulada sigue entre 50 y 70 y **varía ±15 puntos entre ejecuciones en esta máquina**, así que no se puede atribuir una mejora medible. También se probó una entrada mínima que cargara el resto después del primer pintado: no mejoró y empeoró el TBT medido, y se descartó. Lo que queda por pesar es react-dom + react-router + zod + react-aria (≈1,5 MB sin comprimir) y el trabajo de renderizar la primera pantalla. Medir en la URL de DEV real (HTTP/2, CDN, dispositivo real) antes de decidir más cambios.

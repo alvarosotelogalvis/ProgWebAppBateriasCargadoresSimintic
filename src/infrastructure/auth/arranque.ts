@@ -37,12 +37,26 @@ export function leerRechazoAuth(): CodigoRechazoAuth | undefined {
  * Inicializa MSAL y completa un redirect pendiente antes de renderizar (FR-004-03).
  * Devuelve el codigo de rechazo cuando la cuenta no es valida.
  */
-export async function prepararAutenticacion(): Promise<CodigoRechazoAuth | undefined> {
+export function prepararAutenticacion(): Promise<CodigoRechazoAuth | undefined> {
+  preparacion ??= procesarRedirect();
+  return preparacion;
+}
+
+let preparacion: Promise<CodigoRechazoAuth | undefined> | undefined;
+
+/**
+ * ¿La URL trae la respuesta de un inicio de sesión (redirect de Entra ID)? Solo entonces hay que
+ * resolverla antes de pintar la app; en un arranque normal MSAL puede cargarse sin bloquear.
+ */
+export function urlTraeRespuestaDeLogin(ubicacion: Pick<Location, 'hash' | 'search'>): boolean {
+  return /[#?&](code|error|id_token|state)=/.test(`${ubicacion.hash}${ubicacion.search}`);
+}
+
+async function procesarRedirect(): Promise<CodigoRechazoAuth | undefined> {
   const env = obtenerEnv();
   if (!env.ok || env.env.VITE_AUTH_MODE === 'mock') return undefined;
 
-  const msal = obtenerMsalInstance();
-  await msal.initialize();
+  const msal = await obtenerMsalInstance();
   const resultado = await msal.handleRedirectPromise();
   if (!resultado?.account) return undefined;
 
@@ -74,7 +88,7 @@ export async function prepararAutenticacion(): Promise<CodigoRechazoAuth | undef
 /** Tras un rechazo, permite elegir otra cuenta sin cerrar la sesion de Microsoft. */
 export async function reintentarAcceso(): Promise<void> {
   borrarSesion(CLAVE_RECHAZO_AUTH);
-  const msal = obtenerMsalInstance();
+  const msal = await obtenerMsalInstance();
   await msal.loginRedirect({ scopes: SCOPES_LOGIN, prompt: 'select_account' });
 }
 

@@ -54,6 +54,7 @@ import { ImageProcessorCanvas } from '@/infrastructure/media/imageProcessor';
 import { StorageNavegador } from '@/infrastructure/pwa/storage';
 import { SystemClock } from '@/infrastructure/reloj/systemClock';
 import { MsalAuthAdapter } from '@/infrastructure/auth/msalAuthAdapter';
+import { prepararAutenticacion } from '@/infrastructure/auth/arranque';
 import { obtenerMsalInstance } from '@/infrastructure/auth/msalInstance';
 import { MockAuthAdapter } from '@/infrastructure/auth/mockAuthAdapter';
 import { crearGraphClient, type GraphClient } from '@/infrastructure/graph/graphClient';
@@ -120,7 +121,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
   const meta = new MetaRepositoryDexie(db, ids);
   const uow = new UnidadDeTrabajoDexie(db, servicios, adjuntos);
   const logger = deps.logger ?? new LoggerDexie(db);
-  const auth = deps.auth ?? crearAuth(env, meta, logger);
+  const auth = deps.auth ?? (await crearAuth(env, meta, logger));
   // Configuración vigente: la guardada por la configuración inicial o el último sync (SDD §16.3).
   const configActual = new ConfigActual(
     deps.config ?? (await cargarConfigGuardada(catalogosDexie))
@@ -314,9 +315,11 @@ function leerEntorno(): Entorno {
   return resultado.env;
 }
 
-function crearAuth(env: Entorno, meta: MetaRepository, logger: Logger): AuthPort {
+async function crearAuth(env: Entorno, meta: MetaRepository, logger: Logger): Promise<AuthPort> {
   if (env.VITE_AUTH_MODE === 'mock') return new MockAuthAdapter();
-  return new MsalAuthAdapter({ cliente: obtenerMsalInstance(), meta, logger });
+  // `obtenerMsalInstance` descarga MSAL aquí, bajo demanda. Antes se completa un redirect pendiente (idempotente).
+  await prepararAutenticacion();
+  return new MsalAuthAdapter({ cliente: await obtenerMsalInstance(), meta, logger });
 }
 
 export type CasosDeUsoServicios = Container['casosDeUso'];
