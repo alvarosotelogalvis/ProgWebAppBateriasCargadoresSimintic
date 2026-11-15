@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useContainer } from '@/app/containerContext';
 import { esFinal } from '@/domain/estados';
 import { useAdjuntos, useServicio } from '@/infrastructure/db/hooks';
+import { useOnline } from '@/shared/hooks/useOnline';
 import { useSesionStore } from '@/shared/stores/sesionStore';
+import { BannerConflicto } from '@/features/sincronizacion/components/BannerConflicto';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { LineaTiempoEtapas } from '@/shared/ui/LineaTiempoEtapas';
+import { ListRow } from '@/shared/ui/ListRow';
 import { PhotoGallery } from '@/shared/ui/PhotoGallery';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
@@ -39,6 +42,13 @@ export function DetalleServicioPage(): React.JSX.Element {
   const adjuntos = useAdjuntos(id);
   const roles = useSesionStore((estado) => estado.roles);
   const [confirmar, setConfirmar] = useState(false);
+  const enLinea = useOnline();
+
+  // Con conexión se registran los archivos que el servicio tiene en SharePoint (FR-006-13).
+  useEffect(() => {
+    if (!id || !enLinea) return;
+    void container.listarAdjuntosRemotos(id).catch(() => undefined);
+  }, [id, enLinea, container]);
 
   if (!servicio) {
     return <EmptyState titulo={t('detalle.noEncontrado')} icono="servicios" />;
@@ -47,6 +57,10 @@ export function DetalleServicioPage(): React.JSX.Element {
   const estado = servicio.estado;
   const fotos = adjuntos.filter((adjunto) => adjunto.tipo === 'FOTO_INGRESO');
   const fotosSalida = adjuntos.filter((adjunto) => adjunto.tipo === 'FOTO_SALIDA');
+  const documentosRemotos = adjuntos.filter(
+    (adjunto) =>
+      adjunto.blob === null && adjunto.sp !== undefined && !adjunto.mime.startsWith('image/')
+  );
   const siguientes = etapasSiguientes(estado, roles);
   const pendienteDe =
     estado !== 'BORRADOR' && !esFinal(estado) && siguientes.length === 0
@@ -62,6 +76,8 @@ export function DetalleServicioPage(): React.JSX.Element {
       <button type="button" className={styles.volver!} onClick={() => navigate('/servicios')}>
         {t('detalle.volver')}
       </button>
+
+      {servicio.syncState === 'conflict' && <BannerConflicto servicioId={servicio.id} />}
 
       <Card fill>
         <div className={styles.cabecera!}>
@@ -109,6 +125,33 @@ export function DetalleServicioPage(): React.JSX.Element {
         <h2>{t('adjuntos:titulo')}</h2>
         {fotos.length > 0 ? <PhotoGallery adjuntos={fotos} /> : null}
       </Card>
+
+      {documentosRemotos.length > 0 ? (
+        <Card fill>
+          <h2>{t('adjuntos:remoto.documentos')}</h2>
+          <ul className={styles.documentos!}>
+            {documentosRemotos.map((documento) => (
+              <li key={documento.id}>
+                <ListRow
+                  icono="descripcion"
+                  etiqueta={documento.nombreArchivo}
+                  descripcion={
+                    enLinea
+                      ? `${t('adjuntos:remoto.badge')} · ${(documento.tamanoBytes / 1024).toFixed(0)} KB`
+                      : t('adjuntos:remoto.sinRed')
+                  }
+                  {...(enLinea && documento.sp
+                    ? {
+                        onClick: () =>
+                          window.open(documento.sp?.webUrl, '_blank', 'noopener,noreferrer'),
+                      }
+                    : {})}
+                />
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       {fotosSalida.length > 0 ? (
         <Card fill>

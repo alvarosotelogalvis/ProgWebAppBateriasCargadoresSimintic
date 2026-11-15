@@ -43,6 +43,23 @@ export class ServicioRepositoryDexie implements ServicioRepository {
     });
   }
 
+  async eliminarSincronizado(id: string): Promise<boolean> {
+    return this.db.transaction('rw', this.db.servicios, this.db.adjuntos, async () => {
+      const servicio = await this.db.servicios.get(id);
+      if (!servicio) return false;
+      if (servicio.syncState !== 'synced' || servicio.camposSucios.length > 0) return false;
+      const pendientes = await this.db.adjuntos
+        .where('servicioId')
+        .equals(id)
+        .filter((adjunto) => adjunto.syncState !== 'synced' || adjunto.eliminarRemoto)
+        .count();
+      if (pendientes > 0) return false;
+      await this.db.adjuntos.where('servicioId').equals(id).delete();
+      await this.db.servicios.delete(id);
+      return true;
+    });
+  }
+
   async purgarCerrados(antesDe: string): Promise<number> {
     return this.db.transaction('rw', this.db.servicios, this.db.adjuntos, async () => {
       const candidatos = await this.db.servicios

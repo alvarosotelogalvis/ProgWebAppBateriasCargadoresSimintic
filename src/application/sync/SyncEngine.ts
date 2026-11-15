@@ -28,6 +28,7 @@ import { crearResolutorPorDefecto, type ResolutorConflictos } from './resolutorC
 export interface ContextoFinSync {
   readonly correlationId: string;
   readonly resumen: ResumenSync;
+  readonly signal: AbortSignal;
 }
 
 export interface DepsSyncEngine {
@@ -214,7 +215,13 @@ export class MotorSync implements SyncEngine {
     const erroresResumen: ErrorBitacora[] = [];
     let abortado = false;
 
-    for (const referencia of pendientes) {
+    // Cola mutable: un 412 resuelto sin choque vuelve a la cola una sola vez (FR-006-07).
+    const cola = [...pendientes];
+    const reintentadosPorConflicto = new Set<string>();
+
+    for (let posicion = 0; posicion < cola.length; posicion += 1) {
+      const referencia = cola[posicion];
+      if (referencia === undefined) break;
       if (signal.aborted) {
         abortado = true;
         break;
@@ -269,13 +276,22 @@ export class MotorSync implements SyncEngine {
         const clase = clasificar(error);
 
         if (error instanceof ConflictoError) {
-          await this.entregarAConflicto(enCurso, error);
-          acumulado.conflictos += 1;
-          this.bus.emitir({
-            tipo: 'conflicto',
-            servicioId: enCurso.id,
-            campos: error.campos,
-          });
+          const resuelto = await this.entregarAConflicto(enCurso, error);
+          if (resuelto.syncState === 'conflict') {
+            acumulado.conflictos += 1;
+            this.bus.emitir({
+              tipo: 'conflicto',
+              servicioId: enCurso.id,
+              campos: error.campos,
+            });
+          } else if (
+            resuelto.syncState === 'pending' &&
+            !reintentadosPorConflicto.has(enCurso.id)
+          ) {
+            // Los cambios no chocan con los remotos: se reintenta la subida con el eTag nuevo.
+            reintentadosPorConflicto.add(enCurso.id);
+            cola.push(referencia);
+          }
           continue;
         }
 
@@ -322,9 +338,9 @@ export class MotorSync implements SyncEngine {
 
     const resumen = this.resumir(acumulado, abortado);
     await this.actualizarMeta(correlationId);
-    await this.ejecutarExtension(this.deps.despuesDelPush, { correlationId, resumen });
+    await this.ejecutarExtension(this.deps.despuesDelPush, { correlationId, resumen, signal });
     await this.registrarLog(correlationId, inicio, resumen, erroresResumen);
-    await this.ejecutarExtension(this.deps.alFinalizar, { correlationId, resumen });
+    await this.ejecutarExtension(this.deps.alFinalizar, { correlationId, resumen, signal });
 
     this.bus.emitir({ tipo: 'fin', resumen });
     this.deps.logger.info('sync.fin', {
@@ -381,7 +397,7 @@ export class MotorSync implements SyncEngine {
     };
   }
 
-  private async entregarAConflicto(servicio: Servicio, error: ConflictoError): Promise<void> {
+  private async entregarAConflicto(servicio: Servicio, error: ConflictoError): Promise<Servicio> {
     const actual = (await this.deps.servicios.obtener(servicio.id)) ?? servicio;
     const resolucion = await this.resolutor.resolver({ servicio: actual, error });
     const guardado: Servicio = {
@@ -398,7 +414,9 @@ export class MotorSync implements SyncEngine {
     this.deps.logger.warn('sync.conflicto', {
       servicioId: servicio.id,
       campos: error.campos,
+      resultado: guardado.syncState,
     });
+    return guardado;
   }
 
   private async registrarReintento(servicio: Servicio, error: unknown): Promise<void> {

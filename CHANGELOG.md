@@ -9,6 +9,24 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Spec 006: Sincronización de descarga y conflictos.** Después de subir, la sincronización descarga
+  lo que otros dispositivos crearon o cambiaron en SharePoint y refresca catálogos y configuración.
+  - Descarga incremental por delta de la lista (paginada, con recuperación si el `deltaLink`
+    caduca); los cerrados solo dentro de la retención. El punto de continuación avanza solo cuando
+    todos los cambios quedaron aplicados, así que repetir la descarga es seguro.
+  - Combinación por campo (`mergeTresVias`) con la regla del estado más avanzado. Un servicio con
+    cambios pendientes nunca se sobrescribe ni se borra; si SharePoint lo eliminó y hay cambios
+    locales, queda en conflicto.
+  - Un 412 al subir se resuelve leyendo el ítem remoto: sin choque se reintenta una vez con el eTag
+    nuevo; con choque queda «En conflicto» y no se sube ese campo.
+  - Pantalla «Resolver conflicto» (tarjetas en compacto, tabla en expandido), aviso en el detalle y
+    pestaña «Conflictos» en Sincronización; elegir «Mi valor» o «SharePoint» por campo.
+  - Adjuntos de SharePoint en el detalle (con conexión): fotos con miniatura (hasta 50 por
+    sincronización, no con el almacenamiento al 80 % o más ni con la opción desactivada) y
+    documentos con «Abrir en SharePoint» (sin conexión, deshabilitado y explicado).
+  - Emulador de Graph con delta, eliminaciones, carpetas y miniaturas; pruebas de integración de
+    punta a punta con dos dispositivos.
+
 - **Spec 007: Etapas del servicio y roles.** Cada etapa guarda sus datos y avanza el estado por los
   casos de uso: diagnóstico (con rama de disposición final y confirmación), cotización con respuesta
   del cliente, orden de trabajo, entrega (con y sin reparación), facturación y anulación con motivo.
@@ -33,6 +51,8 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- `public/_headers` bloqueaba toda llamada a Graph y a Microsoft Entra en producción (`connect-src 'self'`):
+  ahora coincide con el SDD §14.2 (Graph, Entra ID y SharePoint para miniaturas).
 - Los mensajes de validación ausentes salían en inglés (API de Zod 3 con Zod 4): ahora son claves
   de traducción también cuando el campo falta.
 - Alertas de vida útil: la fecha se trata como texto `yyyy-MM-dd` (antes se desplazaba un día por la
@@ -61,6 +81,7 @@ adopta [SemVer](https://semver.org/lang/es/).
 - Sincronización (spec 005): progreso por servicio y archivo con cancelación ordenada, cola con
   % sincronizado y segmentos En cola · Con error · Conflictos, mensajes de error por código,
   acción "Reintentar" (reinicia los intentos) y resumen al terminar o si otra ventana ya sincroniza.
+
 - Componentes del sistema de diseño: `BarList`, `DonutProgress` y `Chip`.
 - Recordatorios de sincronización: contador de pendientes siempre al día en la barra superior,
   badge en "Sincronizar" (navegación e Inicio), aviso "¿Sincronizar ahora?" al volver la conexión

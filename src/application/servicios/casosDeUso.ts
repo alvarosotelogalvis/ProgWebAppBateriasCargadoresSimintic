@@ -6,6 +6,7 @@ import { crearCorregirCampos } from './corregirCampos';
 import { crearCrearBorrador } from './crearBorrador';
 import type { DepsServicios } from './deps';
 import { crearDescartarBorrador } from './descartarBorrador';
+import { crearResolverConflictos } from './resolverConflictos';
 
 export type { DepsServicios } from './deps';
 
@@ -17,4 +18,5 @@ export const crearCasosDeUso = (deps: DepsServicios) => ({
   corregirCampos: crearCorregirCampos(deps),
   cambiarRespuestaCotizacion: crearCambiarRespuestaCotizacion(deps),
   descartarBorrador: crearDescartarBorrador(deps),
+  resolverConflictos: crearResolverConflictos(deps),
 });

@@ -11,6 +11,8 @@ export const CLAVES_META = {
   driveId: 'driveId',
   ultimaSyncEn: 'ultimaSyncEn',
   ultimoCorrelationId: 'ultimoCorrelationId',
+  deltaLinkServicios: 'deltaLinkServicios',
+  metodoPull: 'metodoPull',
 } as const;
 
 export const CLAVES_CATALOGO = {

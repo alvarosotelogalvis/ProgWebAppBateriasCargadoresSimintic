@@ -41,7 +41,10 @@ const COLA: ColaSync = {
 vi.mock('@/infrastructure/pwa/registerSW', () => ({
   buscarActualizacion: vi.fn(async () => undefined),
 }));
-vi.mock('@/infrastructure/db/hooks', () => ({ useColaSync: vi.fn(() => COLA) }));
+vi.mock('@/infrastructure/db/hooks', () => ({
+  useColaSync: vi.fn(() => COLA),
+  useServicios: vi.fn(() => []),
+}));
 
 vi.mock('@/app/containerContext', () => ({ useContainer: vi.fn() }));
 vi.mock('@/shared/hooks/useOnline', () => ({ useOnline: vi.fn(() => true) }));

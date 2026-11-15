@@ -5,12 +5,17 @@ import type { IntencionSyncPort } from '@/application/ports/IntencionSyncPort';
 import type { Logger } from '@/application/ports/loggerPort';
 import type { MapeadorServicio } from '@/application/ports/mapeadorServicio';
 import type { MetaRepository } from '@/application/ports/metaRepository';
+import type { RemoteGatewayPull } from '@/application/ports/RemoteGatewayPull';
 import type { RemoteGatewayPush } from '@/application/ports/RemoteGatewayPush';
 import type { ServicioRepository } from '@/application/ports/servicioRepository';
 import type { StoragePort } from '@/application/ports/storagePort';
 import type { Uploader } from '@/application/ports/UploaderPort';
 import type { CasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearCasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
+import {
+  crearListarAdjuntosRemotos,
+  type ListarAdjuntosRemotos,
+} from '@/application/adjuntos/listarAdjuntosRemotos';
 import { crearCasosDeUso } from '@/application/servicios/casosDeUso';
 import { CLAVES_META } from '@/application/setup/claves';
 import {
@@ -30,6 +35,10 @@ import {
 } from '@/application/setup/configActual';
 import { sesionSyncVigente } from '@/application/sync/avisosSync';
 import { reintentarServicio } from '@/application/sync/reintentarServicio';
+import { crearDescargarMiniaturas } from '@/application/sync/descargarMiniaturas';
+import { crearDespuesDelPush } from '@/application/sync/despuesDelPush';
+import { crearPullServicios } from '@/application/sync/pullServicios';
+import { crearResolutorConflicto412 } from '@/application/sync/resolverConflicto412';
 import { MotorSync, type SyncEngine } from '@/application/sync/SyncEngine';
 import { ejecutarPurgas } from '@/application/sync/purgas';
 import type { ConfigApp } from '@/domain/config';
@@ -58,10 +67,13 @@ import { IntencionSyncSessionStorage } from '@/infrastructure/sync/intencionSync
 import { obtenerEnv, type Entorno } from '@/shared/env';
 import { useSesionStore } from '@/shared/stores/sesionStore';
 
+/** El gateway de SharePoint sirve a la subida (spec 005) y a la descarga (spec 006). */
+export type GatewayRemoto = RemoteGatewayPush & RemoteGatewayPull;
+
 export interface DependenciasContainer {
   db?: AppDB;
   auth?: AuthPort;
-  gateway?: RemoteGatewayPush;
+  gateway?: GatewayRemoto;
   logger?: Logger;
   config?: ConfigApp;
   appVersion?: string;
@@ -77,7 +89,7 @@ export interface Container {
   catalogos: CatalogoRepository;
   meta: MetaRepository;
   auth: AuthPort;
-  gateway: RemoteGatewayPush;
+  gateway: GatewayRemoto;
   uploader: Uploader;
   logger: Logger;
   storage: StoragePort;
@@ -92,6 +104,7 @@ export interface Container {
   config: () => ConfigApp;
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
   casosAdjuntos: CasosDeUsoAdjuntos;
+  listarAdjuntosRemotos: ListarAdjuntosRemotos;
 }
 
 export const crearContainer = async (deps: DependenciasContainer = {}): Promise<Container> => {
@@ -175,6 +188,45 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     storage,
   });
 
+  // Descarga (spec 006): catálogos → servicios remotos → adjuntos y miniaturas de los cambiados.
+  const pullServicios = crearPullServicios({
+    remoto: gateway,
+    servicios,
+    meta,
+    catalogos,
+    reloj: clock,
+    logger,
+    config,
+  });
+  const listarAdjuntosRemotos = crearListarAdjuntosRemotos({
+    remoto: gateway,
+    servicios,
+    adjuntos,
+    ids,
+    clock,
+    logger,
+  });
+  const descargarMiniaturas = crearDescargarMiniaturas({
+    remoto: gateway,
+    servicios,
+    adjuntos,
+    storage,
+    logger,
+    config,
+  });
+
+  const despuesDelPush = crearDespuesDelPush({
+    gateway,
+    catalogos,
+    pullServicios,
+    listarAdjuntosRemotos,
+    descargarMiniaturas,
+    config,
+    logger,
+  });
+
+  const resolutorConflictos = crearResolutorConflicto412({ remoto: gateway, logger });
+
   const sync = new MotorSync({
     servicios,
     adjuntos,
@@ -188,6 +240,8 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     appVersion,
     lock: conLockSync,
     bus: eventosSync,
+    despuesDelPush,
+    resolutorConflictos,
     ...(deps.config
       ? {}
       : { refrescarConfig: () => refrescarConfigRemota({ gateway, catalogos, logger }) }),
@@ -234,14 +288,11 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     config,
     casosDeUso,
     casosAdjuntos,
+    listarAdjuntosRemotos,
   };
 };
 
-function crearUploaderGraph(
-  gateway: RemoteGatewayPush,
-  graph: GraphClient,
-  auth: AuthPort
-): Uploader {
+function crearUploaderGraph(gateway: GatewayRemoto, graph: GraphClient, auth: AuthPort): Uploader {
   let actual: Uploader | undefined;
 
   return {

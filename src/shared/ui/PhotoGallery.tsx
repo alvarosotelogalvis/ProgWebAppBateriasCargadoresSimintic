@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { Adjunto } from '@/domain/adjunto';
 import { useObjectUrl } from '@/shared/hooks/useObjectUrl';
+import { useOnline } from '@/shared/hooks/useOnline';
 import { Icon } from '@/shared/ui/Icon';
 import { SyncBadge } from '@/shared/ui/SyncBadge';
 
@@ -25,8 +26,14 @@ function PhotoTile({
   readonly onEliminar?: ((adjunto: Adjunto) => void) | undefined;
 }): React.JSX.Element {
   const url = useObjectUrl(adjunto.miniatura ?? adjunto.blob);
-  const { t } = useTranslation('servicios');
-  const sync = { estado: ESTADO_SYNC[adjunto.syncState], texto: t(`sync.${adjunto.syncState}`) };
+  const { t } = useTranslation(['servicios', 'adjuntos']);
+  const enLinea = useOnline();
+  // Archivo que solo está en SharePoint: sin contenido local, solo miniatura y enlace.
+  const remoto = adjunto.blob === null && adjunto.sp !== undefined;
+  const sync = {
+    estado: ESTADO_SYNC[adjunto.syncState],
+    texto: t(`servicios:sync.${adjunto.syncState}`),
+  };
 
   return (
     <figure className={styles.ficha!}>
@@ -38,9 +45,28 @@ function PhotoTile({
       >
         {url ? <img src={url} alt="" /> : <Icon nombre="imagen" tamano={28} />}
       </button>
+      {remoto && adjunto.sp ? (
+        <div className={styles.remoto!}>
+          <span className={styles.etiquetaRemoto!}>{t('adjuntos:remoto.badge')}</span>
+          {enLinea ? (
+            <a
+              className={styles.enlace!}
+              href={adjunto.sp.webUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t('adjuntos:remoto.abrir')}
+            </a>
+          ) : (
+            <span className={styles.enlaceInactivo!} aria-disabled="true">
+              {t('adjuntos:remoto.sinRed')}
+            </span>
+          )}
+        </div>
+      ) : null}
       <figcaption className={styles.pie!}>
         <SyncBadge estado={sync.estado} etiqueta={sync.texto} />
-        {onEliminar ? (
+        {onEliminar && !remoto ? (
           <button
             type="button"
             className={styles.eliminar!}

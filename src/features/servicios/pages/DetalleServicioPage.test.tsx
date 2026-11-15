@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Adjunto } from '@/domain/adjunto';
 import type { Rol, Servicio } from '@/domain/servicio';
@@ -13,8 +13,12 @@ import { DetalleServicioPage } from './DetalleServicioPage';
 let servicio: Servicio | undefined;
 let adjuntos: Adjunto[] = [];
 
+const listarAdjuntosRemotos = vi.fn(async () => 0);
 vi.mock('@/app/containerContext', () => ({
-  useContainer: () => ({ casosDeUso: { anular: vi.fn(), descartarBorrador: vi.fn() } }),
+  useContainer: () => ({
+    casosDeUso: { anular: vi.fn(), descartarBorrador: vi.fn() },
+    listarAdjuntosRemotos,
+  }),
 }));
 vi.mock('@/infrastructure/db/hooks', () => ({
   useServicio: () => servicio,
@@ -46,6 +50,7 @@ const montar = (base: Base, roles: Rol[], extra: Adjunto[] = []) => {
 
 beforeEach(() => {
   adjuntos = [];
+  listarAdjuntosRemotos.mockClear();
 });
 
 describe('DetalleServicioPage (HU-007)', () => {
@@ -119,5 +124,66 @@ describe('DetalleServicioPage (HU-007)', () => {
 
     expect(screen.getByRole('button', { name: /Completar/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Descartar/i })).toBeInTheDocument();
+  });
+
+  describe('adjuntos remotos (ES-006-14, ES-006-15)', () => {
+    const pdfRemoto = () =>
+      adjuntoBuilder()
+        .conCampos({
+          id: 'doc-1',
+          tipo: 'FORMATO_DIAGNOSTICO',
+          nombreArchivo: 'CAR-1_FORMATO_DIAGNOSTICO_abcdef12.pdf',
+          mime: 'application/pdf',
+          tamanoBytes: 20480,
+          blob: null,
+          miniatura: null,
+          syncState: 'synced',
+          sp: { driveItemId: 'd1', webUrl: 'https://empresa.sharepoint.com/doc', eTag: '"e"' },
+        })
+        .construir();
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('con conexión pide registrar los archivos que el servicio tiene en SharePoint', () => {
+      montar('diagnosticado', ['Tecnico']);
+
+      expect(listarAdjuntosRemotos).toHaveBeenCalledWith(servicio?.id);
+    });
+
+    it('sin conexión no consulta SharePoint', () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+      montar('diagnosticado', ['Tecnico']);
+
+      expect(listarAdjuntosRemotos).not.toHaveBeenCalled();
+    });
+
+    it('lista los documentos remotos y permite abrirlos con conexión', () => {
+      const abrir = vi.spyOn(window, 'open').mockReturnValue(null);
+      montar('diagnosticado', ['Tecnico'], [pdfRemoto()]);
+
+      expect(screen.getByRole('heading', { name: 'Documentos en SharePoint' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /CAR-1_FORMATO_DIAGNOSTICO/ }));
+
+      expect(abrir).toHaveBeenCalledWith(
+        'https://empresa.sharepoint.com/doc',
+        '_blank',
+        'noopener,noreferrer'
+      );
+    });
+
+    it('sin conexión el documento no se puede abrir y se explica por qué', () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+      montar('diagnosticado', ['Tecnico'], [pdfRemoto()]);
+
+      expect(screen.queryByRole('button', { name: /CAR-1_FORMATO_DIAGNOSTICO/ })).toBeNull();
+      expect(screen.getByText('Abrir en SharePoint (requiere conexión)')).toBeInTheDocument();
+    });
+
+    it('no muestra la sección si no hay documentos remotos', () => {
+      montar('diagnosticado', ['Tecnico']);
+      expect(screen.queryByText('Documentos en SharePoint')).not.toBeInTheDocument();
+    });
   });
 });

@@ -6,9 +6,17 @@ import type {
   ServicioRemotoPush,
 } from '@/application/ports/RemoteGatewayPush';
 import type { Catalogos, SitioResuelto } from '@/application/ports/remoteGateway';
+import type {
+  ArchivoRemotoServicio,
+  CambiosServicios,
+  RemoteGatewayPull,
+} from '@/application/ports/RemoteGatewayPull';
 import type { ItemSubido, Uploader } from '@/application/ports/UploaderPort';
 import { ConflictoError } from '@/application/sync/ConflictoError';
+import type { RemotoCambio } from '@/domain/sync/remoto';
 import { AppError } from '@/shared/errors';
+
+import { itemACambio } from './mappers/cambioRemotoMapper';
 
 const CLIENTES_DEMO = [
   { id: 1, nombre: 'Navar Asociados', activo: true },
@@ -39,6 +47,8 @@ interface ItemMock {
   eTag: string;
   readonly webUrl: string;
   modificadoEn: string;
+  /** Secuencia del último cambio: sirve de «deltaLink» en el modo demo. */
+  version: number;
 }
 
 interface ArchivoMock {
@@ -54,7 +64,7 @@ interface ArchivoMock {
  * Permite recorrer el asistente y la app en DEV sin tenant (SDD 8.6).
  * En pruebas de integracion se usa el emulador de MSW, no este adaptador.
  */
-export class MockRemoteGateway implements RemoteGatewayPush {
+export class MockRemoteGateway implements RemoteGatewayPush, RemoteGatewayPull {
   private readonly serviciosMock = new Map<string, ItemMock>();
   private readonly archivosMock = new Map<string, ArchivoMock>();
   private readonly logs: EntradaLogSync[] = [];
@@ -106,6 +116,7 @@ export class MockRemoteGateway implements RemoteGatewayPush {
       eTag: `"mock-${this.secuencia}"`,
       webUrl: `https://empresa.sharepoint.com/sites/ServicioTecnicoBC-DEV/Lists/Servicios/${this.secuencia}`,
       modificadoEn: new Date().toISOString(),
+      version: this.secuencia,
     };
     this.serviciosMock.set(item.id, item);
     return this.aServicioRemoto(item);
@@ -132,6 +143,7 @@ export class MockRemoteGateway implements RemoteGatewayPush {
     item.fields = { ...item.fields, ...campos };
     item.eTag = `"mock-${this.secuencia}"`;
     item.modificadoEn = new Date().toISOString();
+    item.version = this.secuencia;
     return { eTag: item.eTag };
   }
 
@@ -162,6 +174,33 @@ export class MockRemoteGateway implements RemoteGatewayPush {
     this.logs.push(entrada);
   }
 
+  async cambiosServicios(deltaLink?: string): Promise<CambiosServicios> {
+    const desde = deltaLink?.startsWith('mock-delta:') ? Number(deltaLink.slice(11)) : 0;
+    const cambios = [...this.serviciosMock.values()]
+      .filter((item) => item.version > desde)
+      .map((item) => itemACambio(this.aItemLista(item)));
+    return {
+      cambios,
+      deltaLink: `mock-delta:${this.secuencia}`,
+      metodo: deltaLink ? 'delta' : 'completa',
+    };
+  }
+
+  async leerServicioRemoto(servicioId: string): Promise<RemotoCambio | null> {
+    const encontrado = [...this.serviciosMock.values()].find(
+      (item) => item.fields.ServicioId === servicioId
+    );
+    return encontrado ? itemACambio(this.aItemLista(encontrado)) : null;
+  }
+
+  async listarArchivosServicio(): Promise<readonly ArchivoRemotoServicio[]> {
+    return [];
+  }
+
+  async descargarMiniatura(): Promise<Blob | null> {
+    return null;
+  }
+
   /** Utilidades para el modo demo y las pruebas manuales. */
   registrarArchivo(id: string, ruta: string, campos: Record<string, unknown>): void {
     this.archivosMock.set(id, {
@@ -175,6 +214,16 @@ export class MockRemoteGateway implements RemoteGatewayPush {
 
   listarLogs(): readonly EntradaLogSync[] {
     return this.logs;
+  }
+
+  private aItemLista(item: ItemMock) {
+    return {
+      id: item.id,
+      fields: item.fields,
+      eTag: item.eTag,
+      webUrl: item.webUrl,
+      lastModifiedDateTime: item.modificadoEn,
+    };
   }
 
   private aServicioRemoto(item: ItemMock): ServicioRemotoPush {

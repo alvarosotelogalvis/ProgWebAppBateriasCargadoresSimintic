@@ -1,6 +1,6 @@
 # Spec 006 — Sincronización: descarga y conflictos (pull)
 
-- **Estado**: Aprobada
+- **Estado**: En implementación (código y pruebas completos; pendientes T026 verificación en DEV real con dos dispositivos y T027 medición de CE-006-04)
 - **Fecha**: 2026-10-21 · **Rama**: `feature/006-sincronizacion-pull-conflictos`
 - **Fase**: F6 (`docs/07`) · **Depende de**: 005 (sincronización push), 002 (merge a 3 vías como función pura)
 - **Fuentes**: PRD [HU-10, HU-11; RF-11, RF-12, RF-28; RNF-01, RNF-03] · ADR [0009, 0010, 0011] · Modelo de datos [§2, §3, §6.1–§6.3, §8]

@@ -129,10 +129,24 @@ export const router = createBrowserRouter([
               },
               {
                 path: 'sincronizacion',
-                lazy: async () => ({
-                  Component: (await import('@/features/sincronizacion/pages/SincronizacionPage'))
-                    .SincronizacionPage,
-                }),
+                children: [
+                  {
+                    index: true,
+                    lazy: async () => ({
+                      Component: (
+                        await import('@/features/sincronizacion/pages/SincronizacionPage')
+                      ).SincronizacionPage,
+                    }),
+                  },
+                  {
+                    path: 'conflicto/:id',
+                    lazy: async () => ({
+                      Component: (
+                        await import('@/features/sincronizacion/pages/ResolverConflictoPage')
+                      ).ResolverConflictoPage,
+                    }),
+                  },
+                ],
               },
               {
                 path: 'sincronizar',
