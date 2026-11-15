@@ -72,8 +72,8 @@ export function VisorLogs(): React.JSX.Element {
             style={{
               width: '100%',
               padding: 'var(--espacio-1)',
-              borderRadius: 'var(--radio-1)',
-              border: '1px solid var(--color-borde)',
+              borderRadius: 'var(--radio-sm)',
+              border: '1px solid var(--border)',
             }}
           >
             <option value="">{t('filtrar')}</option>
@@ -101,8 +101,8 @@ export function VisorLogs(): React.JSX.Element {
             style={{
               width: '100%',
               padding: 'var(--espacio-1)',
-              borderRadius: 'var(--radio-1)',
-              border: '1px solid var(--color-borde)',
+              borderRadius: 'var(--radio-sm)',
+              border: '1px solid var(--border)',
             }}
           />
         </div>
@@ -112,19 +112,19 @@ export function VisorLogs(): React.JSX.Element {
       <div
         style={{
           overflowX: 'auto',
-          border: '1px solid var(--color-borde)',
-          borderRadius: 'var(--radio-1)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radio-sm)',
         }}
       >
         <table
           style={{
             width: '100%',
             borderCollapse: 'collapse',
-            fontSize: 'var(--texto-pequeno)',
+            fontSize: 'var(--texto-sm)',
           }}
         >
           <thead>
-            <tr style={{ background: 'var(--color-fondo-secundario)' }}>
+            <tr style={{ background: 'var(--surface-muted)' }}>
               <th style={{ padding: 'var(--espacio-2)', textAlign: 'left' }}>{t('fecha')}</th>
               <th style={{ padding: 'var(--espacio-2)', textAlign: 'left' }}>{t('nivel_log')}</th>
               <th style={{ padding: 'var(--espacio-2)', textAlign: 'left' }}>{t('evento')}</th>
@@ -140,7 +140,7 @@ export function VisorLogs(): React.JSX.Element {
               </tr>
             ) : null}
             {logs.map((log) => (
-              <tr key={log.seq} style={{ borderTop: '1px solid var(--color-borde)' }}>
+              <tr key={log.seq} style={{ borderTop: '1px solid var(--border)' }}>
                 <td style={{ padding: 'var(--espacio-2)' }}>
                   {new Date(log.ts).toLocaleTimeString('es-CO')}
                 </td>
@@ -149,9 +149,9 @@ export function VisorLogs(): React.JSX.Element {
                     padding: 'var(--espacio-2)',
                     color:
                       log.nivel === 'error'
-                        ? 'var(--color-peligro)'
+                        ? 'var(--peligro)'
                         : log.nivel === 'warn'
-                          ? 'var(--color-advertencia)'
+                          ? 'var(--advertencia)'
                           : 'inherit',
                     fontWeight: log.nivel === 'error' ? 'bold' : 'normal',
                   }}

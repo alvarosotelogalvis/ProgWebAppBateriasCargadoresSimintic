@@ -1,13 +1,6 @@
 import type { Adjunto } from './adjunto';
 import type { Servicio } from './servicio';
 
-/**
- * `Servicio` no define `ultimaSincronizacion`: con datos reales el campo falta, la fecha
- * resulta inválida y los servicios cerrados no se purgan nunca (comportamiento conservador).
- * No se cambia aquí porque habilitarlo borraría servicios locales: requiere decisión explícita.
- */
-type ServicioPurgable = Servicio & { ultimaSincronizacion?: string };
-
 export interface PurgableSelection {
   servicios: Servicio[];
   archivos: Array<{ servicioId: string; adjunto: Adjunto }>;
@@ -32,9 +25,9 @@ export function seleccionarPurgables(
   const archivosPurgables: Array<{ servicioId: string; adjunto: Adjunto }> = [];
 
   for (const servicio of servicios) {
-    // Servicios cerrados y sincronizados más antiguos que retención
+    // Servicios cerrados y sincronizados cuya última modificación supera la retención
     if (puedeEliminarse(servicio)) {
-      const fechaSinc = new Date((servicio as ServicioPurgable).ultimaSincronizacion || '');
+      const fechaSinc = new Date(servicio.actualizadoEn);
       fechaSinc.setHours(0, 0, 0, 0);
 
       const diasTranscurridos = Math.floor(

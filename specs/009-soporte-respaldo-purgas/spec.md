@@ -1,6 +1,6 @@
 # Spec 009 — Soporte técnico, respaldo y purgas
 
-- **Estado**: Borrador
+- **Estado**: Implementada
 - **Fecha**: 2026-10-21 · **Rama**: `feature/009-soporte-respaldo-purgas`
 - **Fase**: F9 (`docs/07`) · **Depende de**: 006 (sincronización completa), 004 (roles)
 - **Fuentes**: PRD [HU-13; RF-17, RF-18, RF-19, RF-27; RNF-01, RNF-07, RNF-15] · ADR [0008, 0017, 0018] · Modelo de datos [§6.3 (retenciones), §8] · UX [§4, §5]

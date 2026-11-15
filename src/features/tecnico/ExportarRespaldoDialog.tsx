@@ -1,37 +1,42 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Radio, RadioGroup } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
-import type { Servicio } from '@/domain/servicio';
-import { exportarRespaldo } from '@/application/respaldo/respaldo';
+
+import { exportarRespaldo, type AlcanceRespaldo } from '@/application/respaldo/respaldo';
+import type { AppDB } from '@/infrastructure/db/dexie';
 import { compartirRespaldo } from '@/infrastructure/respaldo/compartir';
-import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
-import { PrimaryButton } from '@/shared/ui/PrimaryButton';
-import { SecondaryButton } from '@/shared/ui/SecondaryButton';
 import { Banner } from '@/shared/ui/Banner';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
+import { SecondaryButton } from '@/shared/ui/SecondaryButton';
+
+import { depsRespaldo } from './respaldoDeps';
+import styles from './RespaldoDialog.module.css';
 
 interface Props {
   readonly abierto: boolean;
-  readonly servicios: Servicio[];
+  readonly db: AppDB;
   readonly onCerrar: () => void;
 }
 
-export function ExportarRespaldoDialog({ abierto, servicios, onCerrar }: Props): React.JSX.Element {
+/** Exporta un ZIP con los servicios, sus datos completos y los archivos locales (HU-009-1). */
+export function ExportarRespaldoDialog({ abierto, db, onCerrar }: Props): React.JSX.Element {
   const { t } = useTranslation('tecnico');
+  const deps = useMemo(() => depsRespaldo(db), [db]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [alcance, setAlcance] = useState<'solo-pendientes' | 'todos'>('solo-pendientes');
+  const [alcance, setAlcance] = useState<AlcanceRespaldo>('solo-pendientes');
 
-  const handleExportar = async () => {
+  const exportar = async (): Promise<void> => {
+    setCargando(true);
+    setError(null);
     try {
-      setCargando(true);
-      setError(null);
-      const resultado = await exportarRespaldo(servicios, alcance);
-
-      // Intentar compartir via Web Share API, fallback a descarga
-      await compartirRespaldo(resultado.blob, resultado.nombreArchivo);
-
-      onCerrar();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('respaldo.errorExportar'));
+      const resultado = await exportarRespaldo(deps.exportar, alcance);
+      // Web Share en celulares; en escritorio se descarga.
+      const salida = await compartirRespaldo(resultado.blob, resultado.nombreArchivo);
+      if (salida !== 'cancelado') onCerrar();
+    } catch {
+      setError(t('respaldo.errorExportar'));
     } finally {
       setCargando(false);
     }
@@ -40,51 +45,26 @@ export function ExportarRespaldoDialog({ abierto, servicios, onCerrar }: Props):
   return (
     <ResponsiveDialog titulo={t('respaldo.exportarTitulo')} abierto={abierto} onCerrar={onCerrar}>
       {error ? <Banner tipo="peligro">{error}</Banner> : null}
-
-      <div style={{ marginBottom: 'var(--espacio-4)' }}>
-        <p>{t('respaldo.exportarDescripcion')}</p>
-
-        <fieldset style={{ marginTop: 'var(--espacio-3)', border: 'none', padding: 0 }}>
-          <legend style={{ marginBottom: 'var(--espacio-2)', fontWeight: 500 }}>
-            {t('respaldo.alcance')}
-          </legend>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--espacio-2)' }}>
-            <input
-              type="radio"
-              name="alcance"
-              value="solo-pendientes"
-              checked={alcance === 'solo-pendientes'}
-              onChange={(e) => setAlcance(e.target.value as 'solo-pendientes')}
-              disabled={cargando}
-            />
-            {t('respaldo.soloPendientes')}
-          </label>
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--espacio-2)',
-              marginTop: 'var(--espacio-2)',
-            }}
-          >
-            <input
-              type="radio"
-              name="alcance"
-              value="todos"
-              checked={alcance === 'todos'}
-              onChange={(e) => setAlcance(e.target.value as 'todos')}
-              disabled={cargando}
-            />
-            {t('respaldo.todos')}
-          </label>
-        </fieldset>
-      </div>
-
-      <div style={{ display: 'flex', gap: 'var(--espacio-3)', justifyContent: 'flex-end' }}>
+      <p>{t('respaldo.exportarDescripcion')}</p>
+      <RadioGroup
+        className={styles.grupo!}
+        aria-label={t('respaldo.alcance')}
+        value={alcance}
+        onChange={(valor) => setAlcance(valor as AlcanceRespaldo)}
+        isDisabled={cargando}
+      >
+        <Radio value="solo-pendientes" className={styles.opcion!}>
+          {t('respaldo.soloPendientes')}
+        </Radio>
+        <Radio value="todos" className={styles.opcion!}>
+          {t('respaldo.todos')}
+        </Radio>
+      </RadioGroup>
+      <div className={styles.acciones!}>
         <SecondaryButton onPress={onCerrar} isDisabled={cargando}>
           {t('comun.cancelar')}
         </SecondaryButton>
-        <PrimaryButton onPress={handleExportar} isDisabled={cargando}>
+        <PrimaryButton onPress={() => void exportar()} isDisabled={cargando}>
           {cargando ? t('respaldo.exportando') : t('respaldo.descargarRespaldo')}
         </PrimaryButton>
       </div>

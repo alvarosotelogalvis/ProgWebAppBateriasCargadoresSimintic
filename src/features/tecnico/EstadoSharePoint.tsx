@@ -72,8 +72,8 @@ export function EstadoSharePoint(): React.JSX.Element {
           <dd
             style={{
               margin: 0,
-              color: 'var(--color-texto-secundario)',
-              fontSize: 'var(--texto-pequeno)',
+              color: 'var(--text-secondary)',
+              fontSize: 'var(--texto-sm)',
               wordBreak: 'break-all',
             }}
           >
@@ -86,8 +86,8 @@ export function EstadoSharePoint(): React.JSX.Element {
           <dd
             style={{
               margin: 0,
-              color: 'var(--color-texto-secundario)',
-              fontSize: 'var(--texto-pequeno)',
+              color: 'var(--text-secondary)',
+              fontSize: 'var(--texto-sm)',
               fontFamily: 'monospace',
               wordBreak: 'break-all',
             }}
@@ -101,8 +101,8 @@ export function EstadoSharePoint(): React.JSX.Element {
           <dd
             style={{
               margin: 0,
-              color: 'var(--color-texto-secundario)',
-              fontSize: 'var(--texto-pequeno)',
+              color: 'var(--text-secondary)',
+              fontSize: 'var(--texto-sm)',
               fontFamily: 'monospace',
               wordBreak: 'break-all',
             }}
@@ -113,7 +113,7 @@ export function EstadoSharePoint(): React.JSX.Element {
 
         <div style={{ gridColumn: '1 / -1' }}>
           <dt style={{ fontWeight: 500 }}>{t('ultima_sincronizacion')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>
             {estado.ultimaSincronizacion
               ? new Date(estado.ultimaSincronizacion).toLocaleString('es-CO')
               : 'Nunca'}
@@ -122,9 +122,7 @@ export function EstadoSharePoint(): React.JSX.Element {
 
         <div>
           <dt style={{ fontWeight: 500 }}>{t('metodo_descarga')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>
-            {estado.metodoDescarga}
-          </dd>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>{estado.metodoDescarga}</dd>
         </div>
 
         <div>
@@ -132,8 +130,8 @@ export function EstadoSharePoint(): React.JSX.Element {
           <dd
             style={{
               margin: 0,
-              color: 'var(--color-texto-secundario)',
-              fontSize: 'var(--texto-pequeno)',
+              color: 'var(--text-secondary)',
+              fontSize: 'var(--texto-sm)',
               fontFamily: 'monospace',
             }}
           >

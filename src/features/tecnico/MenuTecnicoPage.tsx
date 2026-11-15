@@ -1,157 +1,98 @@
 import { useState } from 'react';
+import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
-import type { ConfigApp } from '@/domain/config';
+
+import { useDb } from '@/shared/hooks/useDb';
+import { Card } from '@/shared/ui/Card';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { SecondaryButton } from '@/shared/ui/SecondaryButton';
+
 import { EstadoDispositivo } from './EstadoDispositivo';
 import { EstadoSharePoint } from './EstadoSharePoint';
-import { VisorLogs } from './VisorLogs';
 import { ExportarRespaldoDialog } from './ExportarRespaldoDialog';
 import { ImportarRespaldoDialog } from './ImportarRespaldoDialog';
 import { LiberarEspacioDialog } from './LiberarEspacioDialog';
-import { useDb } from '@/shared/hooks/useDb';
-import type { Servicio } from '@/domain/servicio';
-import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import styles from './MenuTecnicoPage.module.css';
+import { RestablecerAppDialog } from './RestablecerAppDialog';
+import { VisorLogs } from './VisorLogs';
 
-type Tab = 'dispositivo' | 'sharepoint' | 'logs';
-type DialogoAbierto = 'exportar' | 'importar' | 'liberar' | null;
+type DialogoAbierto = 'exportar' | 'importar' | 'liberar' | 'restablecer' | null;
 
 interface Props {
-  readonly config: ConfigApp;
-  readonly servicios?: unknown[];
+  /** Restablece la app; si se omite, la acción no se ofrece. */
   readonly onRestablecerApp?: () => Promise<void>;
 }
 
-export function MenuTecnicoPage({
-  config: _config,
-  servicios = [],
-  onRestablecerApp,
-}: Props): React.JSX.Element {
+/** Menú técnico (solo Administrador): diagnóstico, registros, respaldo y mantenimiento. */
+export function MenuTecnicoPage({ onRestablecerApp }: Props): React.JSX.Element {
   const { t } = useTranslation('tecnico');
   const db = useDb();
-  const [tabActiva, setTabActiva] = useState<Tab>('dispositivo');
-  const [dialogoAbierto, setDialogoAbierto] = useState<DialogoAbierto>(null);
-
-  const handleExportar = () => setDialogoAbierto('exportar');
-  const handleImportar = () => setDialogoAbierto('importar');
-  const handleLiberar = () => setDialogoAbierto('liberar');
+  const [dialogo, setDialogo] = useState<DialogoAbierto>(null);
+  const cerrar = (): void => setDialogo(null);
 
   return (
-    <div style={{ padding: 'var(--espacio-4)' }}>
-      <h1 style={{ marginBottom: 'var(--espacio-3)' }}>{t('titulo')}</h1>
+    <div className={styles.pagina!}>
+      <h1>{t('titulo')}</h1>
 
-      {/* Tabs de navegación */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 'var(--espacio-2)',
-          marginBottom: 'var(--espacio-4)',
-          borderBottom: '1px solid var(--color-borde)',
-          overflowX: 'auto',
-        }}
-      >
-        {(['dispositivo', 'sharepoint', 'logs'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setTabActiva(tab)}
-            style={{
-              padding: 'var(--espacio-2) var(--espacio-3)',
-              background: tabActiva === tab ? 'var(--color-primario)' : 'transparent',
-              color: tabActiva === tab ? 'white' : 'inherit',
-              border: 'none',
-              borderRadius: 'var(--radio-1)',
-              cursor: 'pointer',
-              fontWeight: tabActiva === tab ? 'bold' : 'normal',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {tab === 'dispositivo' && t('estado_dispositivo')}
-            {tab === 'sharepoint' && t('estado_sharepoint')}
-            {tab === 'logs' && t('registros')}
-          </button>
-        ))}
+      <Card fill>
+        <Tabs>
+          <TabList className={styles.pestanas!} aria-label={t('titulo')}>
+            <Tab id="dispositivo" className={styles.pestana!}>
+              {t('estado_dispositivo')}
+            </Tab>
+            <Tab id="sharepoint" className={styles.pestana!}>
+              {t('estado_sharepoint')}
+            </Tab>
+            <Tab id="logs" className={styles.pestana!}>
+              {t('registros')}
+            </Tab>
+          </TabList>
+          <TabPanel id="dispositivo">
+            <EstadoDispositivo />
+          </TabPanel>
+          <TabPanel id="sharepoint">
+            <EstadoSharePoint />
+          </TabPanel>
+          <TabPanel id="logs">
+            <VisorLogs />
+          </TabPanel>
+        </Tabs>
+      </Card>
+
+      <div className={styles.acciones!}>
+        <Card>
+          <h2>{t('respaldo.titulo')}</h2>
+          <PrimaryButton size="small" onPress={() => setDialogo('exportar')}>
+            {t('exportar_respaldo')}
+          </PrimaryButton>
+          <SecondaryButton onPress={() => setDialogo('importar')}>
+            {t('importar_respaldo')}
+          </SecondaryButton>
+          <SecondaryButton onPress={() => setDialogo('liberar')}>
+            {t('liberar_espacio')}
+          </SecondaryButton>
+        </Card>
+
+        {onRestablecerApp ? (
+          <Card>
+            <h2>{t('acciones_mantenimiento')}</h2>
+            <SecondaryButton onPress={() => setDialogo('restablecer')}>
+              {t('restablecer_app')}
+            </SecondaryButton>
+          </Card>
+        ) : null}
       </div>
 
-      {/* Contenido de tabs */}
-      <div
-        style={{
-          background: 'var(--color-fondo-secundario)',
-          borderRadius: 'var(--radio-2)',
-          padding: 'var(--espacio-3)',
-          marginBottom: 'var(--espacio-4)',
-        }}
-      >
-        {tabActiva === 'dispositivo' && <EstadoDispositivo />}
-        {tabActiva === 'sharepoint' && <EstadoSharePoint />}
-        {tabActiva === 'logs' && <VisorLogs />}
-      </div>
-
-      {/* Acciones de mantenimiento */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 'var(--espacio-3)',
-        }}
-      >
-        <div
-          style={{
-            padding: 'var(--espacio-3)',
-            background: 'var(--color-fondo-secundario)',
-            borderRadius: 'var(--radio-2)',
-          }}
-        >
-          <h3>{t('respaldo.titulo')}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-2)' }}>
-            <PrimaryButton onPress={handleExportar} size="small">
-              {t('exportar_respaldo')}
-            </PrimaryButton>
-            <PrimaryButton onPress={handleImportar} size="small">
-              {t('importar_respaldo')}
-            </PrimaryButton>
-            <PrimaryButton onPress={handleLiberar} size="small">
-              {t('liberar_espacio')}
-            </PrimaryButton>
-          </div>
-        </div>
-
-        <div
-          style={{
-            padding: 'var(--espacio-3)',
-            background: 'var(--color-fondo-secundario)',
-            borderRadius: 'var(--radio-2)',
-          }}
-        >
-          <h3>{t('acciones_mantenimiento')}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-2)' }}>
-            {onRestablecerApp && (
-              <PrimaryButton onPress={onRestablecerApp} size="small">
-                {t('restablecer_app')}
-              </PrimaryButton>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Diálogos */}
-      {db && (
-        <>
-          <ExportarRespaldoDialog
-            abierto={dialogoAbierto === 'exportar'}
-            servicios={servicios as Servicio[]}
-            onCerrar={() => setDialogoAbierto(null)}
-          />
-          <ImportarRespaldoDialog
-            abierto={dialogoAbierto === 'importar'}
-            serviciosExistentes={servicios as Servicio[]}
-            onImportados={() => setDialogoAbierto(null)}
-            onCerrar={() => setDialogoAbierto(null)}
-          />
-          <LiberarEspacioDialog
-            abierto={dialogoAbierto === 'liberar'}
-            db={db!}
-            onCerrar={() => setDialogoAbierto(null)}
-          />
-        </>
-      )}
+      <ExportarRespaldoDialog abierto={dialogo === 'exportar'} db={db} onCerrar={cerrar} />
+      <ImportarRespaldoDialog abierto={dialogo === 'importar'} db={db} onCerrar={cerrar} />
+      <LiberarEspacioDialog abierto={dialogo === 'liberar'} db={db} onCerrar={cerrar} />
+      {onRestablecerApp ? (
+        <RestablecerAppDialog
+          abierto={dialogo === 'restablecer'}
+          onConfirmar={onRestablecerApp}
+          onCerrar={cerrar}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,43 +1,9 @@
+import { unzipSync, zipSync, type Zippable } from 'fflate';
+
 export interface ArchivoEnZip {
   ruta: string;
   contenido: Blob | string;
   tipo?: string;
-}
-
-export async function empaquetar(archivos: ArchivoEnZip[]): Promise<Blob> {
-  // Nota: Este es un stub. Implementación real requiere librería de ZIP
-  // como 'jszip' o 'fflate'. Para esta sesión, creamos una estructura JSON comprimida.
-
-  const manifiesto = {
-    version: '1.0.0',
-    fecha: new Date().toISOString(),
-    archivos: archivos.map((a) => ({
-      ruta: a.ruta,
-      tipo: a.tipo || 'application/octet-stream',
-    })),
-  };
-
-  // Crear un contenedor JSON simple (será reemplazado por ZIP real)
-  const contenedor = {
-    _manifiesto: manifiesto,
-    _archivos: {} as Record<string, string>,
-  };
-
-  for (const archivo of archivos) {
-    if (typeof archivo.contenido === 'string') {
-      contenedor._archivos[archivo.ruta] = archivo.contenido;
-    } else {
-      // Para blobs, convertir a base64
-      const reader = new FileReader();
-      contenedor._archivos[archivo.ruta] = await new Promise((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(archivo.contenido as Blob);
-      });
-    }
-  }
-
-  const json = JSON.stringify(contenedor);
-  return new Blob([json], { type: 'application/json' });
 }
 
 /** `Blob.text()` con alternativa para entornos sin esa API (p. ej. jsdom, navegadores antiguos). */
@@ -51,41 +17,81 @@ export const leerTexto = (blob: Blob): Promise<string> => {
   });
 };
 
+/** `Blob.arrayBuffer()` con la misma alternativa. */
+const leerBytes = async (blob: Blob): Promise<Uint8Array> => {
+  if (typeof blob.arrayBuffer === 'function') return new Uint8Array(await blob.arrayBuffer());
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = () => resolve(new Uint8Array(lector.result as ArrayBuffer));
+    lector.onerror = () => reject(lector.error);
+    lector.readAsArrayBuffer(blob);
+  });
+};
+
+const TIPOS: Readonly<Record<string, string>> = {
+  json: 'application/json',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  pdf: 'application/pdf',
+  txt: 'text/plain',
+};
+
+const tipoDeRuta = (ruta: string): string => {
+  const extension = /\.([A-Za-z0-9]+)$/.exec(ruta)?.[1]?.toLowerCase() ?? '';
+  return TIPOS[extension] ?? 'application/octet-stream';
+};
+
+const codificador = new TextEncoder();
+
+/**
+ * Crea un ZIP real. Las fotos y los PDF ya vienen comprimidos, por eso solo se comprime
+ * (nivel 6) el texto; el resto se almacena tal cual.
+ */
+export async function empaquetar(archivos: ArchivoEnZip[]): Promise<Blob> {
+  const entradas: Zippable = {};
+  for (const archivo of archivos) {
+    const esTexto = typeof archivo.contenido === 'string';
+    const bytes = esTexto
+      ? codificador.encode(archivo.contenido as string)
+      : await leerBytes(archivo.contenido as Blob);
+    entradas[archivo.ruta] = [bytes, { level: esTexto ? 6 : 0 }];
+  }
+  const zip = zipSync(entradas);
+  return new Blob([zip as Uint8Array<ArrayBuffer>], { type: 'application/zip' });
+}
+
+/**
+ * Lee un ZIP. Cada archivo vuelve como `Blob` con el tipo deducido de su extensión.
+ * Lanza si el contenido no es un ZIP válido.
+ */
 export async function desempaquetar(blob: Blob): Promise<ArchivoEnZip[]> {
-  const texto = await leerTexto(blob);
-  const contenedor = JSON.parse(texto);
-
-  const archivos: ArchivoEnZip[] = [];
-
-  if (!contenedor._manifiesto || !contenedor._archivos) {
-    throw new Error('Formato de respaldo no válido');
+  let contenido: Record<string, Uint8Array>;
+  try {
+    contenido = unzipSync(await leerBytes(blob));
+  } catch (causa) {
+    throw new Error('El archivo no es un respaldo válido', { cause: causa });
   }
-
-  for (const archivo of contenedor._manifiesto.archivos) {
-    const contenido = contenedor._archivos[archivo.ruta];
-    if (!contenido) continue;
-
-    archivos.push({
-      ruta: archivo.ruta,
-      contenido,
-      tipo: archivo.tipo,
+  return Object.entries(contenido)
+    .filter(([ruta]) => !ruta.endsWith('/'))
+    .map(([ruta, bytes]) => {
+      const tipo = tipoDeRuta(ruta);
+      return {
+        ruta,
+        contenido: new Blob([bytes as Uint8Array<ArrayBuffer>], { type: tipo }),
+        tipo,
+      };
     });
-  }
-
-  return archivos;
 }
 
 export function estimarTamano(archivos: ArchivoEnZip[]): number {
   let bytes = 0;
-
   for (const archivo of archivos) {
-    if (typeof archivo.contenido === 'string') {
-      bytes += new Blob([archivo.contenido]).size;
-    } else {
-      bytes += archivo.contenido.size;
-    }
+    bytes +=
+      typeof archivo.contenido === 'string'
+        ? codificador.encode(archivo.contenido).byteLength
+        : archivo.contenido.size;
   }
-
-  // Agregar ~10% por overhead de compresión y metadatos
-  return Math.ceil((bytes * 110) / 100);
+  return bytes;
 }

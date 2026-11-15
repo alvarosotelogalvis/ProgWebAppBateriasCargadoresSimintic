@@ -1,99 +1,77 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { CONFIG_DEFECTO } from '@/domain/config';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import '@/shared/i18n';
+
 import { MenuTecnicoPage } from './MenuTecnicoPage';
 
 vi.mock('./EstadoDispositivo', () => ({
   EstadoDispositivo: () => <div data-testid="estado-dispositivo" />,
 }));
-
 vi.mock('./EstadoSharePoint', () => ({
   EstadoSharePoint: () => <div data-testid="estado-sharepoint" />,
 }));
-
-vi.mock('./VisorLogs', () => ({
-  VisorLogs: () => <div data-testid="visor-logs" />,
-}));
-
+vi.mock('./VisorLogs', () => ({ VisorLogs: () => <div data-testid="visor-logs" /> }));
 vi.mock('./ExportarRespaldoDialog', () => ({
-  ExportarRespaldoDialog: () => null,
+  ExportarRespaldoDialog: ({ abierto }: { abierto: boolean }) =>
+    abierto ? <div data-testid="dialogo-exportar" /> : null,
 }));
-
 vi.mock('./ImportarRespaldoDialog', () => ({
-  ImportarRespaldoDialog: () => null,
+  ImportarRespaldoDialog: ({ abierto }: { abierto: boolean }) =>
+    abierto ? <div data-testid="dialogo-importar" /> : null,
 }));
-
 vi.mock('./LiberarEspacioDialog', () => ({
-  LiberarEspacioDialog: () => null,
+  LiberarEspacioDialog: ({ abierto }: { abierto: boolean }) =>
+    abierto ? <div data-testid="dialogo-liberar" /> : null,
 }));
+vi.mock('./RestablecerAppDialog', () => ({
+  RestablecerAppDialog: ({ abierto }: { abierto: boolean }) =>
+    abierto ? <div data-testid="dialogo-restablecer" /> : null,
+}));
+vi.mock('@/shared/hooks/useDb', () => ({ useDb: () => ({}) }));
 
-vi.mock('@/shared/hooks/useDb', () => ({
-  useDb: () => ({}),
-}));
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('MenuTecnicoPage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  it('muestra primero el estado del dispositivo', () => {
+    render(<MenuTecnicoPage />);
 
-  it('renderiza tab dispositivo por defecto', () => {
-    const config = CONFIG_DEFECTO;
-    render(<MenuTecnicoPage config={config} />);
-
+    expect(screen.getByRole('heading', { level: 1, name: 'Menú técnico' })).toBeInTheDocument();
     expect(screen.getByTestId('estado-dispositivo')).toBeInTheDocument();
+    expect(screen.queryByTestId('estado-sharepoint')).not.toBeInTheDocument();
   });
 
-  it('cambia tab al hacer clic', async () => {
-    const config = CONFIG_DEFECTO;
-    render(<MenuTecnicoPage config={config} />);
+  it('cambia de pestaña (SharePoint y registros)', () => {
+    render(<MenuTecnicoPage />);
 
-    const sharePointTab = screen.getAllByRole('button')[1]!;
-    fireEvent.click(sharePointTab);
+    fireEvent.click(screen.getByRole('tab', { name: 'Estado de SharePoint' }));
+    expect(screen.getByTestId('estado-sharepoint')).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getByTestId('estado-sharepoint')).toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByRole('tab', { name: 'Registros de eventos' }));
+    expect(screen.getByTestId('visor-logs')).toBeInTheDocument();
   });
 
-  it('navega a tab logs', async () => {
-    const config = CONFIG_DEFECTO;
-    render(<MenuTecnicoPage config={config} />);
+  it.each([
+    ['Exportar respaldo', 'dialogo-exportar'],
+    ['Importar respaldo', 'dialogo-importar'],
+    ['Liberar espacio', 'dialogo-liberar'],
+  ])('«%s» abre su diálogo', (boton, dialogo) => {
+    render(<MenuTecnicoPage />);
 
-    const logsTab = screen.getAllByRole('button')[2]!;
-    fireEvent.click(logsTab);
+    fireEvent.click(screen.getByRole('button', { name: boton }));
 
-    await waitFor(() => {
-      expect(screen.getByTestId('visor-logs')).toBeInTheDocument();
-    });
+    expect(screen.getByTestId(dialogo)).toBeInTheDocument();
   });
 
-  it('renderiza botones de acciones', () => {
-    const config = CONFIG_DEFECTO;
-    render(<MenuTecnicoPage config={config} />);
+  it('ofrece restablecer solo cuando se le da la acción', () => {
+    const { unmount } = render(<MenuTecnicoPage />);
+    expect(screen.queryByRole('button', { name: 'Restablecer la app' })).not.toBeInTheDocument();
+    unmount();
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBeGreaterThan(3);
-  });
-
-  it('llama callback onRestablecerApp cuando se hace clic', async () => {
-    const mockRestablecer = vi.fn();
-    const config = CONFIG_DEFECTO;
-
-    render(<MenuTecnicoPage config={config} onRestablecerApp={mockRestablecer} />);
-
-    const buttons = screen.getAllByRole('button');
-    const restablecerBtn = buttons.find((btn) => btn.textContent === 'restablecer_app');
-
-    expect(restablecerBtn).toBeDefined();
-    fireEvent.click(restablecerBtn!);
-    await waitFor(() => {
-      expect(mockRestablecer).toHaveBeenCalled();
-    });
+    render(<MenuTecnicoPage onRestablecerApp={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Restablecer la app' }));
+    expect(screen.getByTestId('dialogo-restablecer')).toBeInTheDocument();
   });
 });

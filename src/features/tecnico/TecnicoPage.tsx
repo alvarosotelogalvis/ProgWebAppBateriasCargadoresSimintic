@@ -1,20 +1,19 @@
-import { useTranslation } from 'react-i18next';
+import { useCallback } from 'react';
 
-import { Card } from '@/shared/ui/Card';
-import { EmptyState } from '@/shared/ui/EmptyState';
+import { useContainer } from '@/app/containerContext';
+import { restablecerApp } from '@/application/mantenimiento/restablecerApp';
 
+import { MenuTecnicoPage } from './MenuTecnicoPage';
+
+/** Ruta `/tecnico` (solo Administrador). */
 export function TecnicoPage(): React.JSX.Element {
-  const { t } = useTranslation('tecnico');
+  const container = useContainer();
 
-  return (
-    <div>
-      <Card fill>
-        <EmptyState
-          titulo={t('proximamente')}
-          descripcion={t('proximamenteDescripcion')}
-          icono="soporte"
-        />
-      </Card>
-    </div>
-  );
+  const restablecer = useCallback(async (): Promise<void> => {
+    await restablecerApp(container.db);
+    // Reinicio completo: vuelve a leer la base ya vacía y a pedir la configuración inicial.
+    window.location.assign('/');
+  }, [container.db]);
+
+  return <MenuTecnicoPage onRestablecerApp={restablecer} />;
 }

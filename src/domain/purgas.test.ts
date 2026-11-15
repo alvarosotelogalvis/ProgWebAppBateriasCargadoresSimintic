@@ -64,13 +64,13 @@ describe('purgas', () => {
           id: 'pending-1',
           estado: 'FACTURADO',
           syncState: 'pending',
-          ultimaSincronizacion: new Date(hoy.getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+          actualizadoEn: new Date(hoy.getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
         } as unknown as Servicio,
         {
           id: 'error-1',
           estado: 'FACTURADO',
           syncState: 'error',
-          ultimaSincronizacion: new Date(hoy.getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+          actualizadoEn: new Date(hoy.getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
         } as unknown as Servicio,
       ];
 
@@ -85,7 +85,7 @@ describe('purgas', () => {
           id: 'facturado-1',
           estado: 'FACTURADO',
           syncState: 'synced',
-          ultimaSincronizacion: new Date(hoy.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+          actualizadoEn: new Date(hoy.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString(),
         } as unknown as Servicio,
       ];
 
@@ -100,7 +100,7 @@ describe('purgas', () => {
           id: 'facturado-reciente',
           estado: 'FACTURADO',
           syncState: 'synced',
-          ultimaSincronizacion: new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          actualizadoEn: new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         } as unknown as Servicio,
       ];
 
@@ -114,7 +114,7 @@ describe('purgas', () => {
           id: 'srv-1',
           estado: 'FACTURADO',
           syncState: 'synced',
-          ultimaSincronizacion: new Date(hoy.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+          actualizadoEn: new Date(hoy.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString(),
         } as unknown as Servicio,
       ];
 

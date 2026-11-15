@@ -1,119 +1,87 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ImportarRespaldoDialog } from './ImportarRespaldoDialog';
-import * as respaldoModule from '@/application/respaldo/respaldo';
-import type { Servicio } from '@/domain/servicio';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/application/respaldo/respaldo');
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => {
-      const map: Record<string, string> = {
-        'tecnico:respaldo.importarTitulo': 'Importar respaldo',
-        'tecnico:respaldo.importarDescripcion': 'Carga un respaldo...',
-        'tecnico:respaldo.seleccionarArchivo': 'Selecciona',
-        'tecnico:respaldo.importar': 'Importar',
-        'tecnico:respaldo.importando': 'Importando...',
-        'tecnico:respaldo.noArchivoSeleccionado': 'Selecciona un archivo',
-        'tecnico:respaldo.todosDuplicados': 'Todos duplicados',
-        'tecnico:respaldo.errorImportar': 'Error al importar',
-        'comun:comun.cancelar': 'Cancelar',
-      };
-      return map[`tecnico:${key}`] || map[`comun:${key}`] || key;
-    },
-  }),
+import '@/shared/i18n';
+
+import * as respaldo from '@/application/respaldo/respaldo';
+import type { AppDB } from '@/infrastructure/db/dexie';
+
+import { ImportarRespaldoDialog } from './ImportarRespaldoDialog';
+
+vi.mock('@/application/respaldo/respaldo', () => ({ importarRespaldo: vi.fn() }));
+vi.mock('./respaldoDeps', () => ({
+  depsRespaldo: () => ({ exportar: {}, importar: { marca: 'deps-importar' } }),
 }));
 
+const montar = (props: Partial<Parameters<typeof ImportarRespaldoDialog>[0]> = {}) =>
+  render(<ImportarRespaldoDialog abierto db={{} as AppDB} onCerrar={vi.fn()} {...props} />);
+
+const elegirArchivo = (nombre = 'respaldo.zip'): File => {
+  const archivo = new File(['zip'], nombre, { type: 'application/zip' });
+  fireEvent.change(screen.getByTestId('archivo-respaldo'), { target: { files: [archivo] } });
+  return archivo;
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
 describe('ImportarRespaldoDialog', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  it('el botón Importar queda deshabilitado hasta elegir un archivo', () => {
+    montar();
+    expect(screen.getByRole('button', { name: 'Importar' })).toBeDisabled();
+
+    elegirArchivo();
+
+    expect(screen.getByRole('button', { name: 'Importar' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'respaldo.zip' })).toBeInTheDocument();
   });
 
-  it('renderiza con diálogo cerrado', () => {
-    const { container } = render(
-      <ImportarRespaldoDialog
-        abierto={false}
-        serviciosExistentes={[]}
-        onImportados={vi.fn()}
-        onCerrar={vi.fn()}
-      />
-    );
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('habilita botón importar solo con archivo', () => {
-    render(
-      <ImportarRespaldoDialog
-        abierto={true}
-        serviciosExistentes={[]}
-        onImportados={vi.fn()}
-        onCerrar={vi.fn()}
-      />
-    );
-
-    const btn = screen.getByText('Importar');
-    expect((btn as HTMLButtonElement).disabled).toBe(true);
-  });
-
-  it('importa servicios del respaldo', async () => {
-    const servicios = [
-      { id: 'uuid-1', codigo: 'SVC-001', syncState: 'pending' } as unknown as Servicio,
-    ];
+  it('importa y muestra cuántos servicios se restauraron y cuántos se omitieron', async () => {
+    vi.mocked(respaldo.importarRespaldo).mockResolvedValue({
+      importados: 3,
+      omitidos: 1,
+      adjuntosImportados: 4,
+    });
     const onImportados = vi.fn();
+    montar({ onImportados });
+    const archivo = elegirArchivo();
 
-    vi.spyOn(respaldoModule, 'importarRespaldo').mockResolvedValue({
-      servicios,
-      omitidos: [],
-      resumen: { importados: 1, omitidos: 0 },
-    });
+    fireEvent.click(screen.getByRole('button', { name: 'Importar' }));
 
-    render(
-      <ImportarRespaldoDialog
-        abierto={true}
-        serviciosExistentes={[]}
-        onImportados={onImportados}
-        onCerrar={vi.fn()}
-      />
-    );
-
-    const file = new File(['{}'], 'respaldo.zip', { type: 'application/zip' });
-    const input = screen.getByDisplayValue('');
-    fireEvent.change(input, { target: { files: [file] } });
-
-    await waitFor(() => {
-      fireEvent.click(screen.getByText('Importar'));
-    });
-
-    await waitFor(() => {
-      expect(onImportados).toHaveBeenCalledWith(servicios);
+    expect(await screen.findByText(/3 servicios restaurados, 1 omitidos/)).toBeInTheDocument();
+    expect(respaldo.importarRespaldo).toHaveBeenCalledWith({ marca: 'deps-importar' }, archivo);
+    expect(onImportados).toHaveBeenCalledWith({
+      importados: 3,
+      omitidos: 1,
+      adjuntosImportados: 4,
     });
   });
 
-  it('muestra error si todos duplicados', async () => {
-    vi.spyOn(respaldoModule, 'importarRespaldo').mockResolvedValue({
-      servicios: [],
-      omitidos: [{ id: 'uuid-1' } as unknown as Servicio],
-      resumen: { importados: 0, omitidos: 1 },
+  it('avisa si todos los servicios del respaldo ya existían', async () => {
+    vi.mocked(respaldo.importarRespaldo).mockResolvedValue({
+      importados: 0,
+      omitidos: 2,
+      adjuntosImportados: 0,
     });
+    montar();
+    elegirArchivo();
 
-    render(
-      <ImportarRespaldoDialog
-        abierto={true}
-        serviciosExistentes={[]}
-        onImportados={vi.fn()}
-        onCerrar={vi.fn()}
-      />
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Importar' }));
 
-    const file = new File(['{}'], 'respaldo.zip');
-    fireEvent.change(screen.getByDisplayValue(''), { target: { files: [file] } });
+    expect(await screen.findByRole('alert')).toHaveTextContent('ya existen en este dispositivo');
+  });
 
-    await waitFor(() => {
-      fireEvent.click(screen.getByText('Importar'));
-    });
+  it('un respaldo inválido muestra el error sin cerrar', async () => {
+    vi.mocked(respaldo.importarRespaldo).mockRejectedValue(new Error('no es un zip'));
+    const onCerrar = vi.fn();
+    montar({ onCerrar });
+    elegirArchivo('malo.zip');
 
-    await waitFor(() => {
-      expect(screen.getByText('Todos duplicados')).toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByRole('button', { name: 'Importar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Error al importar el respaldo');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Importar' })).toBeEnabled());
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 });

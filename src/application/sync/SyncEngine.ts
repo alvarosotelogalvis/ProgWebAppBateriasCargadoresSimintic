@@ -380,7 +380,9 @@ export class MotorSync implements SyncEngine {
     for (const [campo, enviado] of resultado.camposEnviados) {
       if (mismosValores(actual[campo], enviado)) {
         sucios.delete(campo);
-        (base as Record<string, unknown>)[campo] = enviado;
+        // Un campo vaciado queda sin valor en la base (no se guarda `undefined`).
+        if (enviado === undefined) delete (base as Record<string, unknown>)[campo];
+        else (base as Record<string, unknown>)[campo] = enviado;
       } else {
         // Se editó durante la subida: queda pendiente para la próxima ejecución.
         sucios.add(campo);

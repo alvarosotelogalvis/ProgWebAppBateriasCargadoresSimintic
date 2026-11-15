@@ -64,7 +64,7 @@
       "pasos": [
         "¿La app borra mis datos? No. Los datos se guardan en el dispositivo y solo se purgan de forma segura después de confirmar que ya están en SharePoint.",
         "¿Necesito internet para todo? No. Solo para sincronizar y configuración inicial. Captura de fotos, consulta de servicios y registro funcionan completamente sin conexión.",
-        "¿Qué pasa si cambio de celular? Sincroniza antes de cambiar de dispositivo: lo sincronizado queda en SharePoint y se vuelve a descargar al iniciar sesión en el nuevo celular. El respaldo del menú Técnico (ZIP) solo incluye un resumen de los servicios; no lo uses para trasladar datos pendientes de sincronizar.",
+        "¿Qué pasa si cambio de celular? Sincroniza antes de cambiar de dispositivo: lo sincronizado queda en SharePoint y se vuelve a descargar al iniciar sesión en el nuevo celular. Si no alcanzas a sincronizar, un administrador puede exportar un respaldo desde el menú Técnico (un ZIP con los servicios completos y sus fotos y PDF) e importarlo en el otro dispositivo; los servicios que ya existan allí no se sobrescriben.",
         "¿Cuánto espacio ocupan las fotos? La app optimiza automáticamente: JPEG a 1920px con calidad 0.75. Puedes liberar espacio en Técnico > Liberar espacio.",
         "¿Por qué un servicio tiene estado 'Error'? Verifica conexión y que completaste todos los campos requeridos. Intenta sincronizar nuevamente desde el menú de Sincronización.",
         "¿Es seguro sincronizar con internet móvil? Sí. La app solo sincroniza después de tu confirmación explícita y usa conexión segura con SharePoint."

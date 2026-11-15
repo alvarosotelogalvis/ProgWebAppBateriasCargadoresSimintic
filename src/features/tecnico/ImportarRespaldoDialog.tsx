@@ -1,130 +1,106 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Servicio } from '@/domain/servicio';
-import { importarRespaldo } from '@/application/respaldo/respaldo';
-import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
-import { PrimaryButton } from '@/shared/ui/PrimaryButton';
-import { SecondaryButton } from '@/shared/ui/SecondaryButton';
+
+import { importarRespaldo, type ResultadoImportar } from '@/application/respaldo/respaldo';
+import type { AppDB } from '@/infrastructure/db/dexie';
 import { Banner } from '@/shared/ui/Banner';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
+import { SecondaryButton } from '@/shared/ui/SecondaryButton';
+
+import { depsRespaldo } from './respaldoDeps';
+import styles from './RespaldoDialog.module.css';
 
 interface Props {
   readonly abierto: boolean;
-  readonly serviciosExistentes: Servicio[];
-  readonly onImportados: (servicios: Servicio[]) => void;
+  readonly db: AppDB;
+  readonly onImportados?: (resultado: ResultadoImportar) => void;
   readonly onCerrar: () => void;
 }
 
+/** Restaura un respaldo ZIP: guarda los servicios nuevos y omite los que ya existen (HU-009-1). */
 export function ImportarRespaldoDialog({
   abierto,
-  serviciosExistentes,
+  db,
   onImportados,
   onCerrar,
 }: Props): React.JSX.Element {
   const { t } = useTranslation('tecnico');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const deps = useMemo(() => depsRespaldo(db), [db]);
+  const entrada = useRef<HTMLInputElement>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [archivo, setArchivo] = useState<File | null>(null);
+  const [resultado, setResultado] = useState<ResultadoImportar | null>(null);
 
-  const handleSeleccionarArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.currentTarget.files;
-    if (files && files[0]) {
-      setArchivo(files[0]);
-      setError(null);
-    }
-  };
-
-  const handleImportar = async () => {
+  const importar = async (): Promise<void> => {
     if (!archivo) {
       setError(t('respaldo.noArchivoSeleccionado'));
       return;
     }
-
+    setCargando(true);
+    setError(null);
     try {
-      setCargando(true);
-      setError(null);
-      const resultado = await importarRespaldo(archivo, serviciosExistentes);
-
-      if (resultado.servicios.length === 0 && resultado.omitidos.length > 0) {
+      const importado = await importarRespaldo(deps.importar, archivo);
+      if (importado.importados === 0 && importado.omitidos > 0) {
         setError(t('respaldo.todosDuplicados'));
         return;
       }
-
-      if (resultado.servicios.length > 0) {
-        onImportados(resultado.servicios);
-        onCerrar();
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('respaldo.errorImportar'));
+      setResultado(importado);
+      onImportados?.(importado);
+    } catch {
+      setError(t('respaldo.errorImportar'));
     } finally {
       setCargando(false);
     }
   };
 
-  const handleCerrar = () => {
+  const cerrar = (): void => {
     setArchivo(null);
     setError(null);
+    setResultado(null);
     onCerrar();
   };
 
   return (
-    <ResponsiveDialog
-      titulo={t('respaldo.importarTitulo')}
-      abierto={abierto}
-      onCerrar={handleCerrar}
-    >
+    <ResponsiveDialog titulo={t('respaldo.importarTitulo')} abierto={abierto} onCerrar={cerrar}>
       {error ? <Banner tipo="peligro">{error}</Banner> : null}
-
-      <div style={{ marginBottom: 'var(--espacio-4)' }}>
-        <p>{t('respaldo.importarDescripcion')}</p>
-
-        <div
-          style={{
-            marginTop: 'var(--espacio-3)',
-            padding: 'var(--espacio-3)',
-            border: '2px dashed var(--color-borde)',
-            borderRadius: 'var(--radio-2)',
-            textAlign: 'center',
-          }}
-        >
+      {resultado ? (
+        <Banner tipo="exito">
+          {t('respaldo.resultadoImportar', {
+            importados: resultado.importados,
+            omitidos: resultado.omitidos,
+          })}
+        </Banner>
+      ) : (
+        <>
+          <p>{t('respaldo.importarDescripcion')}</p>
           <input
-            ref={inputRef}
+            ref={entrada}
             type="file"
-            accept=".zip,.json"
-            onChange={handleSeleccionarArchivo}
+            accept=".zip,application/zip"
+            className={styles.oculto!}
+            data-testid="archivo-respaldo"
             disabled={cargando}
-            style={{ display: 'none' }}
-          />
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={cargando}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--color-primario)',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              padding: 0,
+            onChange={(evento) => {
+              setArchivo(evento.currentTarget.files?.[0] ?? null);
+              setError(null);
             }}
-          >
-            {t('respaldo.seleccionarArchivo')}
-          </button>
-          {archivo ? (
-            <p style={{ marginTop: 'var(--espacio-2)', fontSize: 'var(--texto-pequeno)' }}>
-              ✓ {archivo.name}
-            </p>
-          ) : null}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 'var(--espacio-3)', justifyContent: 'flex-end' }}>
-        <SecondaryButton onPress={handleCerrar} isDisabled={cargando}>
-          {t('comun.cancelar')}
+          />
+          <SecondaryButton onPress={() => entrada.current?.click()} isDisabled={cargando}>
+            {archivo ? archivo.name : t('respaldo.seleccionarArchivo')}
+          </SecondaryButton>
+        </>
+      )}
+      <div className={styles.acciones!}>
+        <SecondaryButton onPress={cerrar} isDisabled={cargando}>
+          {resultado ? t('comun.cerrar') : t('comun.cancelar')}
         </SecondaryButton>
-        <PrimaryButton onPress={handleImportar} isDisabled={cargando || !archivo}>
-          {cargando ? t('respaldo.importando') : t('respaldo.importar')}
-        </PrimaryButton>
+        {resultado ? null : (
+          <PrimaryButton onPress={() => void importar()} isDisabled={cargando || !archivo}>
+            {cargando ? t('respaldo.importando') : t('respaldo.importar')}
+          </PrimaryButton>
+        )}
       </div>
     </ResponsiveDialog>
   );

@@ -87,24 +87,24 @@ export function EstadoDispositivo(): React.JSX.Element {
       <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-3)' }}>
         <div>
           <dt style={{ fontWeight: 500 }}>{t('plataforma')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>{info.plataforma}</dd>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>{info.plataforma}</dd>
         </div>
 
         <div>
           <dt style={{ fontWeight: 500 }}>{t('navegador')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>{info.navegador}</dd>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>{info.navegador}</dd>
         </div>
 
         <div>
           <dt style={{ fontWeight: 500 }}>{t('almacenamiento_persistente')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>
             {info.persistenteHabilitado ? '✓ Habilitado' : '✗ No habilitado'}
           </dd>
         </div>
 
         <div>
           <dt style={{ fontWeight: 500 }}>{t('version_base_local')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>{info.versionDb}</dd>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>{info.versionDb}</dd>
         </div>
 
         <div style={{ gridColumn: '1 / -1' }}>
@@ -114,21 +114,21 @@ export function EstadoDispositivo(): React.JSX.Element {
               style={{
                 flex: 1,
                 height: '8px',
-                background: 'var(--color-borde)',
-                borderRadius: 'var(--radio-1)',
+                background: 'var(--border)',
+                borderRadius: 'var(--radio-sm)',
                 overflow: 'hidden',
               }}
             >
               <div
                 style={{
                   height: '100%',
-                  background: porcentajeUsado < 80 ? 'var(--color-exito)' : 'var(--color-peligro)',
+                  background: porcentajeUsado < 80 ? 'var(--exito)' : 'var(--peligro)',
                   width: `${porcentajeUsado}%`,
                   transition: 'width 0.2s',
                 }}
               />
             </div>
-            <span style={{ fontSize: 'var(--texto-pequeno)' }}>
+            <span style={{ fontSize: 'var(--texto-sm)' }}>
               {Math.round(info.tamanoUsado / 1024 / 1024)} MB /{' '}
               {Math.round(info.tamanoDisponible / 1024 / 1024)} MB ({porcentajeUsado}%)
             </span>
@@ -142,8 +142,8 @@ export function EstadoDispositivo(): React.JSX.Element {
           <dd
             style={{
               margin: 0,
-              color: 'var(--color-texto-secundario)',
-              fontSize: 'var(--texto-pequeno)',
+              color: 'var(--text-secondary)',
+              fontSize: 'var(--texto-sm)',
               wordBreak: 'break-all',
               fontFamily: 'monospace',
             }}

@@ -15,18 +15,21 @@ export interface ResultadoRestablecimiento {
 }
 
 export async function restablecerApp(db: AppDB): Promise<ResultadoRestablecimiento> {
-  // Verificar que no hay pendientes
+  // Nada que no esté ya en SharePoint se puede perder: borradores, pendientes, con error o en
+  // conflicto bloquean el restablecimiento (regla de oro: nunca perder datos locales).
   const servicios = await db.servicios.toArray();
-  const conPendientes = servicios.filter((s) => s.syncState === 'pending');
+  const adjuntos = await db.adjuntos.toArray();
+  const sinSincronizar =
+    servicios.filter((s) => s.syncState !== 'synced').length +
+    adjuntos.filter((a) => a.syncState !== 'synced' || a.eliminarRemoto).length;
 
-  if (conPendientes.length > 0) {
+  if (sinSincronizar > 0) {
     throw new ErrorRestablecimiento(
-      `No se puede restablecer con ${conPendientes.length} servicio(s) pendiente(s)`
+      `No se puede restablecer con ${sinSincronizar} elemento(s) sin sincronizar`
     );
   }
 
   // Contar antes de eliminar
-  const adjuntos = await db.adjuntos.toArray();
   const logsTotal = await db.logs.count();
 
   // Ejecutar borrado en transacción

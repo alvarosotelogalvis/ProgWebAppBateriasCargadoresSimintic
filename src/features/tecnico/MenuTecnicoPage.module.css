@@ -1,0 +1,39 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.pestanas {
+  display: flex;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-3);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.pestana {
+  min-height: var(--objetivo-tactil);
+  padding: 0 var(--espacio-3);
+  border-radius: var(--radio-sm) var(--radio-sm) 0 0;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pestana[data-selected] {
+  background-color: var(--primary-light);
+  color: var(--text-primary);
+  font-weight: var(--peso-semibold);
+}
+
+.pestana[data-focus-visible] {
+  outline: none;
+  box-shadow: var(--sombra-foco);
+}
+
+.acciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--espacio-4);
+}

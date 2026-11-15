@@ -1,176 +1,242 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+// @vitest-environment node
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
+// Debe cargarse primero: instala fake-indexeddb antes de que se cree la base global de la app.
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
-import type { AppDB } from '@/infrastructure/db/dexie';
-import type { Adjunto } from '@/domain/adjunto';
+
 import type { Servicio } from '@/domain/servicio';
+import { AdjuntoRepositoryDexie } from '@/infrastructure/db/adjuntoRepository';
+import type { AppDB } from '@/infrastructure/db/dexie';
+import { ServicioRepositoryDexie } from '@/infrastructure/db/servicioRepository';
+import { UnidadDeTrabajoDexie } from '@/infrastructure/db/unidadDeTrabajo';
+import { empaquetar } from '@/infrastructure/respaldo/zip';
 
-describe('Respaldo - Integración exportar ↔ importar', () => {
-  let dbA: AppDB;
-  let dbB: AppDB;
+import { adjuntoBuilder } from '../../../tests/builders/adjuntoBuilder';
+import { servicioBuilder } from '../../../tests/builders/servicioBuilder';
+import {
+  exportarRespaldo,
+  importarRespaldo,
+  RespaldoInvalidoError,
+  type DepsExportar,
+  type DepsImportar,
+} from './respaldo';
 
-  beforeEach(async () => {
-    dbA = await crearDbPrueba();
-    dbB = await crearDbPrueba();
+interface Dispositivo {
+  readonly db: AppDB;
+  readonly servicios: ServicioRepositoryDexie;
+  readonly adjuntos: AdjuntoRepositoryDexie;
+  readonly exportar: DepsExportar;
+  readonly importar: DepsImportar;
+}
+
+const crearDispositivo = async (id: string): Promise<Dispositivo> => {
+  const db = await crearDbPrueba();
+  const servicios = new ServicioRepositoryDexie(db);
+  const adjuntos = new AdjuntoRepositoryDexie(db);
+  return {
+    db,
+    servicios,
+    adjuntos,
+    exportar: { servicios, adjuntos, appVersion: '0.1.0', dispositivoId: async () => id },
+    importar: { servicios, uow: new UnidadDeTrabajoDexie(db, servicios, adjuntos) },
+  };
+};
+
+let a: Dispositivo;
+let b: Dispositivo;
+
+beforeEach(async () => {
+  a = await crearDispositivo('dispositivo-a');
+  b = await crearDispositivo('dispositivo-b');
+});
+
+afterEach(async () => {
+  await Promise.all([a.db.delete(), b.db.delete()]);
+});
+
+const pendiente = (id: string): Servicio => ({
+  ...servicioBuilder().conId(id).diagnosticado().pendiente().construir(),
+  camposSucios: ['diagnostico'],
+});
+
+const sincronizado = (id: string): Servicio =>
+  servicioBuilder().conId(id).facturado().sincronizado().construir();
+
+const foto = (servicioId: string, id: string, contenido: string) =>
+  adjuntoBuilder()
+    .enServicio(servicioId)
+    .conCampos({
+      id,
+      syncState: 'pending',
+      blob: new Blob([contenido], { type: 'image/jpeg' }),
+      miniatura: new Blob(['mini'], { type: 'image/jpeg' }),
+    })
+    .construir();
+
+describe('respaldo: exportar e importar (HU-009-1)', () => {
+  it('lleva los servicios completos y sus archivos de A a B', async () => {
+    const servicio = pendiente('s-1');
+    await a.servicios.guardar(servicio);
+    await a.adjuntos.guardar(foto('s-1', 'adj-1', 'contenido de la foto'));
+
+    const exportado = await exportarRespaldo(a.exportar, 'solo-pendientes');
+    expect(exportado).toMatchObject({ serviciosIncluidos: 1, adjuntosIncluidos: 1 });
+    expect(exportado.nombreArchivo).toMatch(/^respaldo-solo-pendientes-\d{4}-\d{2}-\d{2}\.zip$/);
+
+    const resultado = await importarRespaldo(b.importar, exportado.blob);
+
+    expect(resultado).toEqual({ importados: 1, omitidos: 0, adjuntosImportados: 1 });
+    // Todos los datos del servicio, no solo un resumen.
+    expect(await b.servicios.obtener('s-1')).toEqual(servicio);
+    const [adjunto] = await b.adjuntos.listarPorServicio('s-1');
+    expect(adjunto).toMatchObject({ id: 'adj-1', syncState: 'pending', mime: 'image/jpeg' });
+    expect(await new Response(adjunto?.blob).text()).toBe('contenido de la foto');
+    expect(await new Response(adjunto?.miniatura).text()).toBe('mini');
   });
 
-  it('exporta servicios pendientes con adjuntos', async () => {
-    const servicioId = 'srv-1';
-    const adjuntoId = 'adj-1';
+  it('«solo pendientes» incluye borradores, con error y en conflicto, pero no lo sincronizado', async () => {
+    await a.servicios.guardar(sincronizado('ok'));
+    await a.servicios.guardar(servicioBuilder().conId('borrador').borrador().construir());
+    await a.servicios.guardar({ ...pendiente('error'), syncState: 'error' });
+    await a.servicios.guardar({ ...pendiente('conflicto'), syncState: 'conflict' });
 
-    const servicio: Servicio = {
-      id: servicioId,
-      codigo: 'BAT-001-SN123',
-      tipoEquipo: 'BATERIA',
-      estado: 'RECIBIDO',
-      syncState: 'pending',
-      capturadoPor: 'user@example.com',
-      capturadoPorNombre: 'Usuario',
-      creadoEn: new Date().toISOString(),
-      actualizadoEn: new Date().toISOString(),
-      dispositivoId: 'device-1',
-      appVersion: '1.0.0',
-    } as Servicio;
+    const exportado = await exportarRespaldo(a.exportar, 'solo-pendientes');
+    await importarRespaldo(b.importar, exportado.blob);
 
-    const adjunto: Adjunto = {
-      id: adjuntoId,
-      servicioId,
-      tipo: 'FOTO_INGRESO',
-      nombreArchivo: 'foto.jpg',
-      mime: 'image/jpeg',
-      tamanoBytes: 50000,
-      sha256: 'abc123',
-      capturadoEn: new Date().toISOString(),
-      capturadoPor: 'user@example.com',
-      blob: new Blob(['imagen data']),
-      miniatura: new Blob(['thumb']),
-      syncState: 'pending',
-      eliminarRemoto: false,
-    } as Adjunto;
-
-    await dbA.servicios.add(servicio);
-    await dbA.adjuntos.add(adjunto);
-
-    const servicios = await dbA.servicios.toArray();
-    const adjuntos = await dbA.adjuntos.toArray();
-
-    expect(servicios).toHaveLength(1);
-    expect(adjuntos).toHaveLength(1);
+    expect((await b.servicios.listarTodos()).map((s) => s.id).sort()).toEqual([
+      'borrador',
+      'conflicto',
+      'error',
+    ]);
   });
 
-  it('omite servicios duplicados al importar', async () => {
-    const servicioId = 'srv-existing';
+  it('«todos» incluye también lo sincronizado', async () => {
+    await a.servicios.guardar(sincronizado('ok'));
+    await a.servicios.guardar(pendiente('p'));
 
-    const servicioA: Servicio = {
-      id: servicioId,
-      codigo: 'BAT-001-SN123',
-      tipoEquipo: 'BATERIA',
-      estado: 'RECIBIDO',
-      syncState: 'pending',
-      capturadoPor: 'user@example.com',
-      capturadoPorNombre: 'Usuario',
-      creadoEn: new Date().toISOString(),
-      actualizadoEn: new Date().toISOString(),
-      dispositivoId: 'device-a',
-      appVersion: '1.0.0',
-    } as Servicio;
+    const exportado = await exportarRespaldo(a.exportar, 'todos');
 
-    const servicioB: Servicio = {
-      ...servicioA,
-      dispositivoId: 'device-b',
-      estado: 'DIAGNOSTICADO',
-      syncState: 'pending',
+    expect(exportado.serviciosIncluidos).toBe(2);
+  });
+
+  it('no respalda los adjuntos que solo existen en SharePoint', async () => {
+    await a.servicios.guardar(pendiente('s-1'));
+    await a.adjuntos.guardar(
+      adjuntoBuilder()
+        .enServicio('s-1')
+        .conCampos({ id: 'remoto', blob: null, miniatura: null, syncState: 'synced' })
+        .construir()
+    );
+    await a.adjuntos.guardar(foto('s-1', 'propio', 'x'));
+
+    const exportado = await exportarRespaldo(a.exportar, 'solo-pendientes');
+
+    expect(exportado.adjuntosIncluidos).toBe(1);
+  });
+
+  it('conserva la eliminación pendiente de un adjunto que ya no tiene archivo', async () => {
+    await a.servicios.guardar(pendiente('s-1'));
+    await a.adjuntos.guardar(
+      adjuntoBuilder()
+        .enServicio('s-1')
+        .conCampos({
+          id: 'a-borrar',
+          blob: null,
+          miniatura: null,
+          eliminarRemoto: true,
+          syncState: 'pending',
+          sp: { driveItemId: 'd1', webUrl: '', eTag: '' },
+        })
+        .construir()
+    );
+
+    const exportado = await exportarRespaldo(a.exportar, 'solo-pendientes');
+    await importarRespaldo(b.importar, exportado.blob);
+
+    expect((await b.adjuntos.obtener('a-borrar'))?.eliminarRemoto).toBe(true);
+  });
+
+  it('importar dos veces no duplica ni sobrescribe lo que ya existe (idempotente)', async () => {
+    await a.servicios.guardar(pendiente('s-1'));
+    const { blob } = await exportarRespaldo(a.exportar, 'todos');
+    await importarRespaldo(b.importar, blob);
+    // En B el servicio avanzó después de la primera importación.
+    const local = await b.servicios.obtener('s-1');
+    await b.servicios.guardar({ ...(local as Servicio), marca: 'EDITADA EN B' });
+
+    const segunda = await importarRespaldo(b.importar, blob);
+
+    expect(segunda).toEqual({ importados: 0, omitidos: 1, adjuntosImportados: 0 });
+    expect(await b.servicios.listarTodos()).toHaveLength(1);
+    expect((await b.servicios.obtener('s-1'))?.marca).toBe('EDITADA EN B');
+  });
+
+  it('un envío interrumpido llega como pendiente', async () => {
+    await a.servicios.guardar({ ...pendiente('s-1'), syncState: 'syncing' });
+
+    const { blob } = await exportarRespaldo(a.exportar, 'todos');
+    await importarRespaldo(b.importar, blob);
+
+    expect((await b.servicios.obtener('s-1'))?.syncState).toBe('pending');
+  });
+
+  describe('un respaldo inválido no toca la base de datos', () => {
+    const intentar = async (blob: Blob): Promise<unknown> => {
+      await b.servicios.guardar(pendiente('existente'));
+      const error = await importarRespaldo(b.importar, blob).catch((causa: unknown) => causa);
+      expect(await b.servicios.listarTodos()).toHaveLength(1);
+      return error;
     };
 
-    await dbA.servicios.add(servicioA);
-    await dbB.servicios.add(servicioB);
+    const manifiesto = { version: '1.0.0', esquemaDb: 1, servicios_pendientes: 0 };
 
-    // Al importar, B tiene el servicio con id servicioId
-    // La importación debe omitir este registro
-    const existente = await dbB.servicios.get(servicioId);
-    expect(existente).toBeDefined();
-    expect(existente?.estado).toBe('DIAGNOSTICADO');
-  });
+    it('un archivo que no es ZIP', async () => {
+      expect(await intentar(new Blob(['no soy un zip']))).toBeInstanceOf(Error);
+    });
 
-  it('preserva syncState al exportar e importar', async () => {
-    const servicioId = 'srv-sync';
+    it('un ZIP sin manifiesto', async () => {
+      const blob = await empaquetar([{ ruta: 'servicios.json', contenido: '[]' }]);
+      expect(await intentar(blob)).toBeInstanceOf(RespaldoInvalidoError);
+    });
 
-    const servicio: Servicio = {
-      id: servicioId,
-      codigo: 'BAT-001-SN123',
-      tipoEquipo: 'BATERIA',
-      estado: 'RECIBIDO',
-      syncState: 'pending',
-      capturadoPor: 'user@example.com',
-      capturadoPorNombre: 'Usuario',
-      creadoEn: new Date().toISOString(),
-      actualizadoEn: new Date().toISOString(),
-      dispositivoId: 'device-1',
-      appVersion: '1.0.0',
-    } as Servicio;
+    it('un esquema de una versión futura', async () => {
+      const blob = await empaquetar([
+        { ruta: 'manifiesto.json', contenido: JSON.stringify({ ...manifiesto, esquemaDb: 99 }) },
+        { ruta: 'servicios.json', contenido: '[]' },
+        { ruta: 'adjuntos.json', contenido: '[]' },
+      ]);
+      expect(await intentar(blob)).toBeInstanceOf(RespaldoInvalidoError);
+    });
 
-    await dbA.servicios.add(servicio);
-    const original = await dbA.servicios.get(servicioId);
+    it('servicios con un formato inesperado', async () => {
+      const blob = await empaquetar([
+        { ruta: 'manifiesto.json', contenido: JSON.stringify(manifiesto) },
+        { ruta: 'servicios.json', contenido: '[{"sin":"id"}]' },
+        { ruta: 'adjuntos.json', contenido: '[]' },
+      ]);
+      expect(await intentar(blob)).toBeInstanceOf(RespaldoInvalidoError);
+    });
 
-    // Simular que se importaría en dbB
-    if (original && !(await dbB.servicios.get(servicioId))) {
-      await dbB.servicios.add({ ...original, syncState: 'pending' });
-    }
-
-    const importado = await dbB.servicios.get(servicioId);
-    expect(importado?.syncState).toBe('pending');
-  });
-
-  it('no incluye adjuntos remotos sin blob en el respaldo', async () => {
-    const servicioId = 'srv-2';
-    const adjuntoRemotoId = 'adj-remoto';
-
-    // Adjunto remoto (descargado de SharePoint, sin blob local)
-    const adjuntoRemoto: Adjunto = {
-      id: adjuntoRemotoId,
-      servicioId,
-      tipo: 'FOTO_INGRESO',
-      nombreArchivo: 'foto.jpg',
-      mime: 'image/jpeg',
-      tamanoBytes: 50000,
-      sha256: 'abc123',
-      capturadoEn: new Date().toISOString(),
-      capturadoPor: 'otro-usuario',
-      blob: null, // No tiene blob
-      miniatura: new Blob(['thumb']),
-      sp: {
-        driveItemId: 'drive-123',
-        webUrl: 'https://example.com/file',
-        eTag: 'etag-123',
-      },
-      syncState: 'synced',
-      eliminarRemoto: false,
-    } as Adjunto;
-
-    await dbA.adjuntos.add(adjuntoRemoto);
-
-    const adjuntos = await dbA.adjuntos.toArray();
-    // En respaldo, solo se incluyen adjuntos con blob
-    const conBlob = adjuntos.filter((a) => a.blob !== null);
-
-    expect(adjuntos).toHaveLength(1);
-    expect(conBlob).toHaveLength(0);
-  });
-
-  it('manifiesto inválido no afecta la base de datos al importar', async () => {
-    const serviciosAntes = await dbB.servicios.toArray();
-
-    // Intentar "importar" un manifiesto inválido
-    // (simulated - en realidad esto lo rechazaría validarManifiesto)
-    const manifestoInvalido = {
-      // Falta esquemaDb
-      version: '1.0.0',
-      app_version: '1.0.0',
-    };
-
-    // La validación debería fallar aquí
-    expect(manifestoInvalido).not.toHaveProperty('esquemaDb');
-
-    const serviciosDespues = await dbB.servicios.toArray();
-    expect(serviciosDespues).toHaveLength(serviciosAntes.length);
+    it('un adjunto sin su archivo: no se importa nada, ni siquiera sus servicios', async () => {
+      const servicio = pendiente('nuevo');
+      const blob = await empaquetar([
+        { ruta: 'manifiesto.json', contenido: JSON.stringify(manifiesto) },
+        { ruta: 'servicios.json', contenido: JSON.stringify([servicio]) },
+        {
+          ruta: 'adjuntos.json',
+          contenido: JSON.stringify([
+            {
+              id: 'x',
+              servicioId: 'nuevo',
+              tieneArchivo: true,
+              tieneMiniatura: false,
+              mime: 'image/jpeg',
+            },
+          ]),
+        },
+      ]);
+      expect(await intentar(blob)).toBeInstanceOf(RespaldoInvalidoError);
+      expect(await b.servicios.obtener('nuevo')).toBeUndefined();
+    });
   });
 });

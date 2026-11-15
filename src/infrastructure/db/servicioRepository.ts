@@ -24,6 +24,10 @@ export class ServicioRepositoryDexie implements ServicioRepository {
     return servicios.filter((servicio) => servicio.estado !== 'BORRADOR');
   }
 
+  async listarTodos(): Promise<Servicio[]> {
+    return this.db.servicios.toArray();
+  }
+
   async buscarPorSpItemId(itemId: string): Promise<Servicio | undefined> {
     return this.db.servicios.where('sp.itemId').equals(itemId).first();
   }

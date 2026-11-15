@@ -9,6 +9,17 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Menú técnico operativo (spec 009).** La ruta `/tecnico` mostraba «Próximamente»: ahora abre el
+  diagnóstico del dispositivo y de SharePoint, el visor de registros, el respaldo, «Liberar espacio» y
+  «Restablecer la app» (pide escribir BORRAR).
+  - Respaldo real: un ZIP estándar (`fflate`) con los servicios completos, los metadatos de los
+    adjuntos y sus fotos y PDF. Importar valida todo antes de escribir, guarda en una sola
+    transacción, omite los servicios que ya existen y nunca sobrescribe. «Solo pendientes» incluye
+    borradores, con error y en conflicto. Antes exportaba un resumen de 4 campos en un JSON y la
+    importación no guardaba nada.
+  - Restablecer se niega si hay cualquier servicio o adjunto sin sincronizar (antes solo miraba
+    «pendiente»).
+
 - **Spec 006: Sincronización de descarga y conflictos.** Después de subir, la sincronización descarga
   lo que otros dispositivos crearon o cambiaron en SharePoint y refresca catálogos y configuración.
   - Descarga incremental por delta de la lista (paginada, con recuperación si el `deltaLink`
@@ -51,6 +62,11 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- Los servicios cerrados nunca se purgaban (la purga leía un campo inexistente): ahora se usa la
+  última modificación y se borran también sus adjuntos (antes quedaban huérfanos). Se eliminó la
+  segunda implementación de purgas, que nadie usaba.
+- Vaciar un campo (p. ej. el número de factura al corregir) ahora se sincroniza como `null` en
+  SharePoint; antes el campo quedaba «sucio» para siempre y el servicio pendiente en cada sincronización.
 - `public/_headers` bloqueaba toda llamada a Graph y a Microsoft Entra en producción (`connect-src 'self'`):
   ahora coincide con el SDD §14.2 (Graph, Entra ID y SharePoint para miniaturas).
 - Los mensajes de validación ausentes salían en inglés (API de Zod 3 con Zod 4): ahora son claves

@@ -28,6 +28,7 @@
     "@material-symbols/svg-500": "^0.27.0",
     "dexie": "^4.0.8",
     "dexie-react-hooks": "^1.1.7",
+    "fflate": "0.8.3",
     "i18next": "^23.16.0",
     "react": "^19.0.0",
     "react-aria-components": "^1.4.1",
