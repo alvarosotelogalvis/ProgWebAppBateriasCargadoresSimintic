@@ -9,6 +9,7 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Carpetas de año en `ServiciosAdjuntos`** con `provision-sharepoint-graph.mjs --anios`, y comprobación en una biblioteca real de que la carpeta `/{año}/{ServicioId}` se crea sola al subir el primer archivo.
 - **`scripts/provision-sharepoint-graph.mjs`:** aprovisiona por Microsoft Graph (aplicación + secreto, sin inicio de
   sesión interactivo) las listas, columnas, índices, datos iniciales y claves de configuración. Ensayo por defecto,
   idempotente, nunca borra. Verificado contra un sitio real. Esquema en `scripts/esquema-sharepoint.mjs`.
@@ -32,6 +33,7 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- **Texto de ayuda de la observación técnica:** decía «Puedes grabar audio», pero la app no graba audio (PA-13: se dicta con el teclado). Ahora indica el dictado por teclado.
 - **El motor no reconocía el duplicado de `ServicioId` en SharePoint real:** SharePoint responde 400
   `invalidRequest` («unique constraints…»), no 409, así que la idempotencia ante una carrera de reintento
   habría fallado. Ahora se reconoce por el mensaje (`esValorUnicoDuplicado`) y el emulador de pruebas responde igual.

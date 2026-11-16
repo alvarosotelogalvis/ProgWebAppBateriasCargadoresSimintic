@@ -10,7 +10,7 @@
 //
 // Uso (el secreto se lee de variables de entorno o de un archivo .env; NUNCA se pasa por línea de comandos):
 //   node scripts/provision-sharepoint-graph.mjs --site siminticsas.sharepoint.com/sites/MineroIndustrial --env-file <ruta/.env>
-//   node scripts/provision-sharepoint-graph.mjs --site ... --env-file ... --aplicar
+//   node scripts/provision-sharepoint-graph.mjs --site ... --env-file ... --aplicar [--anios 2026,2027]
 // Variables: SP_TENANT_ID, SP_CLIENT_ID, SP_CLIENT_SECRET. La aplicación necesita el permiso de aplicación
 // `Sites.Manage.All` (o `Sites.Selected` con rol manage/owner sobre el sitio) con consentimiento de administrador.
 //
@@ -214,12 +214,57 @@ async function agregarElementosPorTitulo({
   }
 }
 
+/**
+ * Crea las carpetas de año (`/{año}`) en la biblioteca de adjuntos. La carpeta de cada servicio
+ * (`/{año}/{ServicioId}`) NO se crea aquí: su id nace en el dispositivo y la app la crea sola al subir
+ * el primer archivo (`PUT .../root:/{ruta}:/content` crea las carpetas intermedias).
+ */
+export async function asegurarCarpetasAnio({
+  graph,
+  siteId,
+  listaId,
+  anios,
+  aplicar,
+  resumen,
+  log,
+}) {
+  if (!anios.length) return;
+  const unidad =
+    listaId && !String(listaId).startsWith('(')
+      ? (await graph.get(`/sites/${siteId}/lists/${listaId}/drive?$select=id`)).id
+      : undefined;
+  const existentes = unidad
+    ? new Set(
+        (await graph.getTodos(`/drives/${unidad}/root/children?$select=name,folder&$top=200`))
+          .filter((e) => e.folder)
+          .map((e) => e.name)
+      )
+    : new Set();
+  for (const anio of anios.map(String)) {
+    if (existentes.has(anio)) {
+      resumen.existentes++;
+      log(`  [ya existe]  carpeta /${anio}`);
+    } else if (!aplicar || !unidad) {
+      log(`  [simulación] crearía la carpeta /${anio}`);
+    } else {
+      await graph.post(`/drives/${unidad}/root/children`, {
+        name: anio,
+        folder: {},
+        '@microsoft.graph.conflictBehavior': 'fail',
+      });
+      resumen.creados++;
+      log(`  [creado]     carpeta /${anio}`);
+    }
+  }
+}
+
 export async function aprovisionar({
   graph,
   siteId,
   aplicar = false,
   sinDatos = false,
   correos = {},
+  anios = [],
   log = console.log,
 }) {
   const resumen = { creados: 0, existentes: 0, avisos: [] };
@@ -274,6 +319,18 @@ export async function aprovisionar({
       }
     }
     if (lista.id) ids[nombre] = lista.id;
+
+    if (nombre === 'ServiciosAdjuntos') {
+      await asegurarCarpetasAnio({
+        graph,
+        siteId,
+        listaId: ids[nombre],
+        anios,
+        aplicar,
+        resumen,
+        log,
+      });
+    }
 
     if (sinDatos) continue;
     if (nombre === 'Clientes') {
@@ -409,6 +466,11 @@ export function leerArgumentos(argv) {
     else if (arg === '--env-file') opciones.envFile = argv[++i];
     else if (arg === '--correo-ot') opciones.correoOt = argv[++i];
     else if (arg === '--correo-alertas') opciones.correoAlertas = argv[++i];
+    else if (arg === '--anios')
+      opciones.anios = String(argv[++i])
+        .split(',')
+        .map((a) => a.trim())
+        .filter(Boolean);
     else throw new Error(`Argumento desconocido: ${arg}`);
   }
   return opciones;
@@ -452,6 +514,7 @@ async function main() {
     aplicar: opciones.aplicar,
     sinDatos: opciones.sinDatos,
     correos: { ot: opciones.correoOt, alertas: opciones.correoAlertas },
+    anios: opciones.anios ?? [new Date().getFullYear()],
   });
   console.log(`\nResumen: ${resumen.creados} creado(s), ${resumen.existentes} que ya existían.`);
   for (const aviso of resumen.avisos) console.log(` - ${aviso}`);

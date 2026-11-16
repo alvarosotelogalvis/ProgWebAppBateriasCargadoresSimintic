@@ -49,6 +49,7 @@ interface Modulo {
     aplicar?: boolean;
     sinDatos?: boolean;
     correos?: { ot?: string; alertas?: string };
+    anios?: number[];
     log?: (t: string) => void;
   }): Promise<Resumen>;
   verificar(o: { graph: Graph; siteId: string }): Promise<string[]>;
@@ -104,6 +105,8 @@ class GraphSimulado implements Graph {
     }
   >();
   escrituras = 0;
+  /** Carpetas de la raíz de la biblioteca de adjuntos. */
+  carpetas = new Set<string>();
   private contador = 0;
 
   private porId(id: string) {
@@ -112,7 +115,8 @@ class GraphSimulado implements Graph {
     return lista;
   }
 
-  async get(): Promise<unknown> {
+  async get(ruta: string): Promise<unknown> {
+    if (/\/lists\/[^/]+\/drive\?/.test(ruta)) return { id: 'unidad-1' };
     return {};
   }
 
@@ -127,6 +131,9 @@ class GraphSimulado implements Graph {
     }
     const columnas = /\/lists\/([^/]+)\/columns/.exec(ruta);
     if (columnas) return [...this.porId(columnas[1]!).columnas.values()];
+    if (/\/drives\/unidad-1\/root\/children/.test(ruta)) {
+      return [...this.carpetas].map((name) => ({ name, folder: {} }));
+    }
     const items = /\/lists\/([^/]+)\/items/.exec(ruta);
     if (items) return this.porId(items[1]!).items;
     throw new Error(`GET no simulado: ${ruta}`);
@@ -151,6 +158,10 @@ class GraphSimulado implements Graph {
       }
       this.listas.set(nombre, lista);
       return { id: lista.id, name: nombre };
+    }
+    if (/\/drives\/unidad-1\/root\/children$/.test(ruta)) {
+      this.carpetas.add(c.name as string);
+      return {};
     }
     const columnas = /\/lists\/([^/]+)\/columns$/.exec(ruta);
     if (columnas) {
@@ -476,6 +487,27 @@ describe('aprovisionar', () => {
     expect(graph.listas.get('ConfiguracionApp')!.items).toHaveLength(0);
   });
 
+  it('crea la carpeta de cada año en la biblioteca de adjuntos, sin crear la de cada servicio', async () => {
+    const graph = new GraphSimulado();
+
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, anios: [2026, 2027], log: sinLog });
+
+    expect([...graph.carpetas].sort()).toEqual(['2026', '2027']);
+  });
+
+  it('las carpetas de año son idempotentes y el ensayo no las crea', async () => {
+    const graph = new GraphSimulado();
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: false, anios: [2026], log: sinLog });
+    expect(graph.carpetas.size).toBe(0);
+
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, anios: [2026], log: sinLog });
+    graph.escrituras = 0;
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, anios: [2026], log: sinLog });
+
+    expect(graph.escrituras).toBe(0);
+    expect(graph.carpetas.size).toBe(1);
+  });
+
   it('avisa de lo que Graph no puede configurar (versionado, vistas, permisos)', async () => {
     const resumen = await m.aprovisionar({
       graph: new GraphSimulado(),
@@ -619,8 +651,23 @@ describe('cliente de Graph', () => {
 describe('línea de comandos', () => {
   it('interpreta los argumentos y rechaza los desconocidos', () => {
     expect(
-      m.leerArgumentos(['--site', 'a/sites/B', '--aplicar', '--sin-datos', '--correo-ot', 'x@y.co'])
-    ).toMatchObject({ site: 'a/sites/B', aplicar: true, sinDatos: true, correoOt: 'x@y.co' });
+      m.leerArgumentos([
+        '--site',
+        'a/sites/B',
+        '--aplicar',
+        '--sin-datos',
+        '--correo-ot',
+        'x@y.co',
+        '--anios',
+        '2026, 2027',
+      ])
+    ).toMatchObject({
+      site: 'a/sites/B',
+      aplicar: true,
+      sinDatos: true,
+      correoOt: 'x@y.co',
+      anios: ['2026', '2027'],
+    });
     expect(m.leerArgumentos([])).toMatchObject({ aplicar: false });
     expect(() => m.leerArgumentos(['--secreto', 'abc'])).toThrow(/desconocido/);
   });

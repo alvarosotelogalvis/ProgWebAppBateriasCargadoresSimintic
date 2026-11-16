@@ -222,8 +222,10 @@ Al terminar: agrega a los usuarios al grupo `ServicioTecnico-Usuarios`, concede 
 # Ensayo (solo lectura)
 node scripts/provision-sharepoint-graph.mjs --site <tenant>.sharepoint.com/sites/<Sitio> --env-file <ruta/.env>
 # Crear
-node scripts/provision-sharepoint-graph.mjs --site <tenant>.sharepoint.com/sites/<Sitio> --env-file <ruta/.env> --aplicar --correo-ot ot@empresa.com --correo-alertas alertas@empresa.com
+node scripts/provision-sharepoint-graph.mjs --site <tenant>.sharepoint.com/sites/<Sitio> --env-file <ruta/.env> --aplicar --correo-ot ot@empresa.com --correo-alertas alertas@empresa.com --anios 2026,2027
 ```
+
+`--anios` crea las carpetas de año de `ServiciosAdjuntos` (por defecto, el año actual). La carpeta de cada servicio (`/{año}/{ServicioId}`) la crea la app sola en la primera subida.
 
 El `.env` debe traer `SP_TENANT_ID`, `SP_CLIENT_ID` y `SP_CLIENT_SECRET`; el secreto **no se pasa por la línea de comandos ni se guarda en el repositorio**. Usa un secreto **temporal** y rótalo o elimínalo al terminar.
 

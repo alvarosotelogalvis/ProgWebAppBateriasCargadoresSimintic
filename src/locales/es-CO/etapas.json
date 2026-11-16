@@ -12,7 +12,7 @@
     "campo": "Diagnóstico",
     "buscar": "Busca un diagnóstico",
     "observacion": "Observación técnica",
-    "observacionAyuda": "Describe el estado detallado del equipo. Mínimo 5 caracteres. Puedes grabar audio.",
+    "observacionAyuda": "Describe el estado detallado del equipo. Mínimo 5 caracteres. Puedes dictarla con el micrófono del teclado.",
     "formatoPdf": "Formato de diagnóstico (PDF)",
     "formatoPdfAyuda": "Adjunta el documento del diagnóstico técnico.",
     "adjuntar": "Adjuntar PDF",

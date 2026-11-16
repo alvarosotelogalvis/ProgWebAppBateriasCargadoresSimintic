@@ -152,6 +152,8 @@ Disposición final = `diagnostico === config.DiagnosticoValorDisposicionFinal` (
 - Archivo: `{codigo}_{TIPO}_{primeros 8 caracteres de AdjuntoId}.{jpg|pdf}`. Ejemplo: `CAR-1-NV4520_FOTO_INGRESO_a1b2c3d4.jpg`.
 - Se sanitizan los caracteres no permitidos (`" * : < > ? / \ | # %`) reemplazándolos por `-`.
 - Como el nombre es determinista y la subida usa `conflictBehavior=replace`, reintentar es idempotente.
+- **Las carpetas se crean solas:** `PUT /drives/{driveId}/root:/{año}/{ServicioId}/{archivo}:/content` crea las carpetas intermedias, así que la carpeta de cada servicio no se prepara de antemano (su id nace en el dispositivo). El aprovisionador solo crea la carpeta del año (`--anios`). Comprobado el 2026-11-16 en una biblioteca real: la carpeta del servicio se crea en la primera subida, los metadatos se guardan y subir dos veces el mismo nombre deja un solo archivo.
+- **Audio:** no hay adjuntos de voz (PRD PA-13: la observación técnica se dicta con el teclado). Añadirlos exigiría un tipo de adjunto nuevo, su valor en el Choice `TipoAdjunto` y un cambio de spec.
 
 ## 4. Estados (`EstadoServicio`) ↔ Choice `Estado`
 
