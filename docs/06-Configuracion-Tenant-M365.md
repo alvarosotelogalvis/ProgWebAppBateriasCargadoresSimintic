@@ -237,6 +237,8 @@ El `.env` debe traer `SP_TENANT_ID`, `SP_CLIENT_ID` y `SP_CLIENT_SECRET`; el sec
 
 ## 3. Power Automate (correos y alertas) — ADR-0013
 
+> **Decisión (2026-11-16): estos flujos NO se montan por ahora.** No está confirmada la licencia de Power Automate y la app no depende de ellos: las alertas de vida útil ya se ven dentro de la app (pantalla Alertas y tarjeta de Inicio) y en la vista «Vida útil próxima» de SharePoint; el taller puede seguir los servicios «En reparación» en la vista «Abiertos por estado». Mientras tanto no hace falta crear las claves `CorreoDestinoOT` ni `CorreoDestinoAlertas`. Para retomarlo: comprobar la licencia (make.powerautomate.com) y seguir esta sección.
+
 > Crear los flujos con una **cuenta de servicio** o con **dos copropietarios**, para que no dependan de una sola persona. Conectores estándar: SharePoint y Office 365 Outlook (incluidos en M365).
 
 ### 3.1 Flujo "ServicioTec – Correo OT"
