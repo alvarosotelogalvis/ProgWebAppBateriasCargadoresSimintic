@@ -114,6 +114,26 @@ describe('agregarFoto', () => {
     await db.close();
   });
 
+  it('registra cuánto tardó el procesado y el peso antes y después (spike S6, CE-003-04)', async () => {
+    const { db, deps } = await crearDeps();
+    const servicio = servicioBuilder().borrador().conId('id-medida').construir();
+    await deps.servicios.guardar(servicio);
+
+    const adjunto = await crearAgregarFoto(deps)(servicio.id, archivo());
+
+    const logger = deps.logger as FakeLogger;
+    const evento = logger.eventos.find((e) => e.evento === 'adjunto.agregado');
+    expect(evento?.datos).toMatchObject({ bytes: adjunto.tamanoBytes });
+    expect(evento?.datos?.procesadoMs).toEqual(expect.any(Number));
+    expect(evento?.datos?.procesadoMs as number).toBeGreaterThanOrEqual(0);
+    expect(evento?.datos?.origenBytes).toBe(archivo().size);
+    // El visor de registros recorta los datos a 100 caracteres: las medidas deben ir primero.
+    const texto = JSON.stringify(evento?.datos).slice(0, 100);
+    expect(texto).toContain('procesadoMs');
+    expect(texto).toContain('origenBytes');
+    await db.close();
+  });
+
   it('marca pendiente cuando la recepcion ya se completo', async () => {
     const { db, deps } = await crearDeps();
     const servicio = servicioBuilder().recibido().conId('id-recibido').construir();

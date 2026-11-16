@@ -45,11 +45,14 @@ export const crearAgregarFoto =
 
     await validarAlmacenamiento(deps);
     const config = deps.config();
+    const inicioProcesado = performance.now();
     const procesada = await deps.imageProcessor.procesar(archivo, {
       maxLadoPx: config.imagenMaxLadoPx,
       calidad: config.imagenCalidad,
       ladoMiniaturaPx: 320,
     });
+
+    const procesadoMs = Math.round(performance.now() - inicioProcesado);
 
     const id = deps.ids.siguiente();
     const ahora = deps.clock.ahoraIso();
@@ -71,11 +74,14 @@ export const crearAgregarFoto =
     };
 
     await deps.adjuntos.guardar(adjunto);
+    // Las medidas van primero: el visor de registros recorta los datos a 100 caracteres.
     deps.logger.info('adjunto.agregado', {
+      procesadoMs,
+      origenBytes: archivo.size,
+      bytes: adjunto.tamanoBytes,
+      tipo,
       servicioId,
       adjuntoId: id,
-      tipo,
-      bytes: adjunto.tamanoBytes,
     });
     return adjunto;
   };

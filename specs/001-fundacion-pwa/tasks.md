@@ -85,13 +85,13 @@
 
 Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (plantilla del plan §3.4). Si cambia una decisión → ADR nuevo + índice.
 
-- [ ] T044 [P] [HU-001-6] S1 — MSAL `loginRedirect` + `acquireTokenSilent` en la PWA instalada (iOS, Android, Windows) y persistencia de la sesión al reabrir — `docs/spikes/S1-msal-redirect-pwa.md`
-- [ ] T045 [P] [HU-001-6] S2 — `Sites.Selected` delegado + grant `write`: POST de ítem y PUT de archivo con un usuario Colaborar — `docs/spikes/S2-sites-selected.md`
-- [ ] T046 [P] [HU-001-6] S3 — `PATCH …/fields` con `If-Match` (¿412?), formato de las fechas de solo fecha y código de error del valor único duplicado — `docs/spikes/S3-if-match-fechas.md`
-- [ ] T047 [P] [HU-001-6] S4 — `lists/{id}/items/delta?$expand=fields` vs. el filtro por `Modified` — `docs/spikes/S4-delta-listas.md`
-- [ ] T048 [P] [HU-001-6] S5 — `storage.persist()`, cuota y supervivencia de 8 días en iOS instalada — `docs/spikes/S5-almacenamiento-ios.md`
-- [ ] T049 [P] [HU-001-6] S6 — `capture` en iOS y Android y tiempo de compresión de 12 MP en gama media y baja — `docs/spikes/S6-camara-compresion.md`
-- [ ] T050 [P] [HU-001-6] S7 — Acceso Condicional con un dispositivo no administrado (Graph 200 desde un teléfono personal) — `docs/spikes/S7-acceso-condicional.md`
+- [ ] T044 [P] [HU-001-6] S1 — MSAL `loginRedirect` + `acquireTokenSilent` en la PWA instalada (iOS, Android, Windows) y persistencia de la sesión al reabrir — `docs/spikes/S1-msal-redirect-pwa.md` _(guía lista: `docs/spikes/S1-msal-redirect-pwa.md`; falta ejecutarla)_
+- [ ] T045 [P] [HU-001-6] S2 — `Sites.Selected` delegado + grant `write`: POST de ítem y PUT de archivo con un usuario Colaborar — `docs/spikes/S2-sites-selected.md` _(guía lista; falta ejecutarla)_
+- [ ] T046 [P] [HU-001-6] S3 — `PATCH …/fields` con `If-Match` (¿412?), formato de las fechas de solo fecha y código de error del valor único duplicado — `docs/spikes/S3-if-match-fechas.md` _(guía lista; falta ejecutarla)_
+- [ ] T047 [P] [HU-001-6] S4 — `lists/{id}/items/delta?$expand=fields` vs. el filtro por `Modified` — `docs/spikes/S4-delta-listas.md` _(guía lista; falta ejecutarla; confirma la suposición del borrado remoto de campos)_
+- [ ] T048 [P] [HU-001-6] S5 — `storage.persist()`, cuota y supervivencia de 8 días en iOS instalada — `docs/spikes/S5-almacenamiento-ios.md` _(guía lista; requiere 8 días)_
+- [ ] T049 [P] [HU-001-6] S6 — `capture` en iOS y Android y tiempo de compresión de 12 MP en gama media y baja — `docs/spikes/S6-camara-compresion.md` _(guía lista; el tiempo de procesado ya se registra en `adjunto.agregado`)_
+- [ ] T050 [P] [HU-001-6] S7 — Acceso Condicional con un dispositivo no administrado (Graph 200 desde un teléfono personal) — `docs/spikes/S7-acceso-condicional.md` _(guía lista; falta ejecutarla)_
 - [x] T051 [P] [HU-001-6] S8 — CSP de `_headers` **sin `style-src 'unsafe-inline'`** con React Aria Components (overlays y posicionamiento), CSS Modules, fuentes autoalojadas, SVG, iframe de MSAL y worker de compresión, sin violaciones en la consola — `docs/spikes/S8-csp.md` _(resultado: 2 violaciones de librerías encontradas y resueltas; guarda `tests/e2e/csp.spec.ts`)_
 - [ ] T052 [HU-001-6] Consolidar los resultados: actualizar los estados de los ADR afectados (0006, 0007, 0008, 0010, 0011, 0022) o crear sus reemplazos — `docs/adr/`
 
@@ -140,7 +140,7 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 - [x] T071 E2E de accesibilidad con axe en Inicio, Más, Ajustes, Ayuda, Acerca de, Instalar y `/tecnico/ui`, en 360, 768 y 1280 (CE-001-04), y comprobación de que no hay desplazamiento horizontal de 320 a 1920 px (CE-001-08) — `tests/e2e/a11y.spec.ts` _(`tests/e2e/accesibilidad.spec.ts`: 11 rutas con axe + desbordamiento de 320 a 1920 px)_
 - [ ] T072 Capturas visuales `visual.spec.ts` (Inicio, Más, Ajustes, Instalar, `/tecnico/ui` × 360/768/1280). Comparar con `docs/diseno/referencia/*.png`, pedir la aprobación del dueño del producto y versionar la línea base (CE-001-07) — `tests/e2e/visual.spec.ts`
 - [ ] T073 Medir CE-001-01 (arranque offline), CE-001-02 (Lighthouse) y CE-001-03 (bundle) en DEV. Anotar en la spec §8
-- [ ] T074 Verificación manual M-01, M-02, M-12 y M-13 en Android, iPhone y Windows, más rotación de la tablet y redimensionamiento de la ventana del PC — `docs/pruebas/matriz-AAAA-MM-DD.md`
+- [ ] T074 Verificación manual M-01, M-02, M-12 y M-13 en Android, iPhone y Windows, más rotación de la tablet y redimensionamiento de la ventana del PC — `docs/pruebas/matriz-AAAA-MM-DD.md` _(plantilla lista: `docs/pruebas/matriz-PLANTILLA.md`)_
 - [ ] T075 `npm run verify` + DoD (`CLAUDE.md` §9) + `CHANGELOG.md` + spec → `Implementada` en `specs/README.md`
 
 ## Dependencias

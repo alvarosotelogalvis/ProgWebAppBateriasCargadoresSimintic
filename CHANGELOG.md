@@ -9,6 +9,10 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Guías de los spikes S1–S7 y plantilla de la matriz de dispositivos.** `docs/spikes/` (índice y una guía por
+  spike con pasos, tablas de resultado y decisión) y `docs/pruebas/matriz-PLANTILLA.md` (M-01…M-14 con
+  procedimiento y criterio). El registro `adjunto.agregado` incluye ahora `procesadoMs` y el peso antes y
+  después para medir la compresión de fotos desde el menú técnico (spike S6, CE-003-04).
 - **Cierre de la spec 001 (fundación).** Pruebas de botones, campos, `ResponsiveNav`, `ResponsiveDialog`,
   guards, `AvisoActualizacion`, `AjustesPage`, `Avatar`/`DecoCircle`, instalación y `ErrorRuta`; E2E de
   instalación, shell sin conexión, navegación, actualización con dos builds y accesibilidad (11 rutas +
