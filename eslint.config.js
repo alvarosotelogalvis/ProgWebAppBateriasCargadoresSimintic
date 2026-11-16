@@ -13,7 +13,7 @@ export default tseslint.config(
       'node_modules',
       'coverage',
       'playwright-report',
-      'tests/.tmp-actualizacion',
+      'tests/.tmp-*',
       'test-results',
       'public',
       'docs',

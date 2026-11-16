@@ -13,3 +13,4 @@ test-results
 
 # Builds temporales del E2E de actualización
 tests/.tmp-actualizacion/
+tests/.tmp-csp-*/

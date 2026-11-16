@@ -1,0 +1,11 @@
+/*
+ * Regla que React Aria (usePress) inyecta por su cuenta como \3c style> en línea, algo que la CSP de
+ * producción bloquea (style-src 'self', sin 'unsafe-inline'). Se sirve como archivo y se enlaza desde
+ * index.html con el id que la librería busca (`react-aria-pressable-style`): si ya existe, no inyecta nada.
+ * Si al actualizar React Aria esta regla cambia, el E2E tests/e2e/csp.spec.ts lo detecta.
+ */
+@layer {
+  [data-react-aria-pressable] {
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+}

@@ -92,7 +92,7 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 - [ ] T048 [P] [HU-001-6] S5 — `storage.persist()`, cuota y supervivencia de 8 días en iOS instalada — `docs/spikes/S5-almacenamiento-ios.md`
 - [ ] T049 [P] [HU-001-6] S6 — `capture` en iOS y Android y tiempo de compresión de 12 MP en gama media y baja — `docs/spikes/S6-camara-compresion.md`
 - [ ] T050 [P] [HU-001-6] S7 — Acceso Condicional con un dispositivo no administrado (Graph 200 desde un teléfono personal) — `docs/spikes/S7-acceso-condicional.md`
-- [ ] T051 [P] [HU-001-6] S8 — CSP de `_headers` **sin `style-src 'unsafe-inline'`** con React Aria Components (overlays y posicionamiento), CSS Modules, fuentes autoalojadas, SVG, iframe de MSAL y worker de compresión, sin violaciones en la consola — `docs/spikes/S8-csp.md`
+- [x] T051 [P] [HU-001-6] S8 — CSP de `_headers` **sin `style-src 'unsafe-inline'`** con React Aria Components (overlays y posicionamiento), CSS Modules, fuentes autoalojadas, SVG, iframe de MSAL y worker de compresión, sin violaciones en la consola — `docs/spikes/S8-csp.md` _(resultado: 2 violaciones de librerías encontradas y resueltas; guarda `tests/e2e/csp.spec.ts`)_
 - [ ] T052 [HU-001-6] Consolidar los resultados: actualizar los estados de los ADR afectados (0006, 0007, 0008, 0010, 0011, 0022) o crear sus reemplazos — `docs/adr/`
 
 ## Fase 6 — HU-001-2 Navegación (P1)

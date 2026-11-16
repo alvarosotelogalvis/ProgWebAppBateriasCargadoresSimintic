@@ -17,6 +17,10 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- **La CSP de producción bloqueaba dos cosas en cada carga (spike S8):** zod 4 probaba `new Function` (eval) y
+  React Aria inyectaba un `<style>` en línea. Se desactiva el JIT de zod y la regla de React Aria se sirve como
+  archivo con el `id` que la librería reconoce; la CSP no cambia (sin `unsafe-inline`). Nuevo E2E
+  `tests/e2e/csp.spec.ts` que sirve el build con las cabeceras reales y falla ante cualquier violación.
 - **E2E que no probaban nada o fallaban según el día/equipo:** `performance-tecnico` (esqueletos con el puerto
   5173 fijo) y `respaldo.spec` (sin configuración inicial, con aserciones envueltas en `if`) se reescribieron con
   datos sembrados en IndexedDB y comprobaciones reales (ZIP, importación sin duplicar, purgas que respetan lo
