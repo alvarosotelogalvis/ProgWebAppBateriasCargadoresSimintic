@@ -9,6 +9,11 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **`scripts/provision-sharepoint.ps1` (spec 004, T004).** Aprovisiona en SharePoint las 5 listas y la biblioteca
+  con columnas de nombre interno exacto, `ServicioId` único, índices, versionado, vistas, datos iniciales,
+  claves de `ConfiguracionApp` y permisos; idempotente y con `-WhatIf`. Probado con un SharePoint simulado
+  (`npm run test:ps-provision`) y con una prueba que lo mantiene sincronizado con la app; sin ejecutar aún
+  contra un tenant real.
 - **Medición de Lighthouse y del bundle (F10.2)** registrada en `docs/F10-RENDIMIENTO-Y-RELEASE.md`: accesibilidad y
   buenas prácticas en 100; rendimiento 98–99 con la app ya cargada y 82–83 en la primera carga en frío; bundle
   inicial de 333 KB gzip (límite 350). Incluye diagnóstico, composición del bundle y opciones.

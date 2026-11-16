@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "test:visual": "playwright test tests/e2e/visual.spec.ts",
     "check:build-mock": "node scripts/check-build-mock.mjs",
+    "test:ps-provision": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pruebas/provision-sharepoint.simulado.ps1",
     "verify": "npm run lint && npm run typecheck && npm run check:build-mock && npm run test -- --run",
     "deploy:dev": "wrangler pages deploy dist --project-name st-bc-dev",
     "deploy:prod": "wrangler pages deploy dist --project-name st-bc-prod",
