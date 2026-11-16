@@ -24,7 +24,7 @@
 ### Pruebas
 
 - [x] T012 [P] Pruebas de `env.ts`: variables obligatorias y formato UUID de tenant y client — `src/shared/env.test.ts`
-- [ ] T013 [P] Script que verifica que `vite build --mode production` con `VITE_AUTH_MODE=mock` falla (T-18) — `scripts/check-build-mock.mjs`
+- [x] T013 [P] Script que verifica que `vite build --mode production` con `VITE_AUTH_MODE=mock` falla (T-18) — `scripts/check-build-mock.mjs` _(también corre dentro de `npm run verify` como `check:build-mock`)_
 - [x] T014 [P] Pruebas de `aplicarEscalaFuente` (1.0 / 1.15 / 1.3 → `--escala-fuente` en `<html>`) y de `useBreakpoint` (límites 599/600, 1023/1024, 1439/1440 con `matchMedia` simulado) — `src/app/escalaFuente.test.ts`, `src/shared/hooks/useBreakpoint.test.ts`
 
 ### Implementación
@@ -45,20 +45,20 @@
 
 ### Pruebas
 
-- [ ] T024 [P] [HU-001-7] Pruebas de componentes de botones (`PrimaryButton` normal/small, `SecondaryButton` + `onGradient`, `PillButton`, `TextLink`): rol, foco visible (`data-focus-visible`), deshabilitado con `aria-disabled`, área táctil ≥ 44 px — `src/shared/ui/botones.test.tsx`
-- [ ] T025 [P] [HU-001-7] Pruebas de campos (`TextField`, `SelectField`, `Checkbox`, `SegmentedControl`): etiqueta asociada, error con `aria-describedby`, teclado (flechas en Select y Segmented) — `src/shared/ui/campos.test.tsx`
-- [ ] T026 [P] [HU-001-7] Pruebas de `ResponsiveNav` (4 ítems en compacto; riel en medio; sidebar con los ítems de "Más" en expandido; ítem activo con `aria-current="page"`; filtrado por rol) y de `ResponsiveDialog` (Sheet en compacto, Dialog en medio/expandido, foco atrapado, Esc cierra) — `src/shared/ui/ResponsiveNav.test.tsx`, `ResponsiveDialog.test.tsx`
+- [x] T024 [P] [HU-001-7] Pruebas de componentes de botones (`PrimaryButton` normal/small, `SecondaryButton` + `onGradient`, `PillButton`, `TextLink`): rol, foco visible (`data-focus-visible`), deshabilitado con `aria-disabled`, área táctil ≥ 44 px — `src/shared/ui/botones.test.tsx`
+- [x] T025 [P] [HU-001-7] Pruebas de campos (`TextField`, `SelectField`, `Checkbox`, `SegmentedControl`): etiqueta asociada, error con `aria-describedby`, teclado (flechas en Select y Segmented) — `src/shared/ui/campos.test.tsx`
+- [x] T026 [P] [HU-001-7] Pruebas de `ResponsiveNav` (4 ítems en compacto; riel en medio; sidebar con los ítems de "Más" en expandido; ítem activo con `aria-current="page"`; filtrado por rol) y de `ResponsiveDialog` (Sheet en compacto, Dialog en medio/expandido, foco atrapado, Esc cierra) — `src/shared/ui/ResponsiveNav.test.tsx`, `ResponsiveDialog.test.tsx` _(`ResponsiveNav.test.tsx` y `ResponsiveDialog.test.tsx`)_
 
 ### Implementación
 
 - [x] T027 [HU-001-7] `tokens.css` con **todos** los tokens de `docs/10` §2 (colores AA, colores de estado de servicio y de sync, radios, sombras, espaciado, gutters por breakpoint, alturas de control 44 px, tipografía en rem) + `global.css` (reset, `html { font-size: calc(87.5% * var(--escala-fuente, 1)) }`, Montserrat, `tabular-nums`, anillo de foco, `prefers-reduced-motion`, safe areas) — `src/shared/ui/tokens.css`, `global.css`
 - [x] T028 [P] [HU-001-7] Fuentes: importar `@fontsource/montserrat` 400/500/600/700/800 (latin) en `main.tsx`; verificar en `dist/` que no hay referencias a `fonts.googleapis.com` — `src/main.tsx`
 - [x] T029 [P] [HU-001-7] `Icon.tsx` con el mapa tipado `IconName` (íconos de `docs/10` §2.5 desde `@material-symbols/svg-500/rounded/*-fill.svg?react`), `aria-hidden`, `currentColor`, tamaños 20/24/28/72 — `src/shared/ui/Icon.tsx`
-- [ ] T030 [P] [HU-001-7] `GradientBackground` (`principal` | `suave`) + `DecoCircle` (posiciones por breakpoint, `aria-hidden`), `Card` (`fill`, `pegadaAbajo`) y `CardInner` — `src/shared/ui/`
+- [x] T030 [P] [HU-001-7] `GradientBackground` (`principal` | `suave`) + `DecoCircle` (posiciones por breakpoint, `aria-hidden`), `Card` (`fill`, `pegadaAbajo`) y `CardInner` — `src/shared/ui/`
 - [x] T031 [HU-001-7] Botones sobre RAC `Button`/`Link`: `PrimaryButton`, `SecondaryButton`, `PillButton`, `TextLink` (hasta pasar T024) — `src/shared/ui/`
 - [x] T032 [HU-001-7] Campos sobre RAC: `TextField` (con la variante textarea), `SelectField`, `Checkbox`, `SegmentedControl` (`ToggleButtonGroup`) (hasta pasar T025) — `src/shared/ui/`
 - [x] T033 [HU-001-7] `ResponsiveNav` (BottomNav / NavRail / Sidebar con el degradado `--nav-start → --nav-end`, ítems inactivos al 85 %, safe area inferior) y `ResponsiveDialog` sobre `Sheet`/`Dialog` (RAC `Modal` + `Dialog`) (hasta pasar T026) — `src/shared/ui/`
-- [ ] T034 [P] [HU-001-7] `QuickActionGrid` (3 / 4 / 6 columnas según el breakpoint, círculo `primary` con halo `primary-light`, badge numérico opcional), `SummaryCard`, `Avatar`, `ListRow` (RAC `GridList`), `StatusBadge`, `SyncBadge` (punto + ícono + texto) — `src/shared/ui/`
+- [x] T034 [P] [HU-001-7] `QuickActionGrid` (3 / 4 / 6 columnas según el breakpoint, círculo `primary` con halo `primary-light`, badge numérico opcional), `SummaryCard`, `Avatar`, `ListRow` (RAC `GridList`), `StatusBadge`, `SyncBadge` (punto + ícono + texto) — `src/shared/ui/`
 - [x] T035 [P] [HU-001-7] `Banner` (`role="status"`/`alert`), `Toast` (región `aria-live`) + `uiStore.toasts`, `EmptyState`, `Skeleton` — `src/shared/ui/`
 - [x] T036 [HU-001-7] `CatalogoUiPage` en `/tecnico/ui` (solo con `VITE_APP_ENV=dev`, import dinámico excluido del build de PRD) con cada componente y sus estados — `src/features/tecnico/CatalogoUiPage.tsx`, `src/app/router.tsx`
       **Punto de control**: el catálogo se ve como la referencia (`docs/diseno/referencia/`) en 360 px y se adapta en 768 y 1280.
@@ -70,8 +70,8 @@
 ### Pruebas
 
 - [x] T037 [P] [HU-001-1] Pruebas de `detectarPlataforma`, `esStandalone` y `requiereInstalacion` con una matriz de user agents (las 10 plataformas del contrato) — `src/infrastructure/pwa/plataforma.test.ts`
-- [ ] T038 [P] [HU-001-1] E2E: webkit-mobile no standalone → `/instalar` sin "Continuar" (T-22); chromium-desktop → banner y "Continuar sin instalar" — `tests/e2e/instalacion.spec.ts`
-- [ ] T039 [P] [HU-001-1] E2E: tras la primera carga con `preview`, `setOffline(true)` + recarga → Inicio visible, con Montserrat aplicada (`document.fonts.check`) e íconos renderizados (ES-001-05, ES-001-25) — `tests/e2e/offline-shell.spec.ts`
+- [x] T038 [P] [HU-001-1] E2E: webkit-mobile no standalone → `/instalar` sin "Continuar" (T-22); chromium-desktop → banner y "Continuar sin instalar" — `tests/e2e/instalacion.spec.ts`
+- [x] T039 [P] [HU-001-1] E2E: tras la primera carga con `preview`, `setOffline(true)` + recarga → Inicio visible, con Montserrat aplicada (`document.fonts.check`) e íconos renderizados (ES-001-05, ES-001-25) — `tests/e2e/offline-shell.spec.ts` _(`tests/e2e/offline-shell.spec.ts`)_
 
 ### Implementación
 
@@ -99,15 +99,15 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 
 ### Pruebas
 
-- [ ] T053 [P] [HU-001-2] Pruebas de componentes de `SetupGuard`, `InstallGate` y `RoleGuard` (redirecciones y pantalla sin permiso) — `src/app/guards/guards.test.tsx`
-- [ ] T054 [P] [HU-001-2] E2E de navegación en 360 (BottomNav + FAB), 768 (NavRail) y 1280 (Sidebar con los ítems de "Más"), del indicador de conexión al pasar a offline y del redimensionamiento cruzando breakpoints sin perder la ruta (ES-001-07…10) — `tests/e2e/navegacion.spec.ts`
+- [x] T053 [P] [HU-001-2] Pruebas de componentes de `SetupGuard`, `InstallGate` y `RoleGuard` (redirecciones y pantalla sin permiso) — `src/app/guards/guards.test.tsx`
+- [x] T054 [P] [HU-001-2] E2E de navegación en 360 (BottomNav + FAB), 768 (NavRail) y 1280 (Sidebar con los ítems de "Más"), del indicador de conexión al pasar a offline y del redimensionamiento cruzando breakpoints sin perder la ruta (ES-001-07…10) — `tests/e2e/navegacion.spec.ts`
 
 ### Implementación
 
 - [x] T055 [HU-001-2] `sesionStore` (mock desde env: cuenta, roles, `configuracionInicialCompleta`) con una interfaz estable para la 004 — `src/shared/stores/sesionStore.ts`
 - [x] T056 [HU-001-2] `uiStore` (toasts, `bloqueosActualizacion`, `pendientes`, `hayNuevaVersion`, install prompt) — `src/shared/stores/uiStore.ts` _(el aviso de instalación vive en `useInstallPrompt`, no en `uiStore`)_
 - [x] T057 [HU-001-2] Guards — `src/app/guards/`
-- [ ] T058 [HU-001-2] `router.tsx` con todas las rutas de UX §2 (lazy). Las no implementadas son un marcador con `EmptyState`. `ErrorRuta` por ruta — `src/app/router.tsx`, `src/app/ErrorRuta.tsx`
+- [x] T058 [HU-001-2] `router.tsx` con todas las rutas de UX §2 (lazy). Las no implementadas son un marcador con `EmptyState`. `ErrorRuta` por ruta — `src/app/router.tsx`, `src/app/ErrorRuta.tsx`
 - [x] T059 [HU-001-2] `useOnline`, `IndicadorConexion`, `ContadorPendientes` (en la barra superior sobre el degradado) — `src/shared/`
 - [x] T060 [HU-001-2] `AppShell` (GradientBackground + `BarraSuperior` + `ResponsiveNav` + área de contenido con gutters y ancho máximo 1280), `BotonNuevo` (FAB amarillo sobre la BottomNav en compacto, FAB en la parte superior del riel en medio, `PrimaryButton` arriba en la sidebar en expandido; `docs/10` §4.2), `FranjaAmbiente` (ES-001-17) — `src/app/layout/`
 - [x] T061 [HU-001-2] `InicioPage` estilo de la referencia 04 (fondo `suave`, `SummaryCard` con avatar y saludo y número de pendientes en `display`, `QuickActionGrid` con accesos marcadores, estado vacío "Aún no hay servicios") y `MasPage` (`Card fill` + `ListRow` por sección de UX §4) — `src/features/inicio/`, `src/features/mas/`
@@ -116,8 +116,8 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 
 ### Pruebas
 
-- [ ] T062 [P] [HU-001-5] Prueba de componente de `AvisoActualizacion` (con bloqueo espera, sin bloqueo aplica) — `src/features/actualizacion/AvisoActualizacion.test.tsx`
-- [ ] T063 [P] [HU-001-5] E2E T-23 (dos builds con distinta versión servidos por `preview`; formulario simulado con bloqueo) — `tests/e2e/actualizacion.spec.ts`
+- [x] T062 [P] [HU-001-5] Prueba de componente de `AvisoActualizacion` (con bloqueo espera, sin bloqueo aplica) — `src/features/actualizacion/AvisoActualizacion.test.tsx`
+- [x] T063 [P] [HU-001-5] E2E T-23 (dos builds con distinta versión servidos por `preview`; formulario simulado con bloqueo) — `tests/e2e/actualizacion.spec.ts`
 
 ### Implementación
 
@@ -126,7 +126,7 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 
 ## Fase 8 — HU-001-3 Ajustes (P2)
 
-- [ ] T066 [P] [HU-001-3] Prueba de `AjustesPage`: cambia y persiste el **tamaño de fuente** (sin selector de tema) y aplica la escala antes del primer render al recargar — `src/features/ajustes/AjustesPage.test.tsx`
+- [x] T066 [P] [HU-001-3] Prueba de `AjustesPage`: cambia y persiste el **tamaño de fuente** (sin selector de tema) y aplica la escala antes del primer render al recargar — `src/features/ajustes/AjustesPage.test.tsx`
 - [x] T067 [HU-001-3] `preferenciasStore` (Zustand `persist` → `localStorage`, con try/catch; solo `escalaFuente` y `bannerInstalarDescartado`) + `AjustesPage` (`Card fill`, `SegmentedControl` Normal / Grande / Muy grande, vista previa en vivo) + `ajustes.json` — `src/features/ajustes/`
 
 ## Fase 9 — HU-001-4 Ayuda y Acerca de (P2)
@@ -137,7 +137,7 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 
 ## Fase 10 — Cierre
 
-- [ ] T071 E2E de accesibilidad con axe en Inicio, Más, Ajustes, Ayuda, Acerca de, Instalar y `/tecnico/ui`, en 360, 768 y 1280 (CE-001-04), y comprobación de que no hay desplazamiento horizontal de 320 a 1920 px (CE-001-08) — `tests/e2e/a11y.spec.ts`
+- [x] T071 E2E de accesibilidad con axe en Inicio, Más, Ajustes, Ayuda, Acerca de, Instalar y `/tecnico/ui`, en 360, 768 y 1280 (CE-001-04), y comprobación de que no hay desplazamiento horizontal de 320 a 1920 px (CE-001-08) — `tests/e2e/a11y.spec.ts` _(`tests/e2e/accesibilidad.spec.ts`: 11 rutas con axe + desbordamiento de 320 a 1920 px)_
 - [ ] T072 Capturas visuales `visual.spec.ts` (Inicio, Más, Ajustes, Instalar, `/tecnico/ui` × 360/768/1280). Comparar con `docs/diseno/referencia/*.png`, pedir la aprobación del dueño del producto y versionar la línea base (CE-001-07) — `tests/e2e/visual.spec.ts`
 - [ ] T073 Medir CE-001-01 (arranque offline), CE-001-02 (Lighthouse) y CE-001-03 (bundle) en DEV. Anotar en la spec §8
 - [ ] T074 Verificación manual M-01, M-02, M-12 y M-13 en Android, iPhone y Windows, más rotación de la tablet y redimensionamiento de la ventana del PC — `docs/pruebas/matriz-AAAA-MM-DD.md`

@@ -9,6 +9,24 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Cierre de la spec 001 (fundación).** Pruebas de botones, campos, `ResponsiveNav`, `ResponsiveDialog`,
+  guards, `AvisoActualizacion`, `AjustesPage`, `Avatar`/`DecoCircle`, instalación y `ErrorRuta`; E2E de
+  instalación, shell sin conexión, navegación, actualización con dos builds y accesibilidad (11 rutas +
+  desbordamiento de 320 a 1920 px); `check:build-mock` dentro de `npm run verify`. Componentes `Avatar` y
+  `DecoCircle`, y pantalla `ErrorRuta` (error y 404 en español dentro del shell).
+
+### Fixed
+
+- **El tamaño de fuente elegido se perdía al recargar:** `aplicarEscalaGuardada()` nunca se llamaba al arrancar.
+- **La actualización de la app no se aplicaba:** el service worker nuevo quedaba en espera tras recargar; ahora
+  se le pide `SKIP_WAITING` y se recarga al tomar el control (ES-001-20).
+- **Actualización durante trabajo en curso:** nada bloqueaba la actualización; ahora los formularios con
+  cambios sin guardar y la sincronización en curso la posponen (FR-001-11, ES-001-19).
+- **Instalación en iOS:** ya no aparece «Continuar sin instalar» (ES-001-02); en iPhone con otro navegador se
+  pide abrir Safari (ES-001-03); en escritorio hay un banner descartable que recomienda instalar (ES-001-04).
+- **Área táctil de 44 px** en botones compactos y pastillas (`::before` invisible, RNF-08).
+- **Accesibilidad:** `DateChip` sin `id` dejaba el campo sin etiqueta asociada; `<dl>` inválido en el menú técnico.
+
 - **Regla de capas con `eslint-plugin-boundaries` (ADR-0004, T007).** `domain` solo importa `domain`;
   `application` solo `domain` y puertos; `shared` no importa `application` ni `features`; además `domain` y
   `application` no importan React, Dexie ni MSAL ni usan `fetch`. Sin excepciones: los casos de uso de purgas,
