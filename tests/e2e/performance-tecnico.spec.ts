@@ -1,182 +1,199 @@
-import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
-test.describe('Performance: Menú Técnico', () => {
-  test('VisorLogs renderiza >1000 logs sin lag (<1s)', async ({ page }) => {
-    // Navegar a tecnico
-    await page.goto('http://localhost:5173/tecnico');
+import { strFromU8, unzipSync } from 'fflate';
 
-    // Simular 1000+ logs insertados
-    // TODO: Usar seeder o API para inyectar logs en DB local
-    // await page.evaluate(async () => {
-    //   const logs = [];
-    //   for (let i = 0; i < 1100; i++) {
-    //     logs.push({
-    //       seq: i,
-    //       ts: new Date().toISOString(),
-    //       nivel: i % 4 === 0 ? 'error' : i % 3 === 0 ? 'warn' : 'info',
-    //       evento: `evento-${i}`,
-    //       appVersion: '0.1.0',
-    //     });
-    //   }
-    //   await db.logs.bulkAdd(logs);
-    // });
+import { contar, expect, prepararApp, sembrar, servicioSembrado, test, vaciar } from './base';
 
-    // Navegar a logs tab
-    await page.click('text=Registros');
+/**
+ * Rendimiento del menú técnico con volúmenes grandes (spec 009). Los presupuestos son holgados
+ * respecto de las metas de producto porque incluyen la sobrecarga de Playwright y del arranque
+ * del navegador; sirven para detectar regresiones gruesas, no para medir milisegundos.
+ */
+const PRESUPUESTO = {
+  cargaMenuMs: 3_000,
+  verRegistrosMs: 2_000,
+  filtrarMs: 1_500,
+  exportarMs: 5_000,
+  importarMs: 5_000,
+  purgarMs: 5_000,
+  cambiarPestanaMs: 300,
+} as const;
 
-    // Medir tiempo de renderizado
-    const startTime = Date.now();
+test.beforeEach(async ({ page, browserName }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium-desktop', 'Mide una sola vez, en escritorio');
+  test.skip(browserName === 'webkit', 'Sin captura de descargas en WebKit');
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: undefined });
+  });
+  await prepararApp(page);
+});
 
-    // Esperar a que tabla esté visible
-    await page.waitForSelector('table');
+const registros = (cantidad: number): object[] =>
+  Array.from({ length: cantidad }, (_, i) => ({
+    ts: new Date(Date.UTC(2026, 9, 1, 0, 0, i)).toISOString(),
+    nivel: i % 4 === 0 ? 'error' : i % 3 === 0 ? 'warn' : 'info',
+    evento: `evento-${i}`,
+    appVersion: '0.0.0',
+  }));
 
-    const renderTime = Date.now() - startTime;
+test('el menú técnico carga rápido', async ({ page }) => {
+  const inicio = Date.now();
+  await page.goto('/tecnico');
+  await expect(page.getByRole('heading', { level: 1, name: 'Menú técnico' })).toBeVisible();
 
-    // Verificar que renderizó en <1000ms
-    expect(renderTime).toBeLessThan(1000);
+  expect(Date.now() - inicio).toBeLessThan(PRESUPUESTO.cargaMenuMs);
+});
 
-    // Verificar que tabla tiene filas
-    const rows = await page.locator('table tbody tr').count();
-    expect(rows).toBeGreaterThan(0);
+test('cambiar de pestaña responde al instante', async ({ page }) => {
+  await page.goto('/tecnico');
+  await expect(page.getByRole('tab', { name: 'Estado de SharePoint' })).toBeVisible();
+
+  const { ms, seleccionada } = await page.evaluate(async () => {
+    const pestana = [...document.querySelectorAll('[role="tab"]')].find((t) =>
+      /SharePoint/.test(t.textContent ?? '')
+    ) as HTMLElement;
+    const t0 = performance.now();
+    pestana.click();
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    return { ms: performance.now() - t0, seleccionada: pestana.getAttribute('aria-selected') };
   });
 
-  test('Filtrar VisorLogs por nivel es rápido (<200ms)', async ({ page }) => {
-    await page.goto('http://localhost:5173/tecnico');
-    await page.click('text=Registros');
+  expect(seleccionada).toBe('true');
+  expect(ms).toBeLessThan(PRESUPUESTO.cambiarPestanaMs);
+});
 
-    // Medir tiempo de filtrado
-    const startTime = Date.now();
+test('el visor de registros con más de 1000 eventos muestra solo una página y es rápido', async ({
+  page,
+}) => {
+  await sembrar(page, 'logs', registros(1_100));
+  await page.goto('/tecnico');
+  await expect(page.getByRole('tab', { name: 'Registros de eventos' })).toBeVisible();
 
-    // Seleccionar nivel error
-    await page.selectOption('select', 'error');
-    await page.waitForTimeout(100);
+  const inicio = Date.now();
+  await page.getByRole('tab', { name: 'Registros de eventos' }).click();
+  await expect(page.locator('table tbody tr').first()).toBeVisible();
+  const tiempo = Date.now() - inicio;
 
-    const filterTime = Date.now() - startTime;
+  const filas = await page.locator('table tbody tr').count();
+  expect(filas).toBeGreaterThan(0);
+  expect(filas).toBeLessThanOrEqual(100); // nunca pinta los 1100
+  expect(tiempo).toBeLessThan(PRESUPUESTO.verRegistrosMs);
+});
 
-    // Debe ser rápido
-    expect(filterTime).toBeLessThan(200);
-  });
+test('filtrar los registros por nivel es rápido y solo deja ese nivel', async ({ page }) => {
+  await sembrar(page, 'logs', registros(1_100));
+  await page.goto('/tecnico');
+  await page.getByRole('tab', { name: 'Registros de eventos' }).click();
+  await expect(page.locator('table tbody tr').first()).toBeVisible();
 
-  test('Exportar respaldo con 100+ servicios (<500ms)', async ({ page }) => {
-    await page.goto('http://localhost:5173/tecnico');
+  const inicio = Date.now();
+  await page.getByLabel('Nivel').selectOption('error');
+  await expect
+    .poll(async () => {
+      const niveles = await page.locator('table tbody tr td:nth-child(2)').allInnerTexts();
+      return niveles.length > 0 && niveles.every((nivel) => nivel === 'ERROR');
+    })
+    .toBe(true);
+  expect(Date.now() - inicio).toBeLessThan(PRESUPUESTO.filtrarMs);
+});
 
-    // Simular 100 servicios
-    // TODO: Seeder en DB local
-    // await page.evaluate(async () => {
-    //   const servicios = [];
-    //   for (let i = 0; i < 100; i++) {
-    //     servicios.push({
-    //       id: `svc-${i}`,
-    //       codigo: `TEST-${i.toString().padStart(3, '0')}`,
-    //       syncState: i % 2 === 0 ? 'pending' : 'synced',
-    //     });
-    //   }
-    //   await db.servicios.bulkAdd(servicios);
-    // });
+test('exportar 100 servicios genera un ZIP completo y es rápido', async ({ page, context }) => {
+  await sembrar(
+    page,
+    'servicios',
+    Array.from({ length: 100 }, (_, i) =>
+      servicioSembrado(i + 1, i % 2 ? { syncState: 'synced', camposSucios: [] } : {})
+    )
+  );
+  await page.goto('/tecnico');
+  await page.getByRole('button', { name: 'Exportar respaldo' }).click();
+  const dialogo = page.getByRole('dialog', { name: 'Exportar respaldo' });
+  await dialogo.getByText('Todos los servicios').click();
 
-    // Abrir diálogo exportar
-    await page.click('text=Exportar respaldo');
+  const descarga = context.waitForEvent('download');
+  const inicio = Date.now();
+  await dialogo.getByRole('button', { name: 'Descargar respaldo' }).click();
+  const archivo = await descarga;
+  const tiempo = Date.now() - inicio;
 
-    // Medir tiempo de generación
-    const startTime = Date.now();
+  const zip = unzipSync(new Uint8Array(readFileSync(await archivo.path())));
+  expect(JSON.parse(strFromU8(zip['servicios.json']!)) as unknown[]).toHaveLength(100);
+  expect(tiempo).toBeLessThan(PRESUPUESTO.exportarMs);
+});
 
-    // Click descargar
-    // TODO: interceptar download
-    // await page.click('text=Descargar respaldo');
+test('importar un respaldo de 100 servicios es rápido y no pierde ninguno', async ({
+  page,
+  context,
+}, testInfo) => {
+  await sembrar(
+    page,
+    'servicios',
+    Array.from({ length: 100 }, (_, i) => servicioSembrado(i + 1))
+  );
+  await page.goto('/tecnico');
+  await page.getByRole('button', { name: 'Exportar respaldo' }).click();
+  const descarga = context.waitForEvent('download');
+  await page
+    .getByRole('dialog', { name: 'Exportar respaldo' })
+    .getByRole('button', { name: 'Descargar respaldo' })
+    .click();
+  const ruta = testInfo.outputPath('respaldo-100.zip');
+  await (await descarga).saveAs(ruta);
+  await vaciar(page, 'servicios');
 
-    const exportTime = Date.now() - startTime;
+  await page.getByRole('button', { name: 'Importar respaldo' }).click();
+  const dialogo = page.getByRole('dialog', { name: 'Importar respaldo' });
+  await dialogo.getByTestId('archivo-respaldo').setInputFiles(ruta);
+  const inicio = Date.now();
+  await dialogo.getByRole('button', { name: 'Importar', exact: true }).click();
+  await expect(dialogo.getByText(/100 servicios restaurados/)).toBeVisible();
 
-    // Debe ser <500ms
-    expect(exportTime).toBeLessThan(500);
-  });
+  expect(Date.now() - inicio).toBeLessThan(PRESUPUESTO.importarMs);
+  expect(await contar(page, 'servicios')).toBe(100);
+});
 
-  test('Importar respaldo sin lag (<300ms)', async ({ page }) => {
-    await page.goto('http://localhost:5173/tecnico');
+test('liberar espacio con 100 servicios cerrados antiguos es rápido y los purga', async ({
+  page,
+}) => {
+  await sembrar(
+    page,
+    'servicios',
+    Array.from({ length: 100 }, (_, i) =>
+      servicioSembrado(i + 1, {
+        estado: 'FACTURADO',
+        syncState: 'synced',
+        camposSucios: [],
+        actualizadoEn: '2025-01-01T00:00:00.000Z',
+      })
+    )
+  );
+  await page.goto('/tecnico');
+  await page.getByRole('button', { name: 'Liberar espacio' }).click();
+  const dialogo = page.getByRole('dialog', { name: 'Liberar espacio' });
 
-    // Preparar archivo de respaldo
-    // TODO: Crear archivo en /tmp
+  const inicio = Date.now();
+  await dialogo.getByRole('button', { name: 'Liberar espacio' }).click();
+  await expect(dialogo.getByText('Servicios purgados: 100')).toBeVisible();
 
-    await page.click('text=Importar respaldo');
+  expect(Date.now() - inicio).toBeLessThan(PRESUPUESTO.purgarMs);
+  expect(await contar(page, 'servicios')).toBe(0);
+});
 
-    // Medir tiempo de subida y procesamiento
-    const startTime = Date.now();
+test('liberar espacio nunca purga lo pendiente de sincronizar', async ({ page }) => {
+  await sembrar(page, 'servicios', [
+    servicioSembrado(1, { estado: 'FACTURADO', actualizadoEn: '2025-01-01T00:00:00.000Z' }), // pending
+    servicioSembrado(2, {
+      estado: 'FACTURADO',
+      syncState: 'synced',
+      camposSucios: [],
+      actualizadoEn: '2025-01-01T00:00:00.000Z',
+    }),
+  ]);
+  await page.goto('/tecnico');
+  await page.getByRole('button', { name: 'Liberar espacio' }).click();
+  const dialogo = page.getByRole('dialog', { name: 'Liberar espacio' });
+  await dialogo.getByRole('button', { name: 'Liberar espacio' }).click();
 
-    // TODO: Subir archivo
-    // await page.setInputFiles('input[type="file"]', '/tmp/respaldo.zip');
-    // await page.click('text=Importar');
-
-    const importTime = Date.now() - startTime;
-
-    // Debe ser <300ms (para archivos pequeños)
-    expect(importTime).toBeLessThan(300);
-  });
-
-  test('Purgas (<500ms para 100 servicios)', async ({ page }) => {
-    await page.goto('http://localhost:5173/tecnico');
-
-    // Simular 100 servicios cerrados hace >3 meses
-    // TODO: Seeder
-
-    // Abrir liberar espacio
-    await page.click('text=Liberar espacio');
-
-    // Medir tiempo de purga
-    const startTime = Date.now();
-
-    // Click liberar
-    // TODO:
-    // await page.click('text=Liberar espacio');
-
-    const purgeTime = Date.now() - startTime;
-
-    // Debe ser <500ms
-    expect(purgeTime).toBeLessThan(500);
-  });
-
-  test('Bundle: módulos respaldo <5KB gzip', async ({ page }) => {
-    // Verificar tamaño de bundle en red
-    // TODO: Interceptar requests y sumar respaldo modules
-
-    const response = await page.goto('http://localhost:5173/tecnico');
-
-    // Obtener tamaño gzip de respuesta
-    const size = (await response?.text())?.length || 0;
-
-    // Respaldo modules (estimado) debe ser <5KB sin gzip
-    // Con gzip ~2KB
-    expect(size).toBeLessThan(5000);
-  });
-
-  test('MenuTecnicoPage carga en <2s', async ({ page }) => {
-    const startTime = Date.now();
-
-    await page.goto('http://localhost:5173/tecnico', {
-      waitUntil: 'networkidle',
-    });
-
-    const loadTime = Date.now() - startTime;
-
-    // Debe cargar en <2s
-    expect(loadTime).toBeLessThan(2000);
-
-    // Verificar que está funcional
-    expect(await page.locator('text=Menú técnico').isVisible()).toBe(true);
-  });
-
-  test('Interactividad: tabs responden en <100ms', async ({ page }) => {
-    await page.goto('http://localhost:5173/tecnico');
-
-    // Click a tab SharePoint
-    const startTime = Date.now();
-
-    await page.click('text=Estado de SharePoint');
-    await page.waitForSelector('[data-testid="estado-sharepoint"]', {
-      timeout: 100,
-    });
-
-    const responseTime = Date.now() - startTime;
-
-    // Debe responder inmediatamente
-    expect(responseTime).toBeLessThan(100);
-  });
+  await expect(dialogo.getByText('Servicios purgados: 1')).toBeVisible();
+  expect(await contar(page, 'servicios')).toBe(1); // queda el pendiente
 });

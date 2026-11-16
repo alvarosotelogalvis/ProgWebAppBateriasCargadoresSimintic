@@ -42,7 +42,8 @@ const construir = (destino: string, version: string): void => {
   );
 };
 
-let servidor: Server;
+let servidor: Server | undefined;
+let construido = false;
 let carpetaActual = BUILD_A;
 
 test.use({ baseURL: `http://localhost:${PUERTO}` });
@@ -53,6 +54,7 @@ test.beforeAll(async ({ browserName: _navegador }, testInfo) => {
 
   construir(BUILD_A, VERSION_A);
   construir(BUILD_B, VERSION_B);
+  construido = true;
 
   servidor = createServer((peticion, respuesta) => {
     const ruta = normalize(decodeURIComponent((peticion.url ?? '/').split('?')[0] ?? '/'));
@@ -73,6 +75,8 @@ test.beforeAll(async ({ browserName: _navegador }, testInfo) => {
 });
 
 test.afterAll(async () => {
+  // Solo limpia quien construyó: los proyectos omitidos no deben borrar los builds del que corre.
+  if (!construido) return;
   rmSync(RAIZ, { recursive: true, force: true });
   await new Promise<void>((listo) => (servidor ? servidor.close(() => listo()) : listo()));
 });

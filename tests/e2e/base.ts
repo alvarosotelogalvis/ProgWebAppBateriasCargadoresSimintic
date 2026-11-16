@@ -44,6 +44,105 @@ export const prepararApp = async (page: Page): Promise<void> => {
   });
 };
 
+const NOMBRE_DB = 'servicio-tecnico-bc';
+
+/** Inserta registros directamente en un almacén de la base local (para preparar escenarios grandes). */
+export const sembrar = (
+  page: Page,
+  almacen: 'servicios' | 'logs',
+  registros: readonly object[]
+): Promise<void> =>
+  page.evaluate(
+    ({ nombre, almacen: alm, registros: datos }) =>
+      new Promise<void>((resolver, rechazar) => {
+        const abrir = indexedDB.open(nombre);
+        abrir.onerror = () => rechazar(abrir.error);
+        abrir.onsuccess = () => {
+          const db = abrir.result;
+          const tx = db.transaction(alm, 'readwrite');
+          const almacenDb = tx.objectStore(alm);
+          for (const dato of datos) almacenDb.put(dato);
+          tx.oncomplete = () => {
+            db.close();
+            resolver();
+          };
+          tx.onerror = () => rechazar(tx.error);
+        };
+      }),
+    { nombre: NOMBRE_DB, almacen, registros }
+  );
+
+/** Cuenta los registros de un almacén de la base local. */
+export const contar = (page: Page, almacen: 'servicios' | 'logs' | 'adjuntos'): Promise<number> =>
+  page.evaluate(
+    ({ nombre, almacen: alm }) =>
+      new Promise<number>((resolver, rechazar) => {
+        const abrir = indexedDB.open(nombre);
+        abrir.onerror = () => rechazar(abrir.error);
+        abrir.onsuccess = () => {
+          const db = abrir.result;
+          const peticion = db.transaction(alm, 'readonly').objectStore(alm).count();
+          peticion.onsuccess = () => {
+            db.close();
+            resolver(peticion.result);
+          };
+          peticion.onerror = () => rechazar(peticion.error);
+        };
+      }),
+    { nombre: NOMBRE_DB, almacen }
+  );
+
+/** Vacía un almacén de la base local. */
+export const vaciar = (page: Page, almacen: 'servicios' | 'logs' | 'adjuntos'): Promise<void> =>
+  page.evaluate(
+    ({ nombre, almacen: alm }) =>
+      new Promise<void>((resolver, rechazar) => {
+        const abrir = indexedDB.open(nombre);
+        abrir.onerror = () => rechazar(abrir.error);
+        abrir.onsuccess = () => {
+          const db = abrir.result;
+          const tx = db.transaction(alm, 'readwrite');
+          tx.objectStore(alm).clear();
+          tx.oncomplete = () => {
+            db.close();
+            resolver();
+          };
+          tx.onerror = () => rechazar(tx.error);
+        };
+      }),
+    { nombre: NOMBRE_DB, almacen }
+  );
+
+/** Servicio mínimo pero completo para sembrar la base local. */
+export const servicioSembrado = (
+  indice: number,
+  extra: Record<string, unknown> = {}
+): Record<string, unknown> => ({
+  id: `00000000-0000-4000-8000-${String(indice).padStart(12, '0')}`,
+  codigo: `BAT-${indice}-SE${indice}`,
+  estado: 'RECIBIDO',
+  syncState: 'pending',
+  camposSucios: ['marca'],
+  base: {},
+  conflictos: [],
+  intentos: 0,
+  tipoEquipo: 'BATERIA',
+  fechaRecepcion: '2026-01-10',
+  clienteId: 1,
+  clienteNombre: 'NAVAR ASOCIADOS',
+  numeroSolicitud: indice,
+  marca: 'ROQUET',
+  referencia: `REF-${indice}`,
+  serie: `SE${indice}`,
+  creadoEn: '2026-01-10T10:00:00.000Z',
+  actualizadoEn: '2026-01-10T10:00:00.000Z',
+  capturadoPor: 'e2e@empresa.com',
+  capturadoPorNombre: 'E2E',
+  dispositivoId: 'disp-e2e',
+  appVersion: '0.0.0',
+  ...extra,
+});
+
 const PNG_1X1 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=';
 

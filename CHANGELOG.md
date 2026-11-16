@@ -17,6 +17,11 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- **E2E que no probaban nada o fallaban según el día/equipo:** `performance-tecnico` (esqueletos con el puerto
+  5173 fijo) y `respaldo.spec` (sin configuración inicial, con aserciones envueltas en `if`) se reescribieron con
+  datos sembrados en IndexedDB y comprobaciones reales (ZIP, importación sin duplicar, purgas que respetan lo
+  pendiente). Las capturas visuales fijan la fecha de inicio del reloj y la pantalla de configuración fija la
+  cuota de almacenamiento; se regeneraron esas imágenes de referencia.
 - **El tamaño de fuente elegido se perdía al recargar:** `aplicarEscalaGuardada()` nunca se llamaba al arrancar.
 - **La actualización de la app no se aplicaba:** el service worker nuevo quedaba en espera tras recargar; ahora
   se le pide `SKIP_WAITING` y se recarga al tomar el control (ES-001-20).

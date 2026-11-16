@@ -6,6 +6,19 @@ test.describe('Configuración inicial', () => {
     await page.addInitScript(() => {
       window.localStorage.clear();
       window.sessionStorage.clear();
+      // La pantalla muestra el espacio disponible: se fija para que no dependa del disco de quien corre.
+      const proto = (globalThis as { StorageManager?: { prototype: object } }).StorageManager
+        ?.prototype;
+      if (proto) {
+        Object.defineProperty(proto, 'estimate', {
+          configurable: true,
+          value: async () => ({ usage: 2_000_000, quota: 8_000_000_000 }),
+        });
+        Object.defineProperty(proto, 'persist', {
+          configurable: true,
+          value: async () => false,
+        });
+      }
     });
     const emulador = crearEmuladorGraph();
     await page.route('**/sites/**', async (route) => {

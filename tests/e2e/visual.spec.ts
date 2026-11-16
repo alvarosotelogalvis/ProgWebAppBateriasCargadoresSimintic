@@ -2,7 +2,14 @@ import type { Page } from '@playwright/test';
 
 import { crearRecepcion, expect, prepararApp, sinDesborde, test } from './base';
 
+// Las capturas imprimen fechas (tarjetas, recepción): se fija el reloj para que no dependan del día.
+const FECHA_FIJA = new Date('2026-11-07T15:00:00-05:00');
+
 test.beforeEach(async ({ page }) => {
+  // El reloj arranca en una fecha fija pero sigue avanzando: así los registros creados uno tras otro
+  // conservan su orden (con el reloj congelado tendrían la misma marca de tiempo).
+  await page.clock.install({ time: FECHA_FIJA });
+  await page.clock.resume();
   await prepararApp(page);
 });
 
