@@ -9,6 +9,9 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Medición de Lighthouse y del bundle (F10.2)** registrada en `docs/F10-RENDIMIENTO-Y-RELEASE.md`: accesibilidad y
+  buenas prácticas en 100; rendimiento 98–99 con la app ya cargada y 82–83 en la primera carga en frío; bundle
+  inicial de 333 KB gzip (límite 350). Incluye diagnóstico, composición del bundle y opciones.
 - **Guías de los spikes S1–S7 y plantilla de la matriz de dispositivos.** `docs/spikes/` (índice y una guía por
   spike con pasos, tablas de resultado y decisión) y `docs/pruebas/matriz-PLANTILLA.md` (M-01…M-14 con
   procedimiento y criterio). El registro `adjunto.agregado` incluye ahora `procesadoMs` y el peso antes y
