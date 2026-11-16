@@ -7,37 +7,37 @@
 
 ## Fase 1 — Preparación (andamiaje y herramientas, F0.1–F0.5)
 
-- [ ] T001 Repo fuera de OneDrive + `git init` + andamiaje de Vite react-ts sin pisar `docs/`, `README.md` ni `CLAUDE.md` (`docs/05` §3, §12) — `/`
-- [ ] T002 [P] `.gitattributes` (`* text=auto eol=lf`), `.gitignore` (incluye `.env*` excepto `.env.example`), `.editorconfig`, `.node-version` — `/`
-- [ ] T003 [P] `.vscode/settings.json` (formatear al guardar, ESLint, Stylelint) y `.vscode/extensions.json` (`docs/05` §6 + `stylelint.vscode-stylelint`) — `.vscode/`
-- [ ] T004 Instalar las dependencias y devDependencies de `docs/05` §12 con el reemplazo de UI del ADR-0022 (**sin** `@fluentui/*`; **con** `react-aria-components`, `@internationalized/date`, `@fontsource/montserrat`, `@material-symbols/svg-500`, `vite-plugin-svgr`, `stylelint`, `stylelint-config-standard`) y anotar las versiones en `docs/05` §16 — `package.json`
-- [ ] T005 `tsconfig.json` estricto (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, alias `@/`) — `tsconfig.json`, `vite.config.ts`
-- [ ] T006 Esqueleto de capas vacío (`domain`, `application/ports`, `infrastructure/{db,graph,auth,media,pwa,logging}`, `features`, `shared/ui`) con un `index.ts` por carpeta — `src/`
+- [x] T001 Repo fuera de OneDrive + `git init` + andamiaje de Vite react-ts sin pisar `docs/`, `README.md` ni `CLAUDE.md` (`docs/05` §3, §12) — `/`
+- [x] T002 [P] `.gitattributes` (`* text=auto eol=lf`), `.gitignore` (incluye `.env*` excepto `.env.example`), `.editorconfig`, `.node-version` — `/`
+- [x] T003 [P] `.vscode/settings.json` (formatear al guardar, ESLint, Stylelint) y `.vscode/extensions.json` (`docs/05` §6 + `stylelint.vscode-stylelint`) — `.vscode/`
+- [x] T004 Instalar las dependencias y devDependencies de `docs/05` §12 con el reemplazo de UI del ADR-0022 (**sin** `@fluentui/*`; **con** `react-aria-components`, `@internationalized/date`, `@fontsource/montserrat`, `@material-symbols/svg-500`, `vite-plugin-svgr`, `stylelint`, `stylelint-config-standard`) y anotar las versiones en `docs/05` §16 — `package.json`
+- [x] T005 `tsconfig.json` estricto (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, alias `@/`) — `tsconfig.json`, `vite.config.ts`
+- [x] T006 Esqueleto de capas vacío (`domain`, `application/ports`, `infrastructure/{db,graph,auth,media,pwa,logging}`, `features`, `shared/ui`) con un `index.ts` por carpeta — `src/` _(solo `domain/index.ts`; las demás capas existen con código real)_
 - [ ] T007 ESLint flat config: typescript-eslint, react-hooks, jsx-a11y, `eslint-plugin-boundaries` (reglas de SDD §4.1), prohibir `dangerouslySetInnerHTML`, `localStorage` restringido, literales de UI prohibidos en JSX, **prohibido importar `@fluentui/*`** + Prettier — `eslint.config.js`, `.prettierrc.json`
-- [ ] T008 [P] Stylelint: `stylelint-config-standard`, `color-no-hex` y `declaration-property-value-disallowed-list` (radios, sombras y colores literales) en todo `*.css` **excepto** `src/shared/ui/tokens.css` — `.stylelintrc.json`
-- [ ] T009 Husky: `pre-commit` (lint-staged con eslint, stylelint y prettier), `commit-msg` (commitlint convencional), `pre-push` (typecheck + test) — `.husky/`, `commitlint.config.js`, `.lintstagedrc.json`
-- [ ] T010 Scripts de `CLAUDE.md` §6 (`dev`, `build`, `build:dev`, `preview`, `lint` = eslint + stylelint, `typecheck`, `test`, `test:e2e`, `test:visual`, `verify`, `deploy:dev`, `deploy:prod`, `release`) — `package.json`
-- [ ] T011 [P] `CHANGELOG.md` inicial con la sección `Unreleased` — `CHANGELOG.md`
+- [x] T008 [P] Stylelint: `stylelint-config-standard`, `color-no-hex` y `declaration-property-value-disallowed-list` (radios, sombras y colores literales) en todo `*.css` **excepto** `src/shared/ui/tokens.css` — `.stylelintrc.json`
+- [x] T009 Husky: `pre-commit` (lint-staged con eslint, stylelint y prettier), `commit-msg` (commitlint convencional), `pre-push` (typecheck + test) — `.husky/`, `commitlint.config.js`, `.lintstagedrc.json`
+- [x] T010 Scripts de `CLAUDE.md` §6 (`dev`, `build`, `build:dev`, `preview`, `lint` = eslint + stylelint, `typecheck`, `test`, `test:e2e`, `test:visual`, `verify`, `deploy:dev`, `deploy:prod`, `release`) — `package.json`
+- [x] T011 [P] `CHANGELOG.md` inicial con la sección `Unreleased` — `CHANGELOG.md`
 
 ## Fase 2 — Fundamentos (bloquean las historias)
 
 ### Pruebas
 
-- [ ] T012 [P] Pruebas de `env.ts`: variables obligatorias y formato UUID de tenant y client — `src/shared/env.test.ts`
+- [x] T012 [P] Pruebas de `env.ts`: variables obligatorias y formato UUID de tenant y client — `src/shared/env.test.ts`
 - [ ] T013 [P] Script que verifica que `vite build --mode production` con `VITE_AUTH_MODE=mock` falla (T-18) — `scripts/check-build-mock.mjs`
-- [ ] T014 [P] Pruebas de `aplicarEscalaFuente` (1.0 / 1.15 / 1.3 → `--escala-fuente` en `<html>`) y de `useBreakpoint` (límites 599/600, 1023/1024, 1439/1440 con `matchMedia` simulado) — `src/app/escalaFuente.test.ts`, `src/shared/hooks/useBreakpoint.test.ts`
+- [x] T014 [P] Pruebas de `aplicarEscalaFuente` (1.0 / 1.15 / 1.3 → `--escala-fuente` en `<html>`) y de `useBreakpoint` (límites 599/600, 1023/1024, 1439/1440 con `matchMedia` simulado) — `src/app/escalaFuente.test.ts`, `src/shared/hooks/useBreakpoint.test.ts`
 
 ### Implementación
 
-- [ ] T015 `.env.example`, `.env.development`, `.env.test` (`VITE_AUTH_MODE=mock`) + `src/shared/env.ts` con zod y pantalla de error de configuración (SDD §16.1) — `/`, `src/shared/env.ts`
-- [ ] T016 `vite.config.ts`: plugins de React y **svgr**, `define` de `__APP_VERSION__`, `__GIT_COMMIT__` y `__BUILD_DATE__`, bloqueo del build con mock, visualizer opcional; CSS Modules con `localsConvention: 'camelCaseOnly'` — `vite.config.ts`, `src/vite-env.d.ts`
-- [ ] T017 [P] `AppError` y `CodigoError` (SDD §13) — `src/shared/errors.ts`
-- [ ] T018 [P] `i18n.ts` (i18next es-CO, namespaces) + `common.json` y `navegacion.json` — `src/shared/i18n.ts`, `src/locales/es-CO/`
-- [ ] T019 `escalaFuente.ts`, `useBreakpoint.ts` y `breakpoints.ts` (600 / 1024 / 1440) + `providers.tsx` (I18nextProvider, `RouterProvider` de React Aria con `useNavigate`, `I18nProvider locale="es-CO"` de React Aria, ErrorBoundary raíz) — `src/app/`, `src/shared/hooks/`, `src/shared/ui/breakpoints.ts`
-- [ ] T020 Vitest (jsdom, setup de jest-dom, `coverage.thresholds`: domain/application 90 %, global 70 %) + Playwright (proyectos chromium-mobile 360×740, chromium-tablet 768×1024, chromium-desktop 1280×800 y webkit-mobile; `webServer` = `npm run preview`) con una prueba trivial de cada uno — `vitest.config.ts`, `playwright.config.ts`
-- [ ] T021 `vite-plugin-pwa`: manifest de SDD §11.1 con `theme_color #4A4AF8` y `background_color #1F6FE5`, `registerType: 'prompt'`, precaché (**incluye `woff2` y `svg`**), `navigateFallback`, sin runtime caching de Graph ni login, `cleanupOutdatedCaches`. `index.html` con `apple-touch-icon`, `apple-mobile-web-app-capable`, `robots noindex`, `lang="es-CO"` y `viewport-fit=cover` — `vite.config.ts`, `index.html`
+- [x] T015 `.env.example`, `.env.development`, `.env.test` (`VITE_AUTH_MODE=mock`) + `src/shared/env.ts` con zod y pantalla de error de configuración (SDD §16.1) — `/`, `src/shared/env.ts`
+- [x] T016 `vite.config.ts`: plugins de React y **svgr**, `define` de `__APP_VERSION__`, `__GIT_COMMIT__` y `__BUILD_DATE__`, bloqueo del build con mock, visualizer opcional; CSS Modules con `localsConvention: 'camelCaseOnly'` — `vite.config.ts`, `src/vite-env.d.ts`
+- [x] T017 [P] `AppError` y `CodigoError` (SDD §13) — `src/shared/errors.ts`
+- [x] T018 [P] `i18n.ts` (i18next es-CO, namespaces) + `common.json` y `navegacion.json` — `src/shared/i18n.ts`, `src/locales/es-CO/`
+- [x] T019 `escalaFuente.ts`, `useBreakpoint.ts` y `breakpoints.ts` (600 / 1024 / 1440) + `providers.tsx` (I18nextProvider, `RouterProvider` de React Aria con `useNavigate`, `I18nProvider locale="es-CO"` de React Aria, ErrorBoundary raíz) — `src/app/`, `src/shared/hooks/`, `src/shared/ui/breakpoints.ts`
+- [x] T020 Vitest (jsdom, setup de jest-dom, `coverage.thresholds`: domain/application 90 %, global 70 %) + Playwright (proyectos chromium-mobile 360×740, chromium-tablet 768×1024, chromium-desktop 1280×800 y webkit-mobile; `webServer` = `npm run preview`) con una prueba trivial de cada uno — `vitest.config.ts`, `playwright.config.ts`
+- [x] T021 `vite-plugin-pwa`: manifest de SDD §11.1 con `theme_color #4A4AF8` y `background_color #1F6FE5`, `registerType: 'prompt'`, precaché (**incluye `woff2` y `svg`**), `navigateFallback`, sin runtime caching de Graph ni login, `cleanupOutdatedCaches`. `index.html` con `apple-touch-icon`, `apple-mobile-web-app-capable`, `robots noindex`, `lang="es-CO"` y `viewport-fit=cover` — `vite.config.ts`, `index.html`
 - [x] T022 [P] Íconos provisionales de la app ("ST" en un círculo blanco sobre el degradado principal; 192, 512, maskable 512, apple 180) — `public/icons/`
-- [ ] T023 [P] `public/_headers` (SDD §14.2 **sin** `style-src 'unsafe-inline'`, con `font-src 'self'`) y `public/robots.txt` (`Disallow: /`) — `public/`
+- [x] T023 [P] `public/_headers` (SDD §14.2 **sin** `style-src 'unsafe-inline'`, con `font-src 'self'`) y `public/robots.txt` (`Disallow: /`) — `public/`
 
 ## Fase 3 — Sistema de diseño base (bloquea las pantallas) — HU-001-7 (P1)
 
@@ -51,16 +51,16 @@
 
 ### Implementación
 
-- [ ] T027 [HU-001-7] `tokens.css` con **todos** los tokens de `docs/10` §2 (colores AA, colores de estado de servicio y de sync, radios, sombras, espaciado, gutters por breakpoint, alturas de control 44 px, tipografía en rem) + `global.css` (reset, `html { font-size: calc(87.5% * var(--escala-fuente, 1)) }`, Montserrat, `tabular-nums`, anillo de foco, `prefers-reduced-motion`, safe areas) — `src/shared/ui/tokens.css`, `global.css`
-- [ ] T028 [P] [HU-001-7] Fuentes: importar `@fontsource/montserrat` 400/500/600/700/800 (latin) en `main.tsx`; verificar en `dist/` que no hay referencias a `fonts.googleapis.com` — `src/main.tsx`
-- [ ] T029 [P] [HU-001-7] `Icon.tsx` con el mapa tipado `IconName` (íconos de `docs/10` §2.5 desde `@material-symbols/svg-500/rounded/*-fill.svg?react`), `aria-hidden`, `currentColor`, tamaños 20/24/28/72 — `src/shared/ui/Icon.tsx`
+- [x] T027 [HU-001-7] `tokens.css` con **todos** los tokens de `docs/10` §2 (colores AA, colores de estado de servicio y de sync, radios, sombras, espaciado, gutters por breakpoint, alturas de control 44 px, tipografía en rem) + `global.css` (reset, `html { font-size: calc(87.5% * var(--escala-fuente, 1)) }`, Montserrat, `tabular-nums`, anillo de foco, `prefers-reduced-motion`, safe areas) — `src/shared/ui/tokens.css`, `global.css`
+- [x] T028 [P] [HU-001-7] Fuentes: importar `@fontsource/montserrat` 400/500/600/700/800 (latin) en `main.tsx`; verificar en `dist/` que no hay referencias a `fonts.googleapis.com` — `src/main.tsx`
+- [x] T029 [P] [HU-001-7] `Icon.tsx` con el mapa tipado `IconName` (íconos de `docs/10` §2.5 desde `@material-symbols/svg-500/rounded/*-fill.svg?react`), `aria-hidden`, `currentColor`, tamaños 20/24/28/72 — `src/shared/ui/Icon.tsx`
 - [ ] T030 [P] [HU-001-7] `GradientBackground` (`principal` | `suave`) + `DecoCircle` (posiciones por breakpoint, `aria-hidden`), `Card` (`fill`, `pegadaAbajo`) y `CardInner` — `src/shared/ui/`
-- [ ] T031 [HU-001-7] Botones sobre RAC `Button`/`Link`: `PrimaryButton`, `SecondaryButton`, `PillButton`, `TextLink` (hasta pasar T024) — `src/shared/ui/`
-- [ ] T032 [HU-001-7] Campos sobre RAC: `TextField` (con la variante textarea), `SelectField`, `Checkbox`, `SegmentedControl` (`ToggleButtonGroup`) (hasta pasar T025) — `src/shared/ui/`
-- [ ] T033 [HU-001-7] `ResponsiveNav` (BottomNav / NavRail / Sidebar con el degradado `--nav-start → --nav-end`, ítems inactivos al 85 %, safe area inferior) y `ResponsiveDialog` sobre `Sheet`/`Dialog` (RAC `Modal` + `Dialog`) (hasta pasar T026) — `src/shared/ui/`
+- [x] T031 [HU-001-7] Botones sobre RAC `Button`/`Link`: `PrimaryButton`, `SecondaryButton`, `PillButton`, `TextLink` (hasta pasar T024) — `src/shared/ui/`
+- [x] T032 [HU-001-7] Campos sobre RAC: `TextField` (con la variante textarea), `SelectField`, `Checkbox`, `SegmentedControl` (`ToggleButtonGroup`) (hasta pasar T025) — `src/shared/ui/`
+- [x] T033 [HU-001-7] `ResponsiveNav` (BottomNav / NavRail / Sidebar con el degradado `--nav-start → --nav-end`, ítems inactivos al 85 %, safe area inferior) y `ResponsiveDialog` sobre `Sheet`/`Dialog` (RAC `Modal` + `Dialog`) (hasta pasar T026) — `src/shared/ui/`
 - [ ] T034 [P] [HU-001-7] `QuickActionGrid` (3 / 4 / 6 columnas según el breakpoint, círculo `primary` con halo `primary-light`, badge numérico opcional), `SummaryCard`, `Avatar`, `ListRow` (RAC `GridList`), `StatusBadge`, `SyncBadge` (punto + ícono + texto) — `src/shared/ui/`
-- [ ] T035 [P] [HU-001-7] `Banner` (`role="status"`/`alert`), `Toast` (región `aria-live`) + `uiStore.toasts`, `EmptyState`, `Skeleton` — `src/shared/ui/`
-- [ ] T036 [HU-001-7] `CatalogoUiPage` en `/tecnico/ui` (solo con `VITE_APP_ENV=dev`, import dinámico excluido del build de PRD) con cada componente y sus estados — `src/features/tecnico/CatalogoUiPage.tsx`, `src/app/router.tsx`
+- [x] T035 [P] [HU-001-7] `Banner` (`role="status"`/`alert`), `Toast` (región `aria-live`) + `uiStore.toasts`, `EmptyState`, `Skeleton` — `src/shared/ui/`
+- [x] T036 [HU-001-7] `CatalogoUiPage` en `/tecnico/ui` (solo con `VITE_APP_ENV=dev`, import dinámico excluido del build de PRD) con cada componente y sus estados — `src/features/tecnico/CatalogoUiPage.tsx`, `src/app/router.tsx`
       **Punto de control**: el catálogo se ve como la referencia (`docs/diseno/referencia/`) en 360 px y se adapta en 768 y 1280.
 
 ## Fase 4 — HU-001-1 Instalar la app (P1) 🎯 MVP
@@ -69,15 +69,15 @@
 
 ### Pruebas
 
-- [ ] T037 [P] [HU-001-1] Pruebas de `detectarPlataforma`, `esStandalone` y `requiereInstalacion` con una matriz de user agents (las 10 plataformas del contrato) — `src/infrastructure/pwa/plataforma.test.ts`
+- [x] T037 [P] [HU-001-1] Pruebas de `detectarPlataforma`, `esStandalone` y `requiereInstalacion` con una matriz de user agents (las 10 plataformas del contrato) — `src/infrastructure/pwa/plataforma.test.ts`
 - [ ] T038 [P] [HU-001-1] E2E: webkit-mobile no standalone → `/instalar` sin "Continuar" (T-22); chromium-desktop → banner y "Continuar sin instalar" — `tests/e2e/instalacion.spec.ts`
 - [ ] T039 [P] [HU-001-1] E2E: tras la primera carga con `preview`, `setOffline(true)` + recarga → Inicio visible, con Montserrat aplicada (`document.fonts.check`) e íconos renderizados (ES-001-05, ES-001-25) — `tests/e2e/offline-shell.spec.ts`
 
 ### Implementación
 
-- [ ] T040 [HU-001-1] `plataforma.ts` y `standalone.ts` — `src/infrastructure/pwa/`
-- [ ] T041 [HU-001-1] `installPrompt.ts` (captura `beforeinstallprompt` → uiStore; `mostrarInstalacion`) — `src/infrastructure/pwa/installPrompt.ts`
-- [ ] T042 [HU-001-1] `InstalarPage` estilo de la referencia 01 (fondo principal, logo "ST" en un círculo blanco, `h1` "SERVICIO TÉCNICO" + subtítulo, instrucciones por plataforma en una `Card`, `PrimaryButton` "INSTALAR", `TextLink` "Continuar sin instalar" on-gradient) + `BannerInstalar` descartable (preferencia recordada) + `instalacion.json` — `src/features/instalacion/`, `src/locales/es-CO/instalacion.json`
+- [x] T040 [HU-001-1] `plataforma.ts` y `standalone.ts` — `src/infrastructure/pwa/`
+- [x] T041 [HU-001-1] `installPrompt.ts` (captura `beforeinstallprompt` → uiStore; `mostrarInstalacion`) — `src/infrastructure/pwa/installPrompt.ts` _(implementado en `src/features/instalacion/useInstallPrompt.ts`, no en `infrastructure/pwa` ni en `uiStore`)_
+- [x] T042 [HU-001-1] `InstalarPage` estilo de la referencia 01 (fondo principal, logo "ST" en un círculo blanco, `h1` "SERVICIO TÉCNICO" + subtítulo, instrucciones por plataforma en una `Card`, `PrimaryButton` "INSTALAR", `TextLink` "Continuar sin instalar" on-gradient) + `BannerInstalar` descartable (preferencia recordada) + `instalacion.json` — `src/features/instalacion/`, `src/locales/es-CO/instalacion.json`
 - [ ] T043 [HU-001-1] Primer despliegue DEV: crear el proyecto Cloudflare Pages, `npm run deploy:dev`, comprobar HTTPS, cabeceras (`curl -I`) e instalación en dispositivos reales (M-01, M-02) — `docs/pruebas/`
       **Punto de control**: app instalable y offline en DEV, con la identidad visual.
 
@@ -104,13 +104,13 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 
 ### Implementación
 
-- [ ] T055 [HU-001-2] `sesionStore` (mock desde env: cuenta, roles, `configuracionInicialCompleta`) con una interfaz estable para la 004 — `src/shared/stores/sesionStore.ts`
-- [ ] T056 [HU-001-2] `uiStore` (toasts, `bloqueosActualizacion`, `pendientes`, `hayNuevaVersion`, install prompt) — `src/shared/stores/uiStore.ts`
-- [ ] T057 [HU-001-2] Guards — `src/app/guards/`
+- [x] T055 [HU-001-2] `sesionStore` (mock desde env: cuenta, roles, `configuracionInicialCompleta`) con una interfaz estable para la 004 — `src/shared/stores/sesionStore.ts`
+- [x] T056 [HU-001-2] `uiStore` (toasts, `bloqueosActualizacion`, `pendientes`, `hayNuevaVersion`, install prompt) — `src/shared/stores/uiStore.ts` _(el aviso de instalación vive en `useInstallPrompt`, no en `uiStore`)_
+- [x] T057 [HU-001-2] Guards — `src/app/guards/`
 - [ ] T058 [HU-001-2] `router.tsx` con todas las rutas de UX §2 (lazy). Las no implementadas son un marcador con `EmptyState`. `ErrorRuta` por ruta — `src/app/router.tsx`, `src/app/ErrorRuta.tsx`
-- [ ] T059 [HU-001-2] `useOnline`, `IndicadorConexion`, `ContadorPendientes` (en la barra superior sobre el degradado) — `src/shared/`
-- [ ] T060 [HU-001-2] `AppShell` (GradientBackground + `BarraSuperior` + `ResponsiveNav` + área de contenido con gutters y ancho máximo 1280), `BotonNuevo` (FAB amarillo sobre la BottomNav en compacto, FAB en la parte superior del riel en medio, `PrimaryButton` arriba en la sidebar en expandido; `docs/10` §4.2), `FranjaAmbiente` (ES-001-17) — `src/app/layout/`
-- [ ] T061 [HU-001-2] `InicioPage` estilo de la referencia 04 (fondo `suave`, `SummaryCard` con avatar y saludo y número de pendientes en `display`, `QuickActionGrid` con accesos marcadores, estado vacío "Aún no hay servicios") y `MasPage` (`Card fill` + `ListRow` por sección de UX §4) — `src/features/inicio/`, `src/features/mas/`
+- [x] T059 [HU-001-2] `useOnline`, `IndicadorConexion`, `ContadorPendientes` (en la barra superior sobre el degradado) — `src/shared/`
+- [x] T060 [HU-001-2] `AppShell` (GradientBackground + `BarraSuperior` + `ResponsiveNav` + área de contenido con gutters y ancho máximo 1280), `BotonNuevo` (FAB amarillo sobre la BottomNav en compacto, FAB en la parte superior del riel en medio, `PrimaryButton` arriba en la sidebar en expandido; `docs/10` §4.2), `FranjaAmbiente` (ES-001-17) — `src/app/layout/`
+- [x] T061 [HU-001-2] `InicioPage` estilo de la referencia 04 (fondo `suave`, `SummaryCard` con avatar y saludo y número de pendientes en `display`, `QuickActionGrid` con accesos marcadores, estado vacío "Aún no hay servicios") y `MasPage` (`Card fill` + `ListRow` por sección de UX §4) — `src/features/inicio/`, `src/features/mas/`
 
 ## Fase 7 — HU-001-5 Actualizaciones (P1)
 
@@ -121,19 +121,19 @@ Cada spike en una rama `spike/Sx-*` desechable. Solo se integra el documento (pl
 
 ### Implementación
 
-- [ ] T064 [HU-001-5] `registerSW.ts` (onNeedRefresh, `registration.update()` al iniciar y cada 60 min) — `src/infrastructure/pwa/registerSW.ts`
-- [ ] T065 [HU-001-5] `AvisoActualizacion` (`Toast` / `Banner` con `PrimaryButton small` "ACTUALIZAR" y espera por bloqueos) montado en `AppShell` — `src/features/actualizacion/`
+- [x] T064 [HU-001-5] `registerSW.ts` (onNeedRefresh, `registration.update()` al iniciar y cada 60 min) — `src/infrastructure/pwa/registerSW.ts`
+- [x] T065 [HU-001-5] `AvisoActualizacion` (`Toast` / `Banner` con `PrimaryButton small` "ACTUALIZAR" y espera por bloqueos) montado en `AppShell` — `src/features/actualizacion/`
 
 ## Fase 8 — HU-001-3 Ajustes (P2)
 
 - [ ] T066 [P] [HU-001-3] Prueba de `AjustesPage`: cambia y persiste el **tamaño de fuente** (sin selector de tema) y aplica la escala antes del primer render al recargar — `src/features/ajustes/AjustesPage.test.tsx`
-- [ ] T067 [HU-001-3] `preferenciasStore` (Zustand `persist` → `localStorage`, con try/catch; solo `escalaFuente` y `bannerInstalarDescartado`) + `AjustesPage` (`Card fill`, `SegmentedControl` Normal / Grande / Muy grande, vista previa en vivo) + `ajustes.json` — `src/features/ajustes/`
+- [x] T067 [HU-001-3] `preferenciasStore` (Zustand `persist` → `localStorage`, con try/catch; solo `escalaFuente` y `bannerInstalarDescartado`) + `AjustesPage` (`Card fill`, `SegmentedControl` Normal / Grande / Muy grande, vista previa en vivo) + `ajustes.json` — `src/features/ajustes/`
 
 ## Fase 9 — HU-001-4 Ayuda y Acerca de (P2)
 
-- [ ] T068 [P] [HU-001-4] Contenido inicial de Ayuda (instalar, trabajar sin conexión, FAQ) — `src/locales/es-CO/ayuda.json`
-- [ ] T069 [HU-001-4] `AyudaPage` y `AyudaTemaPage` (`Card fill`, `ListRow` por tema; renderizado estructurado, sin HTML) — `src/features/ayuda/`
-- [ ] T070 [HU-001-4] `AcercaPage` (versión, commit, fecha, ambiente, CHANGELOG `?raw` de la versión actual, licencia, privacidad) + `acerca.json` — `src/features/acerca/`
+- [x] T068 [P] [HU-001-4] Contenido inicial de Ayuda (instalar, trabajar sin conexión, FAQ) — `src/locales/es-CO/ayuda.json`
+- [x] T069 [HU-001-4] `AyudaPage` y `AyudaTemaPage` (`Card fill`, `ListRow` por tema; renderizado estructurado, sin HTML) — `src/features/ayuda/`
+- [x] T070 [HU-001-4] `AcercaPage` (versión, commit, fecha, ambiente, CHANGELOG `?raw` de la versión actual, licencia, privacidad) + `acerca.json` — `src/features/acerca/`
 
 ## Fase 10 — Cierre
 
