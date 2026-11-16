@@ -21,6 +21,9 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- **`.env.production.example` traía `VITE_APP_ENV=prod`, valor que el esquema rechaza (`dev` o `prd`):** quien
+  copiara la plantilla tal cual vería la pantalla de error de configuración en producción. Se corrige y una
+  prueba valida que las plantillas de entorno usen valores aceptados.
 - **La CSP de producción bloqueaba dos cosas en cada carga (spike S8):** zod 4 probaba `new Function` (eval) y
   React Aria inyectaba un `<style>` en línea. Se desactiva el JIT de zod y la regla de React Aria se sirve como
   archivo con el `id` que la librería reconoce; la CSP no cambia (sin `unsafe-inline`). Nuevo E2E
