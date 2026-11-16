@@ -27,6 +27,7 @@ export function crearResolutorConflicto412(deps: {
       const { servicio: combinado, conflictos } = mergeTresVias(servicio, {
         ...remoto.fields,
         ...(remoto.eTag !== undefined ? { eTag: remoto.eTag } : {}),
+        ...(remoto.vaciados !== undefined ? { vaciados: remoto.vaciados } : {}),
       });
 
       const conSp: Servicio = {

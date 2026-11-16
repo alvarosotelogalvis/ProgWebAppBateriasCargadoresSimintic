@@ -9,6 +9,9 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Borrado remoto de campos también en el 412.** Al combinar tras un choque de versión al subir, el resolutor
+  aplica los campos que SharePoint vació con las mismas reglas que la descarga. Si el campo vaciado es un dato
+  mínimo del estado actual, queda en conflicto de estado para que lo revise el usuario.
 - **Borrado remoto de campos al descargar.** Si alguien vacía un campo en SharePoint (p. ej. el número de
   factura), el dispositivo lo quita al descargar. Se infiere solo de ítems completos y nunca para campos
   obligatorios. Si el campo tiene un cambio local pendiente: sin conflicto cuando SharePoint nunca lo tuvo

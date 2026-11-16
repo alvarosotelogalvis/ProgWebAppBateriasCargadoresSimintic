@@ -38,9 +38,14 @@ const ID = '00000000-0000-4000-8000-00000000000a';
 const prepararEdicionLocal = async (
   entorno: EntornoSync,
   campos: Partial<Servicio>,
-  sucios: Servicio['camposSucios']
+  sucios: Servicio['camposSucios'],
+  /** Campos que además ya existen en SharePoint (la copia base los trae). */
+  extraRemoto: Partial<Servicio> = {}
 ): Promise<void> => {
-  const base = servicioBuilder().conId(ID).diagnosticado().sincronizado().construir();
+  const base = {
+    ...servicioBuilder().conId(ID).diagnosticado().sincronizado().construir(),
+    ...extraRemoto,
+  };
   const item = entorno.emulador.sembrarServicio(aCamposSP(base));
   await entorno.servicios.guardar({
     ...base,
@@ -72,6 +77,50 @@ describe('412 en el push (FR-006-07)', () => {
       referencia: 'MI-REF',
       camposSucios: [],
     });
+  });
+
+  it('si otra persona vació un campo que no tocamos, lo quita al combinar y sube lo nuestro', async () => {
+    const entorno = await crear();
+    await prepararEdicionLocal(entorno, { referencia: 'MI-REF' }, ['referencia'], {
+      otDetalle: 'Detalle previo',
+    });
+    entorno.emulador.modificarRemoto(ID, { OTDetalle: undefined });
+
+    const resumen = await entorno.sincronizar();
+
+    expect(resumen).toMatchObject({ subidos: 1, conflictos: 0, errores: 0, resultado: 'OK' });
+    expect(remoto(entorno)).toMatchObject({ Referencia: 'MI-REF' });
+    const local = await entorno.servicios.obtener(ID);
+    expect(local && 'otDetalle' in local).toBe(false);
+    expect(local).toMatchObject({ syncState: 'synced', referencia: 'MI-REF', camposSucios: [] });
+  });
+
+  it('si otra persona vació un dato que el estado exige, queda en conflicto de estado para revisarlo', async () => {
+    const entorno = await crear();
+    await prepararEdicionLocal(entorno, { referencia: 'MI-REF' }, ['referencia']);
+    entorno.emulador.modificarRemoto(ID, { ObservacionTecnica: undefined });
+
+    const resumen = await entorno.sincronizar();
+
+    expect(resumen.conflictos).toBe(1);
+    expect((await entorno.servicios.obtener(ID))?.conflictos).toEqual([
+      { campo: 'estado', local: 'DIAGNOSTICADO', remoto: 'DIAGNOSTICADO' },
+    ]);
+  });
+
+  it('si otra persona vació un campo que editamos, es un conflicto con SharePoint vacío', async () => {
+    const entorno = await crear();
+    await prepararEdicionLocal(entorno, { observacionTecnica: 'MÍA' }, ['observacionTecnica']);
+    entorno.emulador.modificarRemoto(ID, { ObservacionTecnica: undefined });
+
+    const resumen = await entorno.sincronizar();
+
+    expect(resumen.conflictos).toBe(1);
+    const local = await entorno.servicios.obtener(ID);
+    expect(local).toMatchObject({ syncState: 'conflict', observacionTecnica: 'MÍA' });
+    expect(local?.conflictos).toEqual([
+      { campo: 'observacionTecnica', local: 'MÍA', remoto: undefined },
+    ]);
   });
 
   it('si hay choque deja el servicio en conflicto y no sube ese campo', async () => {
