@@ -9,6 +9,10 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Borrado remoto de campos al descargar.** Si alguien vacía un campo en SharePoint (p. ej. el número de
+  factura), el dispositivo lo quita al descargar. Se infiere solo de ítems completos y nunca para campos
+  obligatorios. Si el campo tiene un cambio local pendiente: sin conflicto cuando SharePoint nunca lo tuvo
+  o ambos lo vaciaron; conflicto si se editó localmente y SharePoint lo vació.
 - **«Reintentar errores» en el menú técnico (ES-009-16).** Devuelve a la cola todos los servicios en
   error (intentos a 0, sin espera) y avisa cuántos quedaron; no toca conflictos ni sincroniza por sí solo.
   El caso de uso previo solo borraba el mensaje de error y dejaba el servicio en `error`.

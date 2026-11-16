@@ -1,6 +1,7 @@
+import type { CamposServicio } from '@/domain/servicio';
 import type { RemotoCambio } from '@/domain/sync/remoto';
 
-import { deCamposSP } from './servicioMapper';
+import { CAMPO_SP, deCamposSP } from './servicioMapper';
 
 /** Ítem de la lista Servicios tal como lo devuelve Graph (lectura normal o entrada de delta). */
 export interface ItemListaServicio {
@@ -18,6 +19,34 @@ export interface ItemListaServicio {
 
 const texto = (valor: unknown): string | undefined =>
   typeof valor === 'string' && valor.trim() !== '' ? valor : undefined;
+
+/** Campos obligatorios: SharePoint nunca los deja vacíos, así que su ausencia no es un borrado. */
+const CAMPOS_OBLIGATORIOS = new Set<keyof CamposServicio>([
+  'tipoEquipo',
+  'estado',
+  'fechaRecepcion',
+  'clienteId',
+  'numeroSolicitud',
+  'marca',
+  'referencia',
+  'serie',
+]);
+
+/**
+ * Campos vaciables cuya columna viene sin valor. SharePoint omite las columnas vacías, por lo que
+ * solo se infiere de un ítem completo (trae `ServicioId`); un ítem sin `fields` no dice nada.
+ */
+function vaciadosDe(campos: Record<string, unknown>): (keyof CamposServicio)[] {
+  if (texto(campos.ServicioId) === undefined) return [];
+  const vaciados: (keyof CamposServicio)[] = [];
+  for (const [campo, columna] of Object.entries(CAMPO_SP)) {
+    const clave = campo as keyof CamposServicio;
+    if (columna === undefined || CAMPOS_OBLIGATORIOS.has(clave)) continue;
+    const valor = campos[columna];
+    if (valor === undefined || valor === null) vaciados.push(clave);
+  }
+  return vaciados;
+}
 
 /** Columnas de captura que viven fuera de `CamposServicio`. */
 function metaDe(campos: Record<string, unknown>): NonNullable<RemotoCambio['meta']> {
@@ -51,6 +80,7 @@ export function itemACambio(item: ItemListaServicio): RemotoCambio {
     id: String(item.id),
     servicioId: texto(campos.ServicioId) ?? '',
     fields: eliminado ? {} : deCamposSP(campos),
+    ...(eliminado ? {} : { vaciados: vaciadosDe(campos) }),
     itemId: String(item.id),
     ...(eTag ? { eTag } : {}),
     ...(item.webUrl ? { webUrl: item.webUrl } : {}),

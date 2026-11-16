@@ -121,8 +121,10 @@ export function aplicarCambioRemoto(
   if (local.syncState === 'conflict') return { tipo: 'IGNORAR', motivo: 'EN_CONFLICTO' };
 
   if (local.camposSucios.length === 0) {
+    const sinVaciados: Servicio = { ...local };
+    for (const campo of cambio.vaciados ?? []) delete sinVaciados[campo];
     const servicio: Servicio = {
-      ...local,
+      ...sinVaciados,
       ...sinIndefinidos(cambio.fields),
       camposSucios: [],
       conflictos: [],
@@ -138,6 +140,7 @@ export function aplicarCambioRemoto(
   const { servicio } = mergeTresVias(local, {
     ...sinIndefinidos(cambio.fields),
     ...(cambio.eTag !== undefined ? { eTag: cambio.eTag } : {}),
+    ...(cambio.vaciados !== undefined ? { vaciados: cambio.vaciados } : {}),
   });
   const conSp: Servicio =
     cambio.itemId !== undefined ? { ...servicio, sp: datosRemotos(cambio, servicio.sp) } : servicio;

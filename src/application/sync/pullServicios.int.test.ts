@@ -112,6 +112,50 @@ describe('pullServicios', () => {
     expect(local?.sp?.eTag).not.toBe('"viejo"');
   });
 
+  it.each([
+    ['la columna llega en null', null],
+    ['la columna se omite', undefined],
+  ])('quita en el dispositivo un campo vaciado en SharePoint: %s', async (_caso, vacio) => {
+    const entorno = await crear();
+    const base = servicioBuilder().conId(ID_A).facturado().sincronizado().construir();
+    const item = entorno.emulador.sembrarServicio(camposRemotos(base));
+    await localSincronizado(entorno, base, item.id);
+    expect(base.facturaNumero).toBeDefined();
+
+    entorno.emulador.modificarRemoto(ID_A, { FacturaNumero: vacio });
+    const resultado = await entorno.pull(opciones());
+
+    expect(resultado.actualizados).toBe(1);
+    const local = await entorno.servicios.obtener(ID_A);
+    expect(local && 'facturaNumero' in local).toBe(false);
+    expect(local).toMatchObject({ syncState: 'synced', camposSucios: [] });
+    expect(local?.facturaFecha).toBe(base.facturaFecha);
+  });
+
+  it('conserva un campo local pendiente que SharePoint nunca tuvo, sin conflicto', async () => {
+    const entorno = await crear();
+    const base = servicioBuilder().conId(ID_A).recibido().sincronizado().construir();
+    const item = entorno.emulador.sembrarServicio(camposRemotos(base));
+    await entorno.servicios.guardar({
+      ...base,
+      observacionTecnica: 'NUEVA',
+      camposSucios: ['observacionTecnica'],
+      syncState: 'pending',
+      sp: { itemId: item.id, eTag: item.eTag, modificadoEn: '', webUrl: '' },
+    });
+
+    entorno.emulador.modificarRemoto(ID_A, { Marca: 'TROJAN' });
+    const resultado = await entorno.pull(opciones());
+
+    expect(resultado.conflictos).toBe(0);
+    const local = await entorno.servicios.obtener(ID_A);
+    expect(local).toMatchObject({
+      marca: 'TROJAN',
+      observacionTecnica: 'NUEVA',
+      camposSucios: ['observacionTecnica'],
+    });
+  });
+
   it('combina campos distintos sin pedir nada al usuario (ES-006-06)', async () => {
     const entorno = await crear();
     const base = servicioBuilder().conId(ID_A).recibido().sincronizado().construir();

@@ -6,6 +6,8 @@ import { CAMPOS_SERVICIO } from './servicio';
 export type RemotoServicio = Partial<CamposServicio> & {
   eTag?: string;
   itemId?: string;
+  /** Campos que SharePoint dejó vacíos (no se confunden con «no informado»). */
+  vaciados?: readonly (keyof CamposServicio)[];
 };
 
 export interface ResultadoMerge {
@@ -57,15 +59,23 @@ export const mergeTresVias = (local: Servicio, remoto: RemotoServicio): Resultad
   const resultado: Servicio = { ...local, camposSucios: [...local.camposSucios] };
   const sucios = new Set<keyof CamposServicio>(local.camposSucios);
   const conflictos: ConflictoCampo[] = [];
+  const vaciados = new Set<keyof CamposServicio>(remoto.vaciados ?? []);
+  /** Asigna el valor; un valor vacío elimina la propiedad (`exactOptionalPropertyTypes`). */
+  const poner = (campo: keyof CamposServicio, valor: unknown): void => {
+    if (valor === undefined) delete resultado[campo];
+    else resultado[campo] = valor as never;
+  };
 
   for (const campo of CAMPOS_SERVICIO) {
     const localSucio = sucios.has(campo);
+    const remotoVacio =
+      vaciados.has(campo) && !(tiene(remoto, campo) && remoto[campo] !== undefined);
     const remotoPresente = tiene(remoto, campo);
     const valorRemoto = remoto[campo];
     const valorLocal = local[campo];
 
-    if (!remotoPresente || valorRemoto === undefined) {
-      resultado[campo] = valorLocal as never;
+    if (!remotoVacio && (!remotoPresente || valorRemoto === undefined)) {
+      poner(campo, valorLocal);
       continue;
     }
 
@@ -111,22 +121,22 @@ export const mergeTresVias = (local: Servicio, remoto: RemotoServicio): Resultad
     }
 
     if (!localSucio) {
-      resultado[campo] = valorRemoto as never;
+      poner(campo, valorRemoto);
       continue;
     }
 
     if (mismoValor(valorRemoto, local.base[campo])) {
-      resultado[campo] = valorLocal as never;
+      poner(campo, valorLocal);
       continue;
     }
 
     if (mismoValor(valorLocal, valorRemoto)) {
-      resultado[campo] = valorRemoto as never;
+      poner(campo, valorRemoto);
       sucios.delete(campo);
       continue;
     }
 
-    resultado[campo] = valorLocal as never;
+    poner(campo, valorLocal);
     conflictos.push({ campo, local: valorLocal, remoto: valorRemoto });
   }
 

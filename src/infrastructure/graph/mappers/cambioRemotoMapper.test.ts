@@ -1,54 +1,45 @@
 import { describe, expect, it } from 'vitest';
 
-import { servicioBuilder } from '../../../../tests/builders/servicioBuilder';
 import { itemACambio } from './cambioRemotoMapper';
-import { aCamposSP } from './servicioMapper';
 
-describe('itemACambio', () => {
-  it('traduce un ítem de la lista al dominio (ida y vuelta con aCamposSP)', () => {
-    const servicio = servicioBuilder().diagnosticado().sincronizado().construir();
+const completo = {
+  ServicioId: '11111111-1111-4000-8000-111111111111',
+  TipoEquipo: 'Batería',
+  Estado: 'Facturado',
+  Diagnostico: 'REPARABLE',
+  FacturaNumero: 'FV-1',
+};
 
-    const cambio = itemACambio({
-      id: 42,
-      fields: aCamposSP(servicio),
-      '@odata.etag': '"3"',
-      webUrl: 'https://sp/42',
-      lastModifiedDateTime: '2026-11-06T10:00:00Z',
-      lastModifiedBy: { user: { email: 'otra@empresa.com', displayName: 'Otra Persona' } },
-    });
+describe('itemACambio · campos vaciados', () => {
+  it('informa como vaciados los campos vaciables cuya columna no viene', () => {
+    const cambio = itemACambio({ id: 5, fields: completo });
 
-    expect(cambio).toMatchObject({
-      id: '42',
-      itemId: '42',
-      servicioId: servicio.id,
-      eTag: '"3"',
-      webUrl: 'https://sp/42',
-      modified: '2026-11-06T10:00:00Z',
-      editor: 'otra@empresa.com',
-      editorNombre: 'Otra Persona',
-      fields: {
-        estado: 'DIAGNOSTICADO',
-        serie: servicio.serie,
-        diagnostico: servicio.diagnostico,
-        fechaRecepcion: servicio.fechaRecepcion,
-      },
-      meta: {
-        codigo: servicio.codigo,
-        capturadoPor: servicio.capturadoPor,
-        dispositivoId: servicio.dispositivoId,
-        appVersion: servicio.appVersion,
-      },
-    });
-    expect(cambio.deleted).toBeUndefined();
+    expect(cambio.vaciados).toContain('observacionTecnica');
+    expect(cambio.vaciados).toContain('facturaFecha');
+    expect(cambio.vaciados).not.toContain('diagnostico');
+    expect(cambio.vaciados).not.toContain('facturaNumero');
   });
 
-  it('una entrada eliminada del delta solo trae el id', () => {
-    const cambio = itemACambio({ id: '7', '@removed': { reason: 'deleted' } });
+  it('una columna en null también cuenta como vaciada', () => {
+    const cambio = itemACambio({ id: 5, fields: { ...completo, FacturaNumero: null } });
 
-    expect(cambio).toMatchObject({ itemId: '7', servicioId: '', fields: {}, deleted: true });
+    expect(cambio.vaciados).toContain('facturaNumero');
   });
 
-  it('un ítem sin ServicioId queda con servicioId vacío (creado a mano en SharePoint)', () => {
-    expect(itemACambio({ id: '8', fields: { Title: 'manual' } }).servicioId).toBe('');
+  it('nunca marca como vaciados los campos obligatorios', () => {
+    const cambio = itemACambio({ id: 5, fields: { ServicioId: completo.ServicioId } });
+
+    for (const obligatorio of ['tipoEquipo', 'estado', 'serie', 'marca', 'clienteId'] as const) {
+      expect(cambio.vaciados).not.toContain(obligatorio);
+    }
+  });
+
+  it('no infiere nada de un ítem sin ServicioId ni de uno sin fields', () => {
+    expect(itemACambio({ id: 5, fields: { Diagnostico: 'X' } }).vaciados).toEqual([]);
+    expect(itemACambio({ id: 5 }).vaciados).toEqual([]);
+  });
+
+  it('un ítem eliminado no informa vaciados', () => {
+    expect(itemACambio({ id: 5, '@removed': { reason: 'deleted' } }).vaciados).toBeUndefined();
   });
 });

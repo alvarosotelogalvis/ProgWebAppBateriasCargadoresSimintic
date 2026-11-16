@@ -31,6 +31,16 @@ const cambio = (resto: Partial<RemotoCambio> = {}): RemotoCambio => ({
   ...resto,
 });
 
+/** Campos remotos de un servicio, sin los que SharePoint dejó vacíos. */
+const sinCampos = (
+  campos: Servicio['base'],
+  ...vaciados: (keyof Servicio['base'])[]
+): Servicio['base'] => {
+  const copia = { ...campos };
+  for (const campo of vaciados) delete copia[campo];
+  return copia;
+};
+
 const conSucios = (
   base: Servicio,
   campos: Partial<Servicio>,
@@ -186,6 +196,104 @@ describe('aplicarCambioRemoto', () => {
       );
 
       expect(decision.tipo === 'COMBINAR' && decision.servicio.conflictos).toEqual([]);
+      expect(decision.tipo === 'COMBINAR' && decision.servicio.syncState).toBe('synced');
+    });
+  });
+
+  describe('campos vaciados en SharePoint', () => {
+    it('SOBRESCRIBIR: quita el campo local si SharePoint lo dejó vacío', () => {
+      const local = servicioBuilder().facturado().sincronizado().construir();
+      expect(local.facturaNumero).toBeDefined();
+      const decision = aplicarCambioRemoto(
+        local,
+        cambio({ servicioId: local.id, vaciados: ['facturaNumero'] }),
+        ctx
+      );
+
+      expect(decision.tipo).toBe('SOBRESCRIBIR');
+      if (decision.tipo !== 'SOBRESCRIBIR') return;
+      expect('facturaNumero' in decision.servicio).toBe(false);
+      expect('facturaNumero' in decision.servicio.base).toBe(false);
+      expect(decision.servicio.syncState).toBe('synced');
+    });
+
+    it('COMBINAR: si el campo no está sucio lo vacía sin conflicto', () => {
+      const base = servicioBuilder().facturado().sincronizado().construir();
+      const local = conSucios(base, { diagnostico: 'MÍO' }, ['diagnostico']);
+      const decision = aplicarCambioRemoto(
+        local,
+        cambio({
+          servicioId: local.id,
+          fields: sinCampos(base.base, 'facturaNumero'),
+          vaciados: ['facturaNumero'],
+        }),
+        ctx
+      );
+
+      expect(decision.tipo).toBe('COMBINAR');
+      if (decision.tipo !== 'COMBINAR') return;
+      expect('facturaNumero' in decision.servicio).toBe(false);
+      expect(decision.servicio.conflictos).toEqual([]);
+      expect(decision.servicio.camposSucios).toEqual(['diagnostico']);
+    });
+
+    it('COMBINAR: un campo sucio que SharePoint nunca tuvo no genera conflicto', () => {
+      const base = servicioBuilder().diagnosticado().sincronizado().construir();
+      const { observacionTecnica: _o, ...sinObs } = base;
+      const sinBase = { ...sinObs, base: { ...base.base } };
+      delete sinBase.base.observacionTecnica;
+      const local = conSucios(sinBase as Servicio, { observacionTecnica: 'NUEVA' }, [
+        'observacionTecnica',
+      ]);
+      const decision = aplicarCambioRemoto(
+        local,
+        cambio({
+          servicioId: local.id,
+          fields: sinCampos(sinBase.base, 'observacionTecnica'),
+          vaciados: ['observacionTecnica'],
+        }),
+        ctx
+      );
+
+      expect(decision.tipo === 'COMBINAR' && decision.servicio.conflictos).toEqual([]);
+      expect(decision.tipo === 'COMBINAR' && decision.servicio.observacionTecnica).toBe('NUEVA');
+    });
+
+    it('COMBINAR: conflicto si lo editamos y SharePoint lo vació', () => {
+      const base = servicioBuilder().diagnosticado().sincronizado().construir();
+      const local = conSucios(base, { observacionTecnica: 'MÍA' }, ['observacionTecnica']);
+      const decision = aplicarCambioRemoto(
+        local,
+        cambio({
+          servicioId: local.id,
+          fields: sinCampos(base.base, 'observacionTecnica'),
+          vaciados: ['observacionTecnica'],
+        }),
+        ctx
+      );
+
+      expect(decision.tipo === 'COMBINAR' && decision.servicio.conflictos).toEqual([
+        { campo: 'observacionTecnica', local: 'MÍA', remoto: undefined },
+      ]);
+      expect(decision.tipo === 'COMBINAR' && decision.servicio.observacionTecnica).toBe('MÍA');
+    });
+
+    it('COMBINAR: sin conflicto si ambos lo vaciaron', () => {
+      const base = servicioBuilder().facturado().sincronizado().construir();
+      const { facturaNumero: _f, ...sinNumero } = base;
+      const local = conSucios(sinNumero as Servicio, {}, ['facturaNumero']);
+      const decision = aplicarCambioRemoto(
+        local,
+        cambio({
+          servicioId: local.id,
+          fields: sinCampos(base.base, 'facturaNumero'),
+          vaciados: ['facturaNumero'],
+        }),
+        ctx
+      );
+
+      expect(decision.tipo === 'COMBINAR' && decision.servicio.conflictos).toEqual([]);
+      expect(decision.tipo === 'COMBINAR' && decision.servicio.camposSucios).toEqual([]);
       expect(decision.tipo === 'COMBINAR' && decision.servicio.syncState).toBe('synced');
     });
   });

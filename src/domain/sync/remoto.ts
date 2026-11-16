@@ -19,6 +19,11 @@ export interface RemotoCambio {
   readonly servicioId: string;
   /** Campos del servicio normalizados por `deCamposSP`. */
   readonly fields: Partial<CamposServicio>;
+  /**
+   * Campos vaciables que SharePoint reporta sin valor en este ítem completo. Ausente ≠ vaciado:
+   * solo se informan cuando el ítem trae todas sus columnas (no en cambios parciales).
+   */
+  readonly vaciados?: readonly (keyof CamposServicio)[];
   /** ID del ítem en SharePoint (para el PATCH). */
   readonly itemId?: string;
   /** eTag vigente del ítem. */
