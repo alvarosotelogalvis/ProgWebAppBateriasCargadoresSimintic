@@ -39,13 +39,32 @@ export function registrarServiceWorker({ onNuevaVersion, intervaloMs }: Opciones
     iniciarActualizacionPeriodica(registro, intervaloMs);
   });
 
-  return {
-    aplicar: async () => {
-      const registro = await navigator.serviceWorker.getRegistration();
-      await registro?.update();
-      window.location.reload();
-    },
-  };
+  return { aplicar: aplicarNuevaVersion };
+}
+
+/**
+ * Aplica la versión nueva (ES-001-20). Con `skipWaiting: false` el service worker nuevo queda
+ * «en espera» y un simple reload NO lo activa: se le pide que tome el control (`SKIP_WAITING`) y
+ * la página se recarga cuando lo hace. Sin service worker en espera, solo recarga.
+ */
+export async function aplicarNuevaVersion(): Promise<void> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+    window.location.reload();
+    return;
+  }
+
+  const registro = await navigator.serviceWorker.getRegistration();
+  await registro?.update();
+  const enEspera = registro?.waiting;
+  if (!enEspera) {
+    window.location.reload();
+    return;
+  }
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload(), {
+    once: true,
+  });
+  enEspera.postMessage({ type: 'SKIP_WAITING' });
 }
 
 function iniciarActualizacionPeriodica(

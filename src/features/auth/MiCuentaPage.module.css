@@ -11,18 +11,6 @@
   text-align: center;
 }
 
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 5.5rem;
-  height: 5.5rem;
-  border-radius: var(--radio-full);
-  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-  color: var(--text-inverse);
-  font-size: var(--texto-2xl);
-  font-weight: var(--peso-extrabold);
-}
-
 .nombre {
   font-size: var(--texto-2xl);
 }

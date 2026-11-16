@@ -1,0 +1,38 @@
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radio-full);
+  color: var(--text-inverse);
+  font-weight: var(--peso-bold);
+  user-select: none;
+}
+
+.degradado {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+}
+
+.solido {
+  background-color: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.pequeno {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: var(--texto-lg);
+}
+
+.normal {
+  width: 3.25rem;
+  height: 3.25rem;
+  font-size: var(--texto-lg);
+}
+
+.grande {
+  width: 5.5rem;
+  height: 5.5rem;
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-extrabold);
+}

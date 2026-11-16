@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { DecoCircle } from './DecoCircle';
 import styles from './GradientBackground.module.css';
 
 export type VarianteFondo = 'principal' | 'suave';
@@ -14,9 +15,9 @@ export function GradientBackground({ children, variante = 'principal' }: Props):
 
   return (
     <div className={clases}>
-      <span className={styles.decoUno!} aria-hidden="true" />
-      <span className={styles.decoDos!} aria-hidden="true" />
-      <span className={styles.decoTres!} aria-hidden="true" />
+      <DecoCircle posicion="arribaDerecha" />
+      <DecoCircle posicion="abajoIzquierda" />
+      <DecoCircle posicion="centroDerecha" />
       <div className={styles.contenido!}>{children}</div>
     </div>
   );

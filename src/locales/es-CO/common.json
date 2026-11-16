@@ -23,6 +23,14 @@
       "volver": "Volver al inicio"
     }
   },
+  "errorRuta": {
+    "titulo": "Algo salió mal",
+    "mensaje": "No se pudo mostrar esta pantalla. Tus datos locales siguen a salvo.",
+    "noEncontradaTitulo": "Página no encontrada",
+    "noEncontradaMensaje": "La dirección no existe o ya no está disponible.",
+    "irInicio": "Ir al inicio",
+    "reintentar": "Reintentar"
+  },
   "comun": {
     "guardar": "Guardar",
     "cancelar": "Cancelar",

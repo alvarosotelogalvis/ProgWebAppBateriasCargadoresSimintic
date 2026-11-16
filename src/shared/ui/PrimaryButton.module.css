@@ -34,9 +34,18 @@
 }
 
 .small {
+  position: relative;
   min-height: var(--control-alto-compacto);
   padding: 0 var(--espacio-4);
   font-size: var(--texto-xs);
+}
+
+/* Área táctil de 44 px con 36 px visuales (RNF-08, docs/10 §2). */
+.small::before {
+  content: '';
+  position: absolute;
+  inset-block: calc((var(--control-alto-compacto) - var(--objetivo-tactil)) / 2);
+  inset-inline: 0;
 }
 
 .on-gradient {

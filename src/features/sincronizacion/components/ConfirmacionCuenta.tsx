@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { ResumenPendientes } from '@/application/sync/resumenPendientes';
 import type { CuentaUsuario } from '@/domain/servicio';
+import { Avatar } from '@/shared/ui/Avatar';
 import { Banner } from '@/shared/ui/Banner';
 import { Card } from '@/shared/ui/Card';
 import { Chip } from '@/shared/ui/Chip';
@@ -74,9 +75,7 @@ export function ConfirmacionCuenta({
       </div>
 
       <div className={styles.cuenta!}>
-        <span className={styles.avatar!} aria-hidden="true">
-          {(cuenta?.nombre ?? '?').slice(0, 1).toUpperCase()}
-        </span>
+        <Avatar nombre={cuenta?.nombre ?? ''} tamano="pequeno" variante="solido" />
         <div className={styles.datosCuenta!}>
           <span className={styles.nombre!}>{cuenta?.nombre ?? ''}</span>
           <span className={styles.correo!}>{cuenta?.correo ?? ''}</span>

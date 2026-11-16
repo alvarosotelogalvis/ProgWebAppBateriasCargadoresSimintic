@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { registrarServiceWorker } from '@/infrastructure/pwa/registerSW';
+import { aplicarNuevaVersion, registrarServiceWorker } from '@/infrastructure/pwa/registerSW';
 import { useUiStore } from '@/shared/stores/uiStore';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { Banner } from '@/shared/ui/Banner';
@@ -29,7 +29,7 @@ export function AvisoActualizacion(): React.JSX.Element | null {
       agregarToast({ mensaje: t('esperara'), tipo: 'info' });
       return;
     }
-    void aplicarActualizacion();
+    void aplicarNuevaVersion();
   };
 
   return (
@@ -44,10 +44,4 @@ export function AvisoActualizacion(): React.JSX.Element | null {
       {t('mensaje')}
     </Banner>
   );
-}
-
-async function aplicarActualizacion(): Promise<void> {
-  const registration = await navigator.serviceWorker?.getRegistration();
-  await registration?.update();
-  window.location.reload();
 }

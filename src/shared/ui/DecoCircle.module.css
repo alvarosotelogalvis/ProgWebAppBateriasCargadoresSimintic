@@ -1,0 +1,36 @@
+.circulo {
+  position: absolute;
+  border-radius: var(--radio-full);
+  background-color: var(--deco-bg-strong);
+  pointer-events: none;
+}
+
+.arriba-derecha {
+  width: 16rem;
+  height: 16rem;
+  top: -4rem;
+  right: -5rem;
+}
+
+.abajo-izquierda {
+  width: 10rem;
+  height: 10rem;
+  bottom: 12%;
+  left: -4rem;
+  background-color: var(--deco-bg);
+}
+
+/* Solo en pantallas grandes: no compite con el contenido en el celular. */
+.centro-derecha {
+  display: none;
+  width: 22rem;
+  height: 22rem;
+  top: 30%;
+  right: -8rem;
+}
+
+@media (width >= 1024px) {
+  .centro-derecha {
+    display: block;
+  }
+}

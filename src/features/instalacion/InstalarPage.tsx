@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { GradientBackground } from '@/shared/ui/GradientBackground';
 import { Card } from '@/shared/ui/Card';
@@ -6,12 +7,19 @@ import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { TextLink } from '@/shared/ui/TextLink';
 import { Icon } from '@/shared/ui/Icon';
 import { useInstallPrompt } from '@/features/instalacion/useInstallPrompt';
+import { evaluarInstalacion } from '@/infrastructure/pwa/estadoInstalacion';
 
 import styles from './InstalarPage.module.css';
 
 export function InstalarPage(): React.JSX.Element {
   const { t } = useTranslation('instalacion');
+  const navegar = useNavigate();
   const { puedeInstalar, instalar, resultado } = useInstallPrompt();
+  const { plataforma, requisito } = evaluarInstalacion(window);
+
+  // iOS: Safari muestra los pasos de «Compartir»; otro navegador debe abrir el enlace en Safari.
+  const guia =
+    plataforma === 'ios-safari' ? 'ios' : plataforma === 'ios-otro' ? 'iosOtro' : 'general';
 
   return (
     <GradientBackground variante="principal">
@@ -23,13 +31,22 @@ export function InstalarPage(): React.JSX.Element {
         <p className={styles.subtitulo!}>{t('subtitulo')}</p>
 
         <Card fill>
-          <h2 className={styles.instruccionTitulo!}>{t('instrucciones.titulo')}</h2>
-          <p className={styles.instruccionTexto!}>{t('instrucciones.texto')}</p>
-          <ol className={styles.pasos!}>
-            <li>{t('instrucciones.paso1')}</li>
-            <li>{t('instrucciones.paso2')}</li>
-            <li>{t('instrucciones.paso3')}</li>
-          </ol>
+          {guia === 'iosOtro' ? (
+            <>
+              <h2 className={styles.instruccionTitulo!}>{t('iosOtro.titulo')}</h2>
+              <p className={styles.instruccionTexto!}>{t('iosOtro.texto')}</p>
+            </>
+          ) : (
+            <>
+              <h2 className={styles.instruccionTitulo!}>{t(`${guia}.titulo`)}</h2>
+              <p className={styles.instruccionTexto!}>{t(`${guia}.texto`)}</p>
+              <ol className={styles.pasos!}>
+                <li>{t(`${guia}.paso1`)}</li>
+                <li>{t(`${guia}.paso2`)}</li>
+                <li>{t(`${guia}.paso3`)}</li>
+              </ol>
+            </>
+          )}
         </Card>
 
         {puedeInstalar ? (
@@ -45,9 +62,12 @@ export function InstalarPage(): React.JSX.Element {
           </p>
         ) : null}
 
-        <TextLink onGradient onPress={() => history.back()}>
-          {t('continuar')}
-        </TextLink>
+        {/* En iOS no se puede usar la app sin instalarla (ES-001-02): no hay salida. */}
+        {requisito === 'bloquear' ? null : (
+          <TextLink onGradient onPress={() => navegar('/', { replace: true })}>
+            {t('continuar')}
+          </TextLink>
+        )}
       </main>
     </GradientBackground>
   );

@@ -1,3 +1,4 @@
+import { Avatar } from './Avatar';
 import styles from './SummaryCard.module.css';
 
 interface Props {
@@ -15,9 +16,7 @@ export function SummaryCard({
 }: Props): React.JSX.Element {
   return (
     <div className={styles.tarjeta!}>
-      <span className={styles.avatar!} aria-hidden="true">
-        {nombre.slice(0, 1).toUpperCase()}
-      </span>
+      <Avatar nombre={nombre} />
       <div className={styles.textos!}>
         <p className={styles.saludo!}>{saludo}</p>
         <p className={styles.nombre!}>{nombre}</p>

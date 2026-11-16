@@ -1,4 +1,5 @@
 .pastilla {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -15,6 +16,14 @@
   transition:
     background-color var(--duracion-rapida) var(--curva),
     color var(--duracion-rapida) var(--curva);
+}
+
+/* Área táctil de 44 px con 36 px visuales (RNF-08, docs/10 §2). */
+.pastilla::before {
+  content: '';
+  position: absolute;
+  inset-block: calc((var(--control-alto-compacto) - var(--objetivo-tactil)) / 2);
+  inset-inline: 0;
 }
 
 .pastilla:hover:not([data-disabled]) {

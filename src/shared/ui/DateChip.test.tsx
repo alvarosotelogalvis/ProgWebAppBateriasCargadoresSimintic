@@ -21,6 +21,25 @@ describe('DateChip', () => {
     expect(campo).toHaveAttribute('type', 'date');
   });
 
+  it('sin id propio igual asocia la etiqueta al campo y describe el error', () => {
+    render(<DateChip etiqueta="Fecha" valor="" error="Obligatoria" onCambio={vi.fn()} />);
+
+    const campo = screen.getByLabelText('Fecha');
+    expect(campo).toHaveAttribute('aria-invalid', 'true');
+    expect(campo.getAttribute('aria-describedby')).toBe(screen.getByText('Obligatoria').id);
+  });
+
+  it('dos campos sin id propio no comparten el id', () => {
+    render(
+      <>
+        <DateChip etiqueta="Desde" valor="" onCambio={vi.fn()} />
+        <DateChip etiqueta="Hasta" valor="" onCambio={vi.fn()} />
+      </>
+    );
+
+    expect(screen.getByLabelText('Desde').id).not.toBe(screen.getByLabelText('Hasta').id);
+  });
+
   it('notifica el cambio y describe el error', () => {
     const onCambio = vi.fn();
     render(

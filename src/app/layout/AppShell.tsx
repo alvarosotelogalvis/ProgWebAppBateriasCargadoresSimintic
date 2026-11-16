@@ -5,8 +5,11 @@ import { GradientBackground } from '@/shared/ui/GradientBackground';
 import { ResponsiveNav, type ItemNav } from '@/shared/ui/ResponsiveNav';
 import { Toast } from '@/shared/ui/Toast';
 import { AvisoActualizacion } from '@/features/actualizacion/AvisoActualizacion';
+import { AvisoInstalar } from '@/features/instalacion/AvisoInstalar';
 import { AvisoConexion } from '@/features/sincronizacion/components/AvisoConexion';
+import { useSyncStore } from '@/features/sincronizacion/store/useSyncStore';
 import { usePendientes } from '@/infrastructure/db/hooks';
+import { useBloqueoActualizacion } from '@/shared/hooks/useBloqueoActualizacion';
 
 import { BarraSuperior } from '@/app/layout/BarraSuperior';
 import { BotonNuevo } from '@/app/layout/BotonNuevo';
@@ -64,6 +67,8 @@ export function AppShell(): React.JSX.Element {
   const { t } = useTranslation(['navegacion', 'common']);
   // Mantiene el contador global de pendientes al día en toda la app (T030, ES-005-23).
   const pendientes = usePendientes();
+  // Mientras se sincroniza no se aplica ninguna actualización (FR-001-11).
+  useBloqueoActualizacion(useSyncStore((estado) => estado.sincronizando));
   const items = ITEMS_NAV.map((item) =>
     item.id === 'sincronizar' ? { ...item, badge: pendientes } : item
   );
@@ -79,6 +84,7 @@ export function AppShell(): React.JSX.Element {
           />
           <main className={styles.contenido!} id="contenido-principal">
             <AvisoActualizacion />
+            <AvisoInstalar />
             <AvisoConexion />
             <Outlet />
           </main>

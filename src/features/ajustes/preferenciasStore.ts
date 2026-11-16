@@ -27,6 +27,10 @@ export const usePreferenciasStore = create<EstadoPreferencias>()(
     }),
     {
       name: 'stbc-preferencias',
+      // Al leer lo guardado (arranque), la escala se aplica sin esperar a que el usuario abra Ajustes.
+      onRehydrateStorage: () => (estado) => {
+        if (estado) aplicarEscalaFuente(estado.escalaFuente);
+      },
       storage: createJSONStorage(() => ({
         getItem: (clave: string) => {
           try {

@@ -9,11 +9,15 @@ import '@fontsource/montserrat/800.css';
 import '@/shared/ui/global.css';
 
 import { App } from '@/app/App';
+import { aplicarEscalaGuardada } from '@/features/ajustes/preferenciasStore';
 import { AppDB } from '@/infrastructure/db/dexie';
 import { prepararAutenticacion, urlTraeRespuestaDeLogin } from '@/infrastructure/auth/arranque';
 import { instalarManejadoresGlobales, LoggerDexie } from '@/infrastructure/logging/logger';
 import { leerIntencionVigente } from '@/application/sync/intencionSync';
 import { IntencionSyncSessionStorage } from '@/infrastructure/sync/intencionSync';
+
+// El tamaño de fuente guardado se aplica antes del primer render (evita saltos de maquetación).
+aplicarEscalaGuardada();
 
 instalarManejadoresGlobales(new LoggerDexie(new AppDB()));
 

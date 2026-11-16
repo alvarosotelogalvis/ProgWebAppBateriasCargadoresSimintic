@@ -13,6 +13,7 @@ export default tseslint.config(
       'node_modules',
       'coverage',
       'playwright-report',
+      'tests/.tmp-actualizacion',
       'test-results',
       'public',
       'docs',
@@ -223,6 +224,7 @@ export default tseslint.config(
 
   {
     files: ['scripts/**/*', '*.config.ts', '*.config.js', 'eslint.config.js'],
+    languageOptions: { globals: { ...globals.node } },
     rules: {
       'no-console': 'off',
     },

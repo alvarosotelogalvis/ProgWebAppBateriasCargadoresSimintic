@@ -1,4 +1,6 @@
-﻿import styles from './DateChip.module.css';
+﻿import { useId } from 'react';
+
+import styles from './DateChip.module.css';
 
 interface Props {
   readonly etiqueta: string;
@@ -9,8 +11,18 @@ interface Props {
   readonly id?: string;
 }
 
-export function DateChip({ etiqueta, valor, onCambio, max, error, id }: Props): React.JSX.Element {
-  const idError = error && id ? `${id}-error` : undefined;
+export function DateChip({
+  etiqueta,
+  valor,
+  onCambio,
+  max,
+  error,
+  id: idExplicito,
+}: Props): React.JSX.Element {
+  // Sin `id` propio se genera uno: la etiqueta SIEMPRE debe quedar asociada al campo.
+  const idGenerado = useId();
+  const id = idExplicito ?? idGenerado;
+  const idError = error ? `${id}-error` : undefined;
   return (
     <div className={styles.campo!}>
       <label className={styles.etiqueta!} htmlFor={id}>

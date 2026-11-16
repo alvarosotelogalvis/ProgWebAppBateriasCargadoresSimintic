@@ -42,20 +42,6 @@
   background-color: var(--surface-muted);
 }
 
-.avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  flex-shrink: 0;
-  border-radius: var(--radio-full);
-  background-color: var(--primary);
-  color: var(--primary-contrast);
-  font-size: var(--texto-lg);
-  font-weight: var(--peso-bold);
-}
-
 .datos-cuenta {
   display: flex;
   flex-direction: column;

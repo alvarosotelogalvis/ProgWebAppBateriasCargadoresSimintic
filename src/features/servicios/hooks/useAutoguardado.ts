@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useBloqueoActualizacion } from '@/shared/hooks/useBloqueoActualizacion';
+
 export type EstadoGuardado = 'inactivo' | 'guardando' | 'guardado' | 'error';
 
 export const useAutoguardado = <T>(guardar: (cambios: T) => Promise<unknown>) => {
@@ -24,6 +26,9 @@ export const useAutoguardado = <T>(guardar: (cambios: T) => Promise<unknown>) =>
   );
 
   useEffect(() => cancelar, [cancelar]);
+
+  // Cambios aún sin guardar: no se debe recargar la app (ES-001-19).
+  useBloqueoActualizacion(estado === 'guardando');
 
   return { estado, programar, cancelar };
 };

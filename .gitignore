@@ -10,3 +10,6 @@ dist
 coverage
 playwright-report
 test-results
+
+# Builds temporales del E2E de actualización
+tests/.tmp-actualizacion/
