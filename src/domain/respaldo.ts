@@ -3,7 +3,7 @@ export interface Manifiesto {
   esquemaDb: number;
   app_version: string;
   dispositivo_id: string;
-  fecha: Date;
+  fecha: string;
   servicios_pendientes: number;
   adjuntos_totales: number;
 }
@@ -60,14 +60,15 @@ export function crearManifiesto(
   app_version: string,
   dispositivo_id: string,
   servicios_pendientes: number,
-  adjuntos_totales: number
+  adjuntos_totales: number,
+  ahora: Date = new Date()
 ): Manifiesto {
   return {
     version: '1.0.0',
     esquemaDb: SCHEMA_DB_VERSION,
     app_version,
     dispositivo_id,
-    fecha: new Date(),
+    fecha: ahora.toISOString(),
     servicios_pendientes,
     adjuntos_totales,
   };

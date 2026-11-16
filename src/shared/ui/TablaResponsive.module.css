@@ -1,0 +1,55 @@
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-sm);
+}
+
+.tabla th,
+.tabla td {
+  padding: var(--espacio-3);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabla th {
+  font-weight: var(--peso-semibold);
+  color: var(--text-secondary);
+}
+
+.tarjetas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radio-md);
+  background-color: var(--surface);
+}
+
+.dato {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.etiqueta {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  color: var(--text-secondary);
+}
+
+.valor {
+  font-size: var(--texto-sm);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}

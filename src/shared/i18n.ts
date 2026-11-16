@@ -13,6 +13,7 @@ import conexion from '@/locales/es-CO/conexion.json';
 import config from '@/locales/es-CO/config.json';
 import configuracion from '@/locales/es-CO/configuracion.json';
 import errores from '@/locales/es-CO/errores.json';
+import etapas from '@/locales/es-CO/etapas.json';
 import inicio from '@/locales/es-CO/inicio.json';
 import instalacion from '@/locales/es-CO/instalacion.json';
 import navegacion from '@/locales/es-CO/navegacion.json';
@@ -38,6 +39,7 @@ void i18n.use(initReactI18next).init({
       config,
       configuracion,
       errores,
+      etapas,
       inicio,
       instalacion,
       navegacion,

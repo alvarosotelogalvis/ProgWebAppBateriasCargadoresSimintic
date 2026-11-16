@@ -16,6 +16,17 @@ export class TransicionInvalidaError extends Error {
   }
 }
 
+/** Los datos propuestos no cumplen las reglas de validación (p. ej. fechas incoherentes). */
+export class ValidacionError extends Error {
+  readonly errores: ErrorValidacion[];
+
+  constructor(errores: ErrorValidacion[]) {
+    super('errores.servicio.validacion');
+    this.name = 'ValidacionError';
+    this.errores = errores;
+  }
+}
+
 export class SinPermisoError extends Error {
   constructor(readonly clave = 'errores.transicion.rolNoAutorizado') {
     super(clave);

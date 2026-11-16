@@ -9,6 +9,58 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Borrado remoto de campos también en el 412.** Al combinar tras un choque de versión al subir, el resolutor
+  aplica los campos que SharePoint vació con las mismas reglas que la descarga. Si el campo vaciado es un dato
+  mínimo del estado actual, queda en conflicto de estado para que lo revise el usuario.
+- **Borrado remoto de campos al descargar.** Si alguien vacía un campo en SharePoint (p. ej. el número de
+  factura), el dispositivo lo quita al descargar. Se infiere solo de ítems completos y nunca para campos
+  obligatorios. Si el campo tiene un cambio local pendiente: sin conflicto cuando SharePoint nunca lo tuvo
+  o ambos lo vaciaron; conflicto si se editó localmente y SharePoint lo vació.
+- **«Reintentar errores» en el menú técnico (ES-009-16).** Devuelve a la cola todos los servicios en
+  error (intentos a 0, sin espera) y avisa cuántos quedaron; no toca conflictos ni sincroniza por sí solo.
+  El caso de uso previo solo borraba el mensaje de error y dejaba el servicio en `error`.
+- **Menú técnico operativo (spec 009).** La ruta `/tecnico` mostraba «Próximamente»: ahora abre el
+  diagnóstico del dispositivo y de SharePoint, el visor de registros, el respaldo, «Liberar espacio» y
+  «Restablecer la app» (pide escribir BORRAR).
+  - Respaldo real: un ZIP estándar (`fflate`) con los servicios completos, los metadatos de los
+    adjuntos y sus fotos y PDF. Importar valida todo antes de escribir, guarda en una sola
+    transacción, omite los servicios que ya existen y nunca sobrescribe. «Solo pendientes» incluye
+    borradores, con error y en conflicto. Antes exportaba un resumen de 4 campos en un JSON y la
+    importación no guardaba nada.
+  - Restablecer se niega si hay cualquier servicio o adjunto sin sincronizar (antes solo miraba
+    «pendiente»).
+
+- **Spec 006: Sincronización de descarga y conflictos.** Después de subir, la sincronización descarga
+  lo que otros dispositivos crearon o cambiaron en SharePoint y refresca catálogos y configuración.
+  - Descarga incremental por delta de la lista (paginada, con recuperación si el `deltaLink`
+    caduca); los cerrados solo dentro de la retención. El punto de continuación avanza solo cuando
+    todos los cambios quedaron aplicados, así que repetir la descarga es seguro.
+  - Combinación por campo (`mergeTresVias`) con la regla del estado más avanzado. Un servicio con
+    cambios pendientes nunca se sobrescribe ni se borra; si SharePoint lo eliminó y hay cambios
+    locales, queda en conflicto.
+  - Un 412 al subir se resuelve leyendo el ítem remoto: sin choque se reintenta una vez con el eTag
+    nuevo; con choque queda «En conflicto» y no se sube ese campo.
+  - Pantalla «Resolver conflicto» (tarjetas en compacto, tabla en expandido), aviso en el detalle y
+    pestaña «Conflictos» en Sincronización; elegir «Mi valor» o «SharePoint» por campo.
+  - Adjuntos de SharePoint en el detalle (con conexión): fotos con miniatura (hasta 50 por
+    sincronización, no con el almacenamiento al 80 % o más ni con la opción desactivada) y
+    documentos con «Abrir en SharePoint» (sin conexión, deshabilitado y explicado).
+  - Emulador de Graph con delta, eliminaciones, carpetas y miniaturas; pruebas de integración de
+    punta a punta con dos dispositivos.
+
+- **Spec 007: Etapas del servicio y roles.** Cada etapa guarda sus datos y avanza el estado por los
+  casos de uso: diagnóstico (con rama de disposición final y confirmación), cotización con respuesta
+  del cliente, orden de trabajo, entrega (con y sin reparación), facturación y anulación con motivo.
+  - El detalle ofrece la siguiente etapa según estado y rol, muestra las fotos de salida, un resumen
+    por etapa y «Pendiente de <rol>» en la línea de tiempo.
+  - Adjuntar, reemplazar y eliminar PDF validados por contenido (`agregarPdf`, `CampoPdf`).
+  - Administrador: «Editar datos» para corregir etapas ya registradas sin cambiar el estado
+    (rechaza fechas incoherentes) y anulación con motivo de al menos 10 caracteres.
+  - Inicio: «Mis trabajos» con contador por rol y filtro en la lista de servicios.
+  - Ayuda in-app: temas de etapas y roles, adjuntar PDF y corregir o anular.
+  - Pruebas: unitarias, de integración (ciclo completo Recibido → Facturado) y E2E del ciclo,
+    la disposición final, la entrega sin reparación, la anulación y las correcciones.
+
 - **Spec 009: Soporte técnico, respaldo y purgas** (Fase F9)
   - Respaldo manual (exportar/importar) con Web Share API y fallback a descarga
   - Limpieza automática segura de espacio (purgas transaccionales, nunca toca pendientes)
@@ -17,6 +69,38 @@ adopta [SemVer](https://semver.org/lang/es/).
   - Acciones de mantenimiento: reintentar errores, refrescar catálogos, restablecer app
   - Menú técnico con visualización adaptativa por rol y breakpoint
   - 30+ tareas, 7 fases, 100+ pruebas unitarias/integración/E2E
+
+### Fixed
+
+- El arranque descarga MSAL bajo demanda (chunk aparte de 64 KB gzip): el bundle inicial baja de 333 a
+  269 KB gzip y en modo `mock` MSAL no se descarga. Un arranque normal ya no espera a MSAL para el
+  primer render; si la URL trae la respuesta del login, se resuelve antes de pintar, como antes.
+- La PWA no se podía instalar: faltaban los íconos que referencia el manifest (`public/icons/`).
+  Se agregaron los provisionales y una pantalla de arranque estática que se ve antes de cargar el JS.
+- Una trampa de configuración: el build de producción también falla ahora si faltan o son
+  placeholders el cliente/tenant de Entra ID y el sitio de SharePoint (`.env.production.example`).
+- Los registros no deben contener credenciales en URLs: se redactan `token`, `sig`, `tempauth`, etc.
+- Los servicios cerrados nunca se purgaban (la purga leía un campo inexistente): ahora se usa la
+  última modificación y se borran también sus adjuntos (antes quedaban huérfanos). Se eliminó la
+  segunda implementación de purgas, que nadie usaba.
+- Vaciar un campo (p. ej. el número de factura al corregir) ahora se sincroniza como `null` en
+  SharePoint; antes el campo quedaba «sucio» para siempre y el servicio pendiente en cada sincronización.
+- `public/_headers` bloqueaba toda llamada a Graph y a Microsoft Entra en producción (`connect-src 'self'`):
+  ahora coincide con el SDD §14.2 (Graph, Entra ID y SharePoint para miniaturas).
+- Los mensajes de validación ausentes salían en inglés (API de Zod 3 con Zod 4): ahora son claves
+  de traducción también cuando el campo falta.
+- Alertas de vida útil: la fecha se trata como texto `yyyy-MM-dd` (antes se desplazaba un día por la
+  zona horaria), los textos pasaron a i18n y los niveles conservan su nombre con umbrales distintos.
+- Respaldo: el paquete exportado perdía los archivos (`_archivos` era un arreglo) y la estimación de
+  tamaño tenía un error de redondeo.
+- Pantalla técnica: ids de lista y biblioteca de SharePoint mostraban vacío; el almacenamiento del
+  dispositivo siempre mostraba 0 en navegadores reales («Illegal invocation»); faltaban 14 claves
+  de traducción; las etiquetas del visor de logs no estaban asociadas a sus campos.
+- El namespace i18n `etapas` no estaba registrado y las pantallas de etapa mostraban claves crudas.
+- Las pantallas de etapa leían los catálogos con un índice inexistente (`where('id')`).
+- Crear un servicio sin sesión activa dejaba la pantalla en «Creando servicio…» sin mensaje.
+- `npm run typecheck` y `npm run build:dev` vuelven a funcionar (130 errores de tipos previos) y se
+  rehicieron las pruebas de transiciones, campos editables y esquemas, que nunca se ejecutaban.
 
 ## [Unreleased - Previous]
 
@@ -31,6 +115,7 @@ adopta [SemVer](https://semver.org/lang/es/).
 - Sincronización (spec 005): progreso por servicio y archivo con cancelación ordenada, cola con
   % sincronizado y segmentos En cola · Con error · Conflictos, mensajes de error por código,
   acción "Reintentar" (reinicia los intentos) y resumen al terminar o si otra ventana ya sincroniza.
+
 - Componentes del sistema de diseño: `BarList`, `DonutProgress` y `Chip`.
 - Recordatorios de sincronización: contador de pendientes siempre al día en la barra superior,
   badge en "Sincronizar" (navegación e Inicio), aviso "¿Sincronizar ahora?" al volver la conexión

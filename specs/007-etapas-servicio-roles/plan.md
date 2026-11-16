@@ -178,6 +178,6 @@ export function crearCambiarRespuestaCotizacion(
 
 ## 6. Seguimiento de complejidad
 
-| Desviación | Por qué | Alternativa simple rechazada |
-| ---------- | ------- | ---------------------------- |
-| —          | —       | —                            |
+| Desviación                                                                           | Por qué                                                                                                                                                                                                       | Alternativa simple rechazada                          |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `FormEtapa` genérico y `CabeceraServicio` no se implementaron como estaban planeados | Cada etapa tiene campos muy distintos; un contenedor genérico no aportaba. Se compartió solo lo común (`useCompletarEtapa`, `FaltantesEtapa`, estilos de `EtapaPage`). El detalle ya tenía cabecera y galería | Un `FormEtapa` que renderice campos por configuración |

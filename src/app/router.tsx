@@ -117,14 +117,36 @@ export const router = createBrowserRouter([
                         .EtapaAnulacionPage,
                     }),
                   },
+                  {
+                    path: ':id/corregir',
+                    element: <RoleGuard roles={['Administrador']} />,
+                    lazy: async () => ({
+                      Component: (await import('@/features/servicios/pages/CorregirServicioPage'))
+                        .CorregirServicioPage,
+                    }),
+                  },
                 ],
               },
               {
                 path: 'sincronizacion',
-                lazy: async () => ({
-                  Component: (await import('@/features/sincronizacion/pages/SincronizacionPage'))
-                    .SincronizacionPage,
-                }),
+                children: [
+                  {
+                    index: true,
+                    lazy: async () => ({
+                      Component: (
+                        await import('@/features/sincronizacion/pages/SincronizacionPage')
+                      ).SincronizacionPage,
+                    }),
+                  },
+                  {
+                    path: 'conflicto/:id',
+                    lazy: async () => ({
+                      Component: (
+                        await import('@/features/sincronizacion/pages/ResolverConflictoPage')
+                      ).ResolverConflictoPage,
+                    }),
+                  },
+                ],
               },
               {
                 path: 'sincronizar',

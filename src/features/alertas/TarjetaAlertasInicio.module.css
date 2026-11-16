@@ -1,7 +1,7 @@
 ﻿.tarjeta {
-  padding: var(--space-md);
-  background-color: var(--background-secondary);
-  border: 1px solid var(--border-default);
+  padding: var(--espacio-4);
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
   border-radius: var(--radio-md);
   cursor: pointer;
   text-align: left;
@@ -11,35 +11,35 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--espacio-2);
 }
 
 .tarjeta:hover {
-  background-color: var(--background-tertiary);
-  border-color: var(--border-focus);
+  background-color: var(--surface-sunken);
+  border-color: var(--primary);
 }
 
 .tarjeta:focus {
-  outline: 2px solid var(--border-focus);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
 .titulo {
   font-weight: var(--peso-semibold);
   color: var(--text-primary);
-  font-size: var(--size-md);
+  font-size: var(--texto-md);
 }
 
 .contenido {
   color: var(--text-secondary);
-  font-size: var(--size-sm);
+  font-size: var(--texto-sm);
 }
 
 .badge {
   position: absolute;
-  top: var(--space-xs);
-  right: var(--space-xs);
-  background-color: var(--border-error);
+  top: var(--espacio-2);
+  right: var(--espacio-2);
+  background-color: var(--peligro);
   color: white;
   border-radius: 50%;
   width: 32px;
@@ -48,5 +48,5 @@
   align-items: center;
   justify-content: center;
   font-weight: var(--peso-bold);
-  font-size: var(--size-sm);
+  font-size: var(--texto-sm);
 }

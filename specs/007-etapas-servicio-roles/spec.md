@@ -1,6 +1,6 @@
 # Spec 007 — Etapas del servicio y roles
 
-- **Estado**: Borrador
+- **Estado**: En implementación (código y pruebas completos; pendientes T042 prueba en DEV real y T043 medición de tiempos)
 - **Fecha**: 2026-10-21 · **Rama**: `feature/007-etapas-servicio-roles`
 - **Fase**: F7 (`docs/07`) · **Depende de**: 003 (recepción y adjuntos), 006 (descarga y conflictos), 004 (roles)
 - **Fuentes**: PRD [HU-04, HU-05, HU-06 (captura), HU-07, HU-08, HU-15; RF-05, RF-07, RF-08, RF-25, RF-26; RNF-01, RNF-08, RNF-11] · ADR [0006, 0011, 0012] · Modelo de datos [§2.3–§2.7, §3.1, §4, §5]

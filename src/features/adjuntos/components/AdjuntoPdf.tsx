@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import type { Adjunto } from '@/domain/servicio';
+import type { Adjunto } from '@/domain/adjunto';
 import { useTranslation } from 'react-i18next';
 import styles from './AdjuntoPdf.module.css';
 
 export interface AdjuntoPdfProps {
   adjunto: Adjunto;
-  onReplace?: (nuevoAdjunto: Adjunto) => void;
+  onReplace?: (archivo: File) => void;
   onDelete?: (adjuntoId: string) => void;
   readOnly?: boolean;
 }
@@ -38,14 +38,8 @@ export default function AdjuntoPdf({
     const archivo = e.currentTarget.files?.[0];
     if (!archivo || !onReplace) return;
 
-    const blob = new Blob([await archivo.arrayBuffer()], { type: 'application/pdf' });
-    const nuevoAdjunto: Adjunto = {
-      ...adjunto,
-      blob,
-      actualizadoEn: new Date().toISOString(),
-      syncState: 'pending',
-    };
-    onReplace(nuevoAdjunto);
+    onReplace(archivo);
+    e.currentTarget.value = '';
   };
 
   const handleDeleteConfirm = () => {
@@ -68,7 +62,7 @@ export default function AdjuntoPdf({
       {!readOnly && (
         <div className={styles.acciones}>
           <button onClick={handleVer} className={styles['btn-ver']} type="button">
-            {t('adjuntos:ver')}
+            {t('etapas:pdf.ver')}
           </button>
 
           {estaRemoto && (
@@ -80,7 +74,7 @@ export default function AdjuntoPdf({
           {!readOnly && (
             <>
               <label className={styles['btn-reemplazar']}>
-                {t('adjuntos:reemplazar')}
+                {t('etapas:pdf.reemplazar')}
                 <input
                   type="file"
                   accept=".pdf"
@@ -94,7 +88,7 @@ export default function AdjuntoPdf({
                 className={styles['btn-eliminar']}
                 type="button"
               >
-                {t('adjuntos:eliminar')}
+                {t('etapas:pdf.eliminar')}
               </button>
             </>
           )}
@@ -103,16 +97,16 @@ export default function AdjuntoPdf({
 
       {showDeleteConfirm && (
         <div className={styles.confirmacion}>
-          <p>{t('adjuntos:confirmarEliminacion')}</p>
+          <p>{t('etapas:pdf.confirmarEliminacion')}</p>
           <button onClick={handleDeleteConfirm} className={styles['btn-confirmar']} type="button">
-            {t('adjuntos:si')}
+            {t('etapas:pdf.confirmarSi')}
           </button>
           <button
             onClick={() => setShowDeleteConfirm(false)}
             className={styles['btn-cancelar']}
             type="button"
           >
-            {t('adjuntos:no')}
+            {t('etapas:pdf.confirmarNo')}
           </button>
         </div>
       )}

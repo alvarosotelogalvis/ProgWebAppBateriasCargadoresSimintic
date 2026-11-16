@@ -60,7 +60,7 @@
 
 ### Changed
 
-- FormEtapa ahora es genérico para todas las etapas
+- Las etapas comparten el hook `useCompletarEtapa` y el componente `FaltantesEtapa` (se retiró el `FormEtapa` genérico, que no se usaba)
 - PhotoCarousel rediseñado con 1/3/5 visibles por breakpoint
 
 ### Tested

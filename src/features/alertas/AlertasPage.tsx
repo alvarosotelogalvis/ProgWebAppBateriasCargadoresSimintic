@@ -1,18 +1,25 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
 import { useContainer } from '@/app/containerContext';
+import type { ClienteCatalogo } from '@/application/ports/remoteGateway';
+import { CLAVES_CATALOGO } from '@/application/setup/claves';
+import { useCatalogo } from '@/infrastructure/db/hooks';
 import { filtrarAlertasActivas, DEFAULT_UMBRALES } from '@/domain/alertas';
 import type { NivelAlerta } from '@/domain/alertas';
 import styles from './AlertasPage.module.css';
 
-const TABS: { key: NivelAlerta; label: string }[] = [
-  { key: 'vencida', label: 'Vencidas' },
-  { key: '30', label: '≤30 días' },
-  { key: '60', label: '≤60 días' },
-  { key: '90', label: '≤90 días' },
+const TABS: { key: NivelAlerta; clave: string }[] = [
+  { key: 'vencida', clave: 'vencidas' },
+  { key: '30', clave: 'dias30' },
+  { key: '60', clave: 'dias60' },
+  { key: '90', clave: 'dias90' },
 ];
+
+/** `yyyy-MM-dd` → fecha local legible, sin el desfase de interpretarla como UTC. */
+const formatoFecha = (iso: string): string =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString('es-CO');
 
 export function AlertasPage() {
   const { t } = useTranslation('alertas');
@@ -26,10 +33,7 @@ export function AlertasPage() {
     [container.db]
   );
 
-  const clientes = useLiveQuery(
-    () => container.db.catalogos.where('tipo').equals('Cliente').toArray(),
-    [container.db]
-  );
+  const clientes = useCatalogo<readonly ClienteCatalogo[]>(CLAVES_CATALOGO.clientes, container.db);
 
   const alertas = servicios ? filtrarAlertasActivas(servicios, DEFAULT_UMBRALES) : [];
 
@@ -65,8 +69,8 @@ export function AlertasPage() {
           >
             <option value="">{t('todoClientes')}</option>
             {clientes?.map((c) => (
-              <option key={c.id} value={c.valor}>
-                {c.valor}
+              <option key={c.id} value={c.nombre}>
+                {c.nombre}
               </option>
             ))}
           </select>
@@ -74,13 +78,13 @@ export function AlertasPage() {
       </div>
 
       <div className={styles.tabs}>
-        {TABS.map(({ key, label }) => (
+        {TABS.map(({ key, clave }) => (
           <button
             key={key}
             onClick={() => setSelectedTab(key)}
             className={`${styles.tab} ${selectedTab === key ? styles.tabActive : ''}`}
           >
-            {label} ({contadores[key]})
+            {t(clave)} ({contadores[key]})
           </button>
         ))}
       </div>
@@ -105,10 +109,12 @@ export function AlertasPage() {
               <div className={styles.codigo}>{alerta.codigo}</div>
               <div className={styles.cliente}>{alerta.cliente}</div>
               <div className={styles.serie}>{alerta.serie}</div>
-              <div className={styles.fecha}>
-                {alerta.proyeccionVidaUtil.toLocaleDateString('es-CO')}
+              <div className={styles.fecha}>{formatoFecha(alerta.proyeccionVidaUtil)}</div>
+              <div className={styles.dias}>
+                {alerta.diasRestantes < 0
+                  ? t('vencioHace', { count: Math.abs(alerta.diasRestantes) })
+                  : t('venceEn', { count: alerta.diasRestantes })}
               </div>
-              <div className={styles.dias}>{alerta.textoFecha}</div>
             </div>
           ))}
         </div>

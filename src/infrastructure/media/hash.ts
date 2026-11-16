@@ -1,4 +1,4 @@
-const leerBuffer = async (blob: Blob): Promise<ArrayBuffer> => {
+export const leerBuffer = async (blob: Blob): Promise<ArrayBuffer> => {
   if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
   return new Promise((resolve, reject) => {
     const lector = new FileReader();

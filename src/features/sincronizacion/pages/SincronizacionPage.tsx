@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useContainer } from '@/app/containerContext';
 import type { ResumenPendientes } from '@/application/sync/resumenPendientes';
 import { esVersionMinimaSuficiente } from '@/domain/sync/version';
-import { useColaSync } from '@/infrastructure/db/hooks';
+import { useColaSync, useServicios } from '@/infrastructure/db/hooks';
 import { buscarActualizacion } from '@/infrastructure/pwa/registerSW';
 import { AppError } from '@/shared/errors';
 import { useBreakpoint } from '@/shared/hooks/useBreakpoint';
@@ -52,6 +52,7 @@ export function SincronizacionPage(): React.JSX.Element {
   const enCurso = useRef(false);
   const controlador = useRef<AbortController | null>(null);
   const cola = useColaSync();
+  const servicios = useServicios();
   const filas = useSyncStore((estado) => estado.filas);
   const total = useSyncStore((estado) => estado.total);
   const resumenFinal = useSyncStore((estado) => estado.resumen);
@@ -213,6 +214,7 @@ export function SincronizacionPage(): React.JSX.Element {
           cola={cola}
           porcentajeEnCurso={sincronizando ? porcentajeEjecucion({ total, filas }) : null}
           onReintentar={(servicioId) => void reintentar(servicioId)}
+          servicios={servicios}
         />
       </div>
 

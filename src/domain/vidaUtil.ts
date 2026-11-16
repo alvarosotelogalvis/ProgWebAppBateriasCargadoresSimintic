@@ -6,18 +6,15 @@
  * sugerirVidaUtil('2026-01-31', 1) => '2026-02-28'
  */
 export function sugerirVidaUtil(fechaEntrega: string, meses: number): string {
-  const [year, month, day] = fechaEntrega.split('-').map(Number);
+  const [anio = '0', mes = '0', dia = '0'] = fechaEntrega.split('-');
+  const day = Number(dia);
 
-  let newMonth = month + meses;
-  let newYear = year;
+  // Mes en base 0 para repartir los meses sumados entre año y mes sin bucles.
+  const total = Number(mes) - 1 + meses;
+  const newYear = Number(anio) + Math.floor(total / 12);
+  const newMonth = (total % 12) + 1;
 
-  // Ajustar año si es necesario
-  while (newMonth > 12) {
-    newMonth -= 12;
-    newYear += 1;
-  }
-
-  // Ajustar día si es fin de mes
+  // Ajustar día si es fin de mes (31-ene + 1 mes → 28/29-feb)
   const ultimoDia = new Date(newYear, newMonth, 0).getDate();
   const newDay = Math.min(day, ultimoDia);
 

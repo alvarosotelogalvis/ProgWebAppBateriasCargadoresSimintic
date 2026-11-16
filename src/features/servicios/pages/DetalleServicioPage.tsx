@@ -1,19 +1,37 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useContainer } from '@/app/containerContext';
+import { esFinal } from '@/domain/estados';
 import { useAdjuntos, useServicio } from '@/infrastructure/db/hooks';
+import { useOnline } from '@/shared/hooks/useOnline';
+import { useSesionStore } from '@/shared/stores/sesionStore';
+import { BannerConflicto } from '@/features/sincronizacion/components/BannerConflicto';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { LineaTiempoEtapas } from '@/shared/ui/LineaTiempoEtapas';
+import { ListRow } from '@/shared/ui/ListRow';
 import { PhotoGallery } from '@/shared/ui/PhotoGallery';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 
+import AccionesServicio from '../components/AccionesServicio';
+import { etapasSiguientes, rolesPendientes } from '../etapasSiguientes';
+import { resumenEtapas } from '../resumenEtapas';
 import styles from './DetalleServicioPage.module.css';
+
+/** En COTIZADO la pantalla de cotización sirve para registrar la respuesta del cliente. */
+const etiquetaEtapa = (ruta: string, estado: string): string =>
+  ruta === 'cotizacion' && estado === 'COTIZADO' ? 'respuesta' : ruta;
+
+const CLAVE_RESPUESTA = {
+  PENDIENTE: 'respuestaPendiente',
+  APROBADA: 'respuestaAprobada',
+  RECHAZADA: 'respuestaRechazada',
+} as const;
 
 export function DetalleServicioPage(): React.JSX.Element {
   const { id = '' } = useParams();
@@ -22,7 +40,15 @@ export function DetalleServicioPage(): React.JSX.Element {
   const container = useContainer();
   const servicio = useServicio(id);
   const adjuntos = useAdjuntos(id);
+  const roles = useSesionStore((estado) => estado.roles);
   const [confirmar, setConfirmar] = useState(false);
+  const enLinea = useOnline();
+
+  // Con conexión se registran los archivos que el servicio tiene en SharePoint (FR-006-13).
+  useEffect(() => {
+    if (!id || !enLinea) return;
+    void container.listarAdjuntosRemotos(id).catch(() => undefined);
+  }, [id, enLinea, container]);
 
   if (!servicio) {
     return <EmptyState titulo={t('detalle.noEncontrado')} icono="servicios" />;
@@ -30,12 +56,28 @@ export function DetalleServicioPage(): React.JSX.Element {
 
   const estado = servicio.estado;
   const fotos = adjuntos.filter((adjunto) => adjunto.tipo === 'FOTO_INGRESO');
+  const fotosSalida = adjuntos.filter((adjunto) => adjunto.tipo === 'FOTO_SALIDA');
+  const documentosRemotos = adjuntos.filter(
+    (adjunto) =>
+      adjunto.blob === null && adjunto.sp !== undefined && !adjunto.mime.startsWith('image/')
+  );
+  const siguientes = etapasSiguientes(estado, roles);
+  const pendienteDe =
+    estado !== 'BORRADOR' && !esFinal(estado) && siguientes.length === 0
+      ? t('etapas:pendiente', {
+          rol: rolesPendientes(estado)
+            .map((rol) => t(`etapas:roles.${rol}`))
+            .join(', '),
+        })
+      : undefined;
 
   return (
     <div className={styles.pagina!}>
       <button type="button" className={styles.volver!} onClick={() => navigate('/servicios')}>
         {t('detalle.volver')}
       </button>
+
+      {servicio.syncState === 'conflict' && <BannerConflicto servicioId={servicio.id} />}
 
       <Card fill>
         <div className={styles.cabecera!}>
@@ -69,7 +111,13 @@ export function DetalleServicioPage(): React.JSX.Element {
           </div>
         </dl>
         <div className={styles.timeline!}>
-          <LineaTiempoEtapas estado={estado} />
+          <LineaTiempoEtapas
+            estado={estado}
+            resumenes={resumenEtapas(servicio, (respuesta) =>
+              t(`etapas:cotizacion.${CLAVE_RESPUESTA[respuesta]}`)
+            )}
+            pendienteDe={pendienteDe}
+          />
         </div>
       </Card>
 
@@ -77,6 +125,40 @@ export function DetalleServicioPage(): React.JSX.Element {
         <h2>{t('adjuntos:titulo')}</h2>
         {fotos.length > 0 ? <PhotoGallery adjuntos={fotos} /> : null}
       </Card>
+
+      {documentosRemotos.length > 0 ? (
+        <Card fill>
+          <h2>{t('adjuntos:remoto.documentos')}</h2>
+          <ul className={styles.documentos!}>
+            {documentosRemotos.map((documento) => (
+              <li key={documento.id}>
+                <ListRow
+                  icono="descripcion"
+                  etiqueta={documento.nombreArchivo}
+                  descripcion={
+                    enLinea
+                      ? `${t('adjuntos:remoto.badge')} · ${(documento.tamanoBytes / 1024).toFixed(0)} KB`
+                      : t('adjuntos:remoto.sinRed')
+                  }
+                  {...(enLinea && documento.sp
+                    ? {
+                        onClick: () =>
+                          window.open(documento.sp?.webUrl, '_blank', 'noopener,noreferrer'),
+                      }
+                    : {})}
+                />
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      {fotosSalida.length > 0 ? (
+        <Card fill>
+          <h2>{t('detalle.fotosSalida')}</h2>
+          <PhotoGallery adjuntos={fotosSalida} />
+        </Card>
+      ) : null}
 
       {servicio.estado === 'BORRADOR' ? (
         <div className={styles.acciones!}>
@@ -87,9 +169,38 @@ export function DetalleServicioPage(): React.JSX.Element {
             {t('recepcion.completar')}
           </PrimaryButton>
         </div>
-      ) : (
-        <p className={styles.pendiente!}>{t('detalle.sinEtapa')}</p>
-      )}
+      ) : esFinal(servicio.estado) ? (
+        <p className={styles.pendiente!}>{t('detalle.cerrado')}</p>
+      ) : siguientes.length > 0 ? (
+        <div className={styles.acciones!}>
+          {siguientes.map((ruta, indice) =>
+            indice === 0 ? (
+              <PrimaryButton
+                key={ruta}
+                onPress={() => navigate(`/servicios/${servicio.id}/etapa/${ruta}`)}
+              >
+                {t(`detalle.irA.${etiquetaEtapa(ruta, estado)}`)}
+              </PrimaryButton>
+            ) : (
+              <SecondaryButton
+                key={ruta}
+                onPress={() => navigate(`/servicios/${servicio.id}/etapa/${ruta}`)}
+              >
+                {t(`detalle.irA.${etiquetaEtapa(ruta, estado)}`)}
+              </SecondaryButton>
+            )
+          )}
+        </div>
+      ) : null}
+
+      <AccionesServicio
+        servicio={servicio}
+        roles={roles}
+        onAnular={async (motivo) => {
+          await container.casosDeUso.anular(servicio.id, motivo, roles);
+        }}
+        onEditar={() => navigate(`/servicios/${servicio.id}/corregir`)}
+      />
 
       <ResponsiveDialog
         titulo={t('recepcion.descartarTitulo')}

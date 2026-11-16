@@ -1,82 +1,147 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useContainer } from '@/app/containerContext';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
-import CampoMoneda from '../components/CampoMoneda';
+import { useNavigate, useParams } from 'react-router-dom';
 
-export function EtapaOrdenTrabajoPage() {
-  const { id } = useParams<{ id: string }>();
+import { useContainer } from '@/app/containerContext';
+import { useServicio } from '@/infrastructure/db/hooks';
+import { useSesionStore } from '@/shared/stores/sesionStore';
+import { Banner } from '@/shared/ui/Banner';
+import { Card } from '@/shared/ui/Card';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { SecondaryButton } from '@/shared/ui/SecondaryButton';
+import { TextField } from '@/shared/ui/TextField';
+import CampoMoneda from '../components/CampoMoneda';
+import { FaltantesEtapa } from '../components/FaltantesEtapa';
+import { useAutoguardado } from '../hooks/useAutoguardado';
+import { useCompletarEtapa } from '../hooks/useCompletarEtapa';
+import styles from './EtapaPage.module.css';
+
+interface CambiosOT {
+  otDetalle?: string;
+  otCostoReparacion?: number;
+}
+
+const formatoCOP = (valor: number): string =>
+  new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(valor);
+
+/** Orden de trabajo interna (HU-007-4): solo con la cotización aprobada. */
+export function EtapaOrdenTrabajoPage(): React.JSX.Element {
+  const { id = '' } = useParams();
+  const { t } = useTranslation(['etapas', 'servicios']);
   const navigate = useNavigate();
   const container = useContainer();
-  const { t } = useTranslation(['etapas', 'servicios']);
+  const servicio = useServicio(id);
+  const roles = useSesionStore((estado) => estado.roles);
 
-  const [cambios, setCambios] = useState<Record<string, unknown>>({});
+  const [cambios, setCambios] = useState<CambiosOT>({});
+  const { completar, completando, faltantes, errorGeneral } = useCompletarEtapa({
+    servicioId: id,
+    roles,
+  });
+  const {
+    estado: estadoGuardado,
+    programar,
+    cancelar,
+  } = useAutoguardado((parciales: CambiosOT) =>
+    container.casosDeUso.actualizarCampos(id, parciales, roles)
+  );
 
-  const servicio = useLiveQuery(async () => {
-    if (!id) return undefined;
-    return container.db.servicios.get(id);
-  }, [id, container.db]);
+  if (!servicio) return <p role="status">{t('servicios:detalle.noEncontrado')}</p>;
 
-  if (!servicio) return <div>{t('servicios:cargando')}</div>;
+  const detalle = cambios.otDetalle ?? servicio.otDetalle ?? '';
+  const costo = cambios.otCostoReparacion ?? servicio.otCostoReparacion ?? 0;
+  const aprobada = servicio.cotizacionEstado === 'APROBADA';
+  const editando = servicio.estado === 'COTIZADO' && aprobada;
+  const sinOrden = servicio.estado === 'COTIZADO' && !aprobada;
 
-  const detalle = (cambios.otDetalle as string) ?? servicio.otDetalle ?? '';
-  const costo = (cambios.otCostoReparacion as number) ?? servicio.otCostoReparacion ?? 0;
-  const cotizacionAprobada = servicio.cotizacionEstado === 'APROBADA';
-  const detalleValido = detalle.trim().length >= 5;
-
-  const handleCompletarOT = async () => {
-    navigate(`/servicios/${id}`);
+  const actualizar = (parciales: CambiosOT): void => {
+    const siguientes = { ...cambios, ...parciales };
+    setCambios(siguientes);
+    programar(siguientes);
   };
 
+  const textoGuardado =
+    estadoGuardado === 'guardando'
+      ? t('etapas:guardando')
+      : estadoGuardado === 'guardado'
+        ? t('etapas:guardado')
+        : '';
+
   return (
-    <div className="etapa-orden-trabajo">
-      <h2>{t('ordenTrabajo.titulo')}</h2>
-      <p className="subtitulo">{t('ordenTrabajo.subtitulo')}</p>
+    <form
+      className={styles.formulario!}
+      onSubmit={(evento) => {
+        evento.preventDefault();
+        if (!editando) return;
+        cancelar();
+        void completar('generarOT', { otDetalle: detalle, otCostoReparacion: costo });
+      }}
+    >
+      <header>
+        <h1>{t('etapas:ordenTrabajo.titulo')}</h1>
+        <p>{t('etapas:ordenTrabajo.subtitulo')}</p>
+      </header>
 
-      {!cotizacionAprobada && (
-        <div className="advertencia-estado">
-          <p>{t('ordenTrabajo.esperandoRespuesta')}</p>
-        </div>
+      {sinOrden ? (
+        <Banner tipo="info">
+          {servicio.cotizacionEstado === 'RECHAZADA'
+            ? t('etapas:ordenTrabajo.soloAprobada')
+            : t('etapas:ordenTrabajo.esperandoRespuesta')}
+        </Banner>
+      ) : (
+        <Card fill>
+          <div className={styles.campos!}>
+            {editando ? (
+              <>
+                <TextField
+                  id="detalle"
+                  etiqueta={t('etapas:ordenTrabajo.detalle')}
+                  ayuda={t('etapas:ordenTrabajo.detalleAyuda')}
+                  multilinea
+                  value={detalle}
+                  onChange={(texto) => actualizar({ otDetalle: texto })}
+                />
+                <CampoMoneda
+                  label={t('etapas:ordenTrabajo.costo')}
+                  valor={costo}
+                  requerido
+                  onChange={(monto) => actualizar({ otCostoReparacion: monto })}
+                  helpText={t('etapas:ordenTrabajo.costoAyuda')}
+                />
+              </>
+            ) : (
+              <dl>
+                <dt>{t('etapas:ordenTrabajo.detalle')}</dt>
+                <dd>{servicio.otDetalle ?? '—'}</dd>
+                <dt>{t('etapas:ordenTrabajo.costo')}</dt>
+                <dd>{formatoCOP(servicio.otCostoReparacion ?? 0)}</dd>
+              </dl>
+            )}
+          </div>
+        </Card>
       )}
 
-      {cotizacionAprobada && (
-        <div className="form">
-          <div className="campo-detalle">
-            <label htmlFor="detalle">{t('ordenTrabajo.detalle')}</label>
-            <textarea
-              id="detalle"
-              value={detalle}
-              onChange={(e) => setCambios({ ...cambios, otDetalle: e.target.value })}
-              placeholder={t('ordenTrabajo.detalleAyuda')}
-              rows={6}
-              disabled={!cotizacionAprobada}
-            />
-            <small>{t('ordenTrabajo.detalleAyuda')}</small>
-          </div>
+      <FaltantesEtapa faltantes={faltantes} error={errorGeneral} />
 
-          <CampoMoneda
-            label={t('ordenTrabajo.costo')}
-            valor={costo}
-            onChange={(v) => setCambios({ ...cambios, otCostoReparacion: v })}
-            requerido={true}
-            helpText={t('ordenTrabajo.costoAyuda')}
-          />
-
-          <div className="acciones">
-            <button
-              onClick={handleCompletarOT}
-              className="btn-completar"
-              disabled={!detalleValido || costo < 0}
-            >
-              {t('ordenTrabajo.completar')}
-            </button>
-            <button onClick={() => navigate(`/servicios/${id}`)} className="btn-cancelar">
-              {t('etapas:cancelar')}
-            </button>
-          </div>
+      <div className={styles.pie!}>
+        <span className={styles.estado!} role="status">
+          {textoGuardado}
+        </span>
+        <div className={styles.acciones!}>
+          <SecondaryButton onPress={() => navigate(`/servicios/${servicio.id}`)}>
+            {editando ? t('etapas:cancelar') : t('servicios:detalle.volver')}
+          </SecondaryButton>
+          {editando ? (
+            <PrimaryButton type="submit" isDisabled={completando}>
+              {t('etapas:ordenTrabajo.completar')}
+            </PrimaryButton>
+          ) : null}
         </div>
-      )}
-    </div>
+      </div>
+    </form>
   );
 }

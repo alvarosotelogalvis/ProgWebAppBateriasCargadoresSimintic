@@ -46,7 +46,7 @@ export function LiberarEspacioDialog({
 
       onPurgado?.(res.espacioLiberado);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('tecnico.error_red'));
+      setError(err instanceof Error ? err.message : t('error_red'));
     } finally {
       setCargando(false);
     }
@@ -59,11 +59,7 @@ export function LiberarEspacioDialog({
   };
 
   return (
-    <ResponsiveDialog
-      titulo={t('tecnico.liberar_espacio')}
-      abierto={abierto}
-      onCerrar={handleCerrar}
-    >
+    <ResponsiveDialog titulo={t('liberar_espacio')} abierto={abierto} onCerrar={handleCerrar}>
       {error ? <Banner tipo="peligro">{error}</Banner> : null}
 
       {resultado ? (
@@ -93,7 +89,7 @@ export function LiberarEspacioDialog({
         </SecondaryButton>
         {!resultado ? (
           <PrimaryButton onPress={handleLiberar} isDisabled={cargando}>
-            {cargando ? t('respaldo.purgando') : t('tecnico.liberar_espacio')}
+            {cargando ? t('respaldo.purgando') : t('liberar_espacio')}
           </PrimaryButton>
         ) : null}
       </div>

@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import type { ColaSync } from '@/infrastructure/db/hooks';
+import type { Servicio } from '@/domain/servicio';
 import { Card } from '@/shared/ui/Card';
 import { DonutProgress } from '@/shared/ui/DonutProgress';
 import { SegmentedControl } from '@/shared/ui/SegmentedControl';
 
 import { ListaErrores } from './ListaErrores';
+import { ListaConflictos } from './ListaConflictos';
 
 import styles from './ResumenCola.module.css';
 
@@ -17,14 +20,21 @@ interface Props {
   /** % de la ejecución en curso; `null` cuando no hay sincronización activa. */
   readonly porcentajeEnCurso: number | null;
   readonly onReintentar: (servicioId: string) => void;
+  readonly servicios: readonly Servicio[];
 }
 
 /**
  * Resumen y cola según la referencia 07: donut con el % sincronizado (o el avance de
  * la ejecución en curso) y segmentos En cola · Con error · Conflictos.
  */
-export function ResumenCola({ cola, porcentajeEnCurso, onReintentar }: Props): React.JSX.Element {
+export function ResumenCola({
+  cola,
+  porcentajeEnCurso,
+  onReintentar,
+  servicios,
+}: Props): React.JSX.Element {
   const { t } = useTranslation('sync');
+  const navigate = useNavigate();
   const [segmento, setSegmento] = useState<Segmento>('enCola');
 
   const enCurso = porcentajeEnCurso !== null;
@@ -75,7 +85,10 @@ export function ResumenCola({ cola, porcentajeEnCurso, onReintentar }: Props): R
         />
       ) : null}
       {segmento === 'conflictos' ? (
-        <ListaErrores items={cola.conflictos} vacio={t('cola.vacio.conflictos')} />
+        <ListaConflictos
+          servicios={servicios}
+          onAbrir={(servicioId) => navigate(`/sincronizacion/conflicto/${servicioId}`)}
+        />
       ) : null}
     </Card>
   );

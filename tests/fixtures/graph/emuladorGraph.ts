@@ -24,6 +24,9 @@ interface ItemEstado {
   eTag: string;
   readonly webUrl: string;
   modificadoEn: string;
+  /** Secuencia del último cambio: el token del delta. */
+  version: number;
+  editor?: { readonly email: string; readonly nombre: string };
 }
 
 type ListaEstado = Omit<ListaEmulada, 'items'> & { items: ItemEstado[] };
@@ -82,12 +85,17 @@ const errorGraph = (
 
 const nuevoEtag = (secuencia: number): string => `"etag-${secuencia}"`;
 
+export const URL_MINIATURAS = 'https://miniaturas.sharepoint.test/thumb';
+
 const itemJson = (item: ItemEstado): Record<string, unknown> => ({
   id: item.id,
   eTag: item.eTag,
   '@odata.etag': item.eTag,
   webUrl: item.webUrl,
   lastModifiedDateTime: item.modificadoEn,
+  ...(item.editor
+    ? { lastModifiedBy: { user: { email: item.editor.email, displayName: item.editor.nombre } } }
+    : {}),
   fields: item.fields,
 });
 
@@ -137,6 +145,7 @@ export class EmuladorGraph {
   private readonly listas: ListaEstado[];
   private readonly archivos = new Map<string, ArchivoEstado>();
   private readonly sesiones = new Map<string, SesionEstado>();
+  private readonly eliminados: Array<{ readonly id: string; readonly version: number }> = [];
   private readonly fallas: FallaInyectable[] = [];
   private readonly peticiones: PeticionEmulada[] = [];
   private readonly rangos: RangoSubida[] = [];
@@ -146,6 +155,8 @@ export class EmuladorGraph {
   private forzarEtagMismatch = false;
   private carrera409 = false;
   private desconectado = false;
+  private conMiniaturas = true;
+  miniaturasServidas = 0;
 
   constructor(opciones: OpcionesEmuladorGraph = {}) {
     this.baseUrl = opciones.baseUrl ?? 'https://graph.microsoft.com/v1.0';
@@ -221,6 +232,38 @@ export class EmuladorGraph {
     return this.crearItem(lista, fields);
   }
 
+  /** Simula que otra persona editó el ítem en SharePoint (cambia eTag y versión). */
+  modificarRemoto(
+    servicioId: string,
+    fields: Record<string, unknown>,
+    editor = { email: 'otra.persona@empresa.com', nombre: 'Otra Persona' }
+  ): ItemEstado {
+    const item = this.itemsDe('Servicios').find(
+      (candidato) => candidato.fields.ServicioId === servicioId
+    );
+    if (!item) throw new Error(`El emulador no tiene el servicio ${servicioId}.`);
+    this.secuencia += 1;
+    item.fields = { ...item.fields, ...fields };
+    item.eTag = nuevoEtag(this.secuencia);
+    item.modificadoEn = new Date().toISOString();
+    item.version = this.secuencia;
+    item.editor = editor;
+    return item;
+  }
+
+  /** Simula que se eliminó el ítem en SharePoint (el delta lo informa con `@removed`). */
+  eliminarRemoto(servicioId: string): void {
+    const lista = this.lista('Servicios');
+    const item = lista?.items.find((candidato) => candidato.fields.ServicioId === servicioId);
+    if (!lista || !item) throw new Error(`El emulador no tiene el servicio ${servicioId}.`);
+    this.quitarItem(lista, item);
+  }
+
+  /** Los archivos del emulador dejan de tener miniatura. */
+  sinMiniaturas(): void {
+    this.conMiniaturas = false;
+  }
+
   peticionesRealizadas(): readonly PeticionEmulada[] {
     return this.peticiones;
   }
@@ -235,6 +278,12 @@ export class EmuladorGraph {
 
   handlers(): HttpHandler[] {
     return [
+      http.get(`${URL_MINIATURAS}/*`, () => {
+        this.miniaturasServidas += 1;
+        return new HttpResponse(new Uint8Array([1, 2, 3]), {
+          headers: { 'content-type': 'image/jpeg' },
+        });
+      }),
       http.all(`${this.baseUrl}/*`, async ({ request }) => {
         this.peticiones.push({
           metodo: request.method,
@@ -267,6 +316,7 @@ export class EmuladorGraph {
       eTag,
       webUrl: `${this.webUrl}/Lists/${item.id}/${item.id}`,
       modificadoEn: new Date().toISOString(),
+      version: this.secuencia,
     };
   }
 
@@ -279,6 +329,7 @@ export class EmuladorGraph {
       eTag: nuevoEtag(this.secuencia),
       webUrl: `${this.webUrl}/Lists/${lista.name}/${id}`,
       modificadoEn: new Date().toISOString(),
+      version: this.secuencia,
     };
     lista.items.push(item);
     return item;
@@ -342,6 +393,8 @@ export class EmuladorGraph {
       return errorGraph(405, 'methodNotAllowed', 'Método no soportado');
     }
 
+    if (partes[5] === 'delta' && request.method === 'GET') return this.delta(lista, url);
+
     const idItem = partes[5];
     const item = lista.items.find((candidato) => candidato.id === idItem);
     if (!item) return errorGraph(404, 'notFound', 'Ítem no encontrado');
@@ -351,10 +404,38 @@ export class EmuladorGraph {
     }
     if (request.method === 'GET') return json(itemJson(item));
     if (request.method === 'DELETE') {
-      lista.items = lista.items.filter((candidato) => candidato.id !== item.id);
+      this.quitarItem(lista, item);
       return new HttpResponse(null, { status: 204 });
     }
     return errorGraph(405, 'methodNotAllowed', 'Método no soportado');
+  }
+
+  private quitarItem(lista: ListaEstado, item: ItemEstado): void {
+    lista.items = lista.items.filter((candidato) => candidato.id !== item.id);
+    this.secuencia += 1;
+    if (lista.name === 'Servicios') this.eliminados.push({ id: item.id, version: this.secuencia });
+  }
+
+  /** Delta de la lista: cambios y eliminaciones posteriores al token (`?token=` es la versión). */
+  private delta(lista: ListaEstado, url: URL): Response {
+    const desdeVersion = Number(url.searchParams.get('token') ?? '0');
+    const cambios: Record<string, unknown>[] = [
+      ...lista.items.filter((item) => item.version > desdeVersion).map(itemJson),
+      ...this.eliminados
+        .filter((eliminado) => eliminado.version > desdeVersion)
+        .map((eliminado) => ({ id: eliminado.id, '@removed': { reason: 'deleted' } })),
+    ];
+    const salto = Number(url.searchParams.get('$skiptoken') ?? '0');
+    const hasta = salto + this.tamanoPagina;
+    const base = `${this.baseUrl}${this.rutaRelativa(url.pathname)}`;
+    const pagina = cambios.slice(salto, hasta);
+
+    if (hasta < cambios.length) {
+      const parametros = new URLSearchParams(url.searchParams);
+      parametros.set('$skiptoken', String(hasta));
+      return json({ value: pagina, '@odata.nextLink': `${base}?${parametros.toString()}` });
+    }
+    return json({ value: pagina, '@odata.deltaLink': `${base}?token=${this.secuencia}` });
   }
 
   private listarItems(lista: ListaEstado, url: URL): Response {
@@ -416,6 +497,7 @@ export class EmuladorGraph {
       this.secuencia += 1;
       item.eTag = nuevoEtag(this.secuencia);
       item.modificadoEn = new Date().toISOString();
+      item.version = this.secuencia;
       return errorGraph(412, 'preconditionFailed', 'El ítem cambió en SharePoint');
     }
 
@@ -429,6 +511,7 @@ export class EmuladorGraph {
     item.fields = { ...item.fields, ...campos };
     item.eTag = nuevoEtag(this.secuencia);
     item.modificadoEn = new Date().toISOString();
+    item.version = this.secuencia;
     return json({ ...item.fields, '@odata.etag': item.eTag, eTag: item.eTag });
   }
 
@@ -467,9 +550,25 @@ export class EmuladorGraph {
       return this.subirFragmento(request, ruta);
     }
 
+    if (request.method === 'GET' && ruta.endsWith(':/children')) {
+      const carpeta = this.rutaDeRoot(ruta, 'children');
+      if (carpeta === undefined) return errorGraph(400, 'invalidRequest', 'Ruta inválida');
+      const hijos = [...this.archivos.values()].filter((archivo) =>
+        archivo.ruta.startsWith(`${carpeta}/`)
+      );
+      if (hijos.length === 0) return errorGraph(404, 'itemNotFound', 'La carpeta no existe');
+      return json({ value: hijos.map(archivoJson) });
+    }
+
     const idItem = /\/drives\/[^/]+\/items\/([^/]+)/.exec(ruta)?.[1];
     if (idItem === undefined) return errorGraph(404, 'notFound', 'Recurso de drive no soportado');
     const archivo = [...this.archivos.values()].find((candidato) => candidato.id === idItem);
+
+    if (request.method === 'GET' && ruta.endsWith('/thumbnails')) {
+      if (!archivo) return errorGraph(404, 'notFound', 'Archivo no encontrado');
+      if (!this.conMiniaturas) return json({ value: [] });
+      return json({ value: [{ small: { url: `${URL_MINIATURAS}/${archivo.id}` } }] });
+    }
 
     if (request.method === 'DELETE') {
       if (!archivo) return errorGraph(404, 'notFound', 'Archivo no encontrado');
@@ -542,7 +641,10 @@ export class EmuladorGraph {
     return pathname.startsWith(prefijo) ? pathname.slice(prefijo.length) : pathname;
   }
 
-  private rutaDeRoot(ruta: string, sufijo: 'content' | 'createUploadSession'): string | undefined {
+  private rutaDeRoot(
+    ruta: string,
+    sufijo: 'content' | 'createUploadSession' | 'children'
+  ): string | undefined {
     const marca = '/root:';
     const indice = ruta.indexOf(marca);
     if (indice < 0) return undefined;

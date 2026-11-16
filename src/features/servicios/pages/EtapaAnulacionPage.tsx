@@ -1,81 +1,86 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useContainer } from '@/app/containerContext';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
-import { useRoles } from '@/shared/hooks/useRoles';
-import DialogoAnulacion from '../components/DialogoAnulacion';
+import { useNavigate, useParams } from 'react-router-dom';
 
-export function EtapaAnulacionPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const container = useContainer();
-  const roles = useRoles();
+import { useContainer } from '@/app/containerContext';
+import { esFinal } from '@/domain/estados';
+import { useServicio } from '@/infrastructure/db/hooks';
+import { useSesionStore } from '@/shared/stores/sesionStore';
+import { Banner } from '@/shared/ui/Banner';
+import { Card } from '@/shared/ui/Card';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { SecondaryButton } from '@/shared/ui/SecondaryButton';
+import DialogoAnulacion from '../components/DialogoAnulacion';
+import styles from './EtapaPage.module.css';
+
+/** Anulación (HU-007-8): solo Administrador, con motivo y por el caso de uso `anular`. */
+export function EtapaAnulacionPage(): React.JSX.Element {
+  const { id = '' } = useParams();
   const { t } = useTranslation(['etapas', 'servicios']);
+  const navigate = useNavigate();
+  const { casosDeUso } = useContainer();
+  const servicio = useServicio(id);
+  const roles = useSesionStore((estado) => estado.roles);
 
   const [dialogoAbierto, setDialogoAbierto] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState<string>();
 
-  const servicio = useLiveQuery(async () => {
-    if (!id) return undefined;
-    return container.db.servicios.get(id);
-  }, [id, container.db]);
+  if (!servicio) return <p role="status">{t('servicios:detalle.noEncontrado')}</p>;
 
-  if (!servicio) return <div>{t('servicios:cargando')}</div>;
+  const puedeAnular =
+    roles.includes('Administrador') && servicio.estado !== 'BORRADOR' && !esFinal(servicio.estado);
 
-  const esAdmin = roles.includes('Administrador');
-  const puedeAnular = esAdmin && servicio.estado !== 'BORRADOR';
-
-  const handleAnular = async (motivo: string) => {
-    if (!puedeAnular) return;
-
+  const anular = async (motivo: string): Promise<void> => {
     setCargando(true);
+    setError(undefined);
     try {
-      const actualizado = {
-        ...servicio,
-        estado: 'ANULADO' as const,
-        anulacionMotivo: motivo,
-        anulacionFecha: new Date().toISOString().split('T')[0],
-        actualizadoEn: new Date().toISOString(),
-        syncState: 'pending' as const,
-      };
-      await container.db.servicios.put(actualizado);
-      setDialogoAbierto(false);
-      navigate(`/servicios/${id}`);
-    } catch (error) {
-      console.error('Error al anular:', error);
-    } finally {
+      await casosDeUso.anular(servicio.id, motivo, roles);
+      navigate(`/servicios/${servicio.id}`, { replace: true });
+    } catch {
+      setError(t('etapas:anulacion.error'));
       setCargando(false);
     }
   };
 
-  if (!puedeAnular) {
-    return (
-      <div className="etapa-anulacion">
-        <p>{t('anulacion.error_permisos')}</p>
-        <button onClick={() => navigate(`/servicios/${id}`)}>{t('etapas:cancelar')}</button>
-      </div>
-    );
-  }
-
   return (
-    <div className="etapa-anulacion">
-      <h2>{t('anulacion.titulo')}</h2>
-      <p className="subtitulo">{t('anulacion.subtitulo')}</p>
+    <div className={styles.formulario!}>
+      <header>
+        <h1>{t('etapas:anulacion.titulo')}</h1>
+        <p>{t('etapas:anulacion.subtitulo')}</p>
+      </header>
 
-      <button onClick={() => setDialogoAbierto(true)} className="btn-anular" disabled={cargando}>
-        {t('anulacion.anular')}
-      </button>
-
-      <button onClick={() => navigate(`/servicios/${id}`)} className="btn-cancelar">
-        {t('etapas:cancelar')}
-      </button>
+      {puedeAnular ? (
+        <Card fill>
+          <div className={styles.acciones!}>
+            <SecondaryButton onPress={() => navigate(`/servicios/${servicio.id}`)}>
+              {t('etapas:cancelar')}
+            </SecondaryButton>
+            <PrimaryButton onPress={() => setDialogoAbierto(true)} isDisabled={cargando}>
+              {t('etapas:anulacion.anular')}
+            </PrimaryButton>
+          </div>
+        </Card>
+      ) : (
+        <>
+          <Banner tipo="info">{t('etapas:anulacion.error_permisos')}</Banner>
+          <div className={styles.acciones!}>
+            <SecondaryButton onPress={() => navigate(`/servicios/${servicio.id}`)}>
+              {t('servicios:detalle.volver')}
+            </SecondaryButton>
+          </div>
+        </>
+      )}
 
       <DialogoAnulacion
         abierto={dialogoAbierto}
         cargando={cargando}
-        onConfirmar={handleAnular}
-        onCancelar={() => setDialogoAbierto(false)}
+        error={error}
+        onConfirmar={(motivo) => void anular(motivo)}
+        onCancelar={() => {
+          setError(undefined);
+          setDialogoAbierto(false);
+        }}
       />
     </div>
   );

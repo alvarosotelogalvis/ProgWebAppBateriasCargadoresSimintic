@@ -48,10 +48,17 @@ export async function ejecutarPurgas(
       for (const svc of purgables.servicios) {
         // Re-verificar antes de borrar
         const actual = await db.servicios.get(svc.id);
-        if (actual && actual.syncState === 'synced') {
+        if (actual && actual.syncState === 'synced' && actual.camposSucios.length === 0) {
+          const propios = await db.adjuntos.where('servicioId').equals(svc.id).toArray();
+          // Un adjunto pendiente de subir o de eliminar en SharePoint impide la purga.
+          if (propios.some((adj) => adj.syncState !== 'synced' || adj.eliminarRemoto)) continue;
+          for (const adj of propios) {
+            adjuntosPurgados.push(adj.id);
+            espacioLiberado += (adj.blob ? adj.tamanoBytes : 0) + (adj.miniatura?.size ?? 0);
+          }
+          await db.adjuntos.where('servicioId').equals(svc.id).delete();
           await db.servicios.delete(svc.id);
           serviciosPurgados.push(svc.id);
-          espacioLiberado += 5 * 1024 * 1024; // ~5 MB por servicio
         }
       }
 
@@ -61,12 +68,9 @@ export async function ejecutarPurgas(
         const actual = await db.adjuntos.get(adjunto.id);
         if (actual && actual.blob && actual.syncState === 'synced') {
           // Conservar miniatura, liberar blob
-          await db.adjuntos.update(adjunto.id, {
-            blob: null,
-            tamanoBytes: 0,
-          });
+          await db.adjuntos.update(adjunto.id, { blob: null });
           adjuntosPurgados.push(adjunto.id);
-          espacioLiberado += actual.tamanoBytes || 0;
+          espacioLiberado += actual.tamanoBytes;
         }
       }
 

@@ -1,0 +1,17 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.resumen {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--texto-sm);
+}
+
+.ayuda {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--texto-sm);
+}

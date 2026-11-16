@@ -1,63 +1,70 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Servicio } from '@/domain/servicio';
-import { useRoles } from '@/shared/hooks/useRoles';
+
 import { esFinal } from '@/domain/estados';
-import DialogoAnulacion from './DialogoAnulacion.tsx';
+import type { Rol, Servicio } from '@/domain/servicio';
+import { SecondaryButton } from '@/shared/ui/SecondaryButton';
 import styles from './AccionesServicio.module.css';
+import DialogoAnulacion from './DialogoAnulacion';
 
 export interface AccionesServicioProps {
   servicio: Servicio;
-  onAnular?: (motivo: string) => Promise<void>;
-  onEditar?: () => void;
-  cargando?: boolean;
+  roles: readonly Rol[];
+  onAnular: (motivo: string) => Promise<void>;
+  onEditar: () => void;
 }
 
+/** Acciones de administración del servicio: anular y corregir datos (solo Administrador). */
 export default function AccionesServicio({
   servicio,
+  roles,
   onAnular,
   onEditar,
-  cargando = false,
 }: AccionesServicioProps) {
   const { t } = useTranslation('etapas');
-  const roles = useRoles();
   const [dialogoAbierto, setDialogoAbierto] = useState(false);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState<string>();
 
   const esAdmin = roles.includes('Administrador');
-  const esEstadoFinal = esFinal(servicio.estado);
-  const puedeAnular = esAdmin && !esEstadoFinal && servicio.estado !== 'BORRADOR';
-  const puedeEditar = esAdmin;
+  const noEsBorrador = servicio.estado !== 'BORRADOR';
+  const puedeAnular = esAdmin && noEsBorrador && !esFinal(servicio.estado);
+  const puedeEditar = esAdmin && noEsBorrador;
+  if (!puedeAnular && !puedeEditar) return null;
 
-  const handleAnular = async (motivo: string) => {
-    if (onAnular) {
+  const anular = async (motivo: string): Promise<void> => {
+    setCargando(true);
+    setError(undefined);
+    try {
       await onAnular(motivo);
       setDialogoAbierto(false);
+    } catch {
+      setError(t('anulacion.error'));
+    } finally {
+      setCargando(false);
     }
   };
 
   return (
     <div className={styles['acciones-servicio']}>
-      {puedeAnular && (
-        <button
-          onClick={() => setDialogoAbierto(true)}
-          className={styles['btn-anular']}
-          disabled={cargando}
-        >
+      {puedeEditar ? (
+        <SecondaryButton onPress={onEditar}>{t('anulacion.editar')}</SecondaryButton>
+      ) : null}
+      {puedeAnular ? (
+        <SecondaryButton onPress={() => setDialogoAbierto(true)}>
           {t('anulacion.anular')}
-        </button>
-      )}
-
-      {puedeEditar && esEstadoFinal && (
-        <button onClick={onEditar} className={styles['btn-editar']} disabled={cargando}>
-          {t('anulacion.editar')}
-        </button>
-      )}
+        </SecondaryButton>
+      ) : null}
 
       <DialogoAnulacion
         abierto={dialogoAbierto}
         cargando={cargando}
-        onConfirmar={handleAnular}
-        onCancelar={() => setDialogoAbierto(false)}
+        error={error}
+        onConfirmar={(motivo) => void anular(motivo)}
+        onCancelar={() => {
+          setError(undefined);
+          setDialogoAbierto(false);
+        }}
       />
     </div>
   );

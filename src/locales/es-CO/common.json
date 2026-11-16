@@ -3,6 +3,7 @@
     "nombre": "Servicio Técnico",
     "cargando": "Cargando…",
     "creandoServicio": "Creando servicio…",
+    "crearServicioError": "No se pudo crear el servicio. Detalle:",
     "baseDatosError": "No se pudo abrir la base de datos local. Recarga la aplicación. Detalle:",
     "error": {
       "titulo": "Algo salió mal",

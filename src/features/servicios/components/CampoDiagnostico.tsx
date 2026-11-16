@@ -1,5 +1,6 @@
 import { useContainer } from '@/app/containerContext';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { claveChoice } from '@/application/setup/claves';
+import { useCatalogo } from '@/infrastructure/db/hooks';
 import { useTranslation } from 'react-i18next';
 import styles from './CampoDiagnostico.module.css';
 
@@ -18,13 +19,10 @@ export default function CampoDiagnostico({
   const container = useContainer();
 
   // Obtener catálogo de diagnósticos desde configuración
-  const diagnosticos = useLiveQuery(async () => {
-    const catalogo = await container.db.catalogos.where('id').equals('choices:Diagnostico').first();
+  const diagnosticos =
+    useCatalogo<readonly string[]>(claveChoice('Diagnostico'), container.db) ?? [];
 
-    return catalogo?.valores ?? [];
-  }, [container.db]);
-
-  const valorActualExiste = diagnosticos?.some((d) => d.valor === valor);
+  const valorActualExiste = diagnosticos.includes(valor ?? '');
   const mostrarValorAnterior = !valorActualExiste && valor;
 
   return (
@@ -40,9 +38,9 @@ export default function CampoDiagnostico({
       >
         <option value="">{t('diagnostico.buscar')}</option>
 
-        {diagnosticos?.map((d) => (
-          <option key={d.valor} value={d.valor}>
-            {d.etiqueta}
+        {diagnosticos.map((d) => (
+          <option key={d} value={d}>
+            {d}
           </option>
         ))}
 

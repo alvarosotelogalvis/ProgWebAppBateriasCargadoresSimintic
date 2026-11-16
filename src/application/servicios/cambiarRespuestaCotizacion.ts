@@ -1,46 +1,30 @@
-import type { Servicio, Rol } from '@/domain/servicio';
-import type { AppDatabase } from '@/infrastructure/db/AppDatabase';
+import { NoEncontradoError, SinPermisoError, TransicionInvalidaError } from '@/domain/errores';
+import type { EstadoCotizacion, Rol, Servicio } from '@/domain/servicio';
+import type { DepsServicios } from './deps';
 
-export type CambiarRespuestaCotizacionResultado =
-  | {
-      ok: true;
-      servicio: Servicio;
-    }
-  | {
-      ok: false;
-      error: 'NO_EN_COTIZADO' | 'SIN_PERMISO' | 'NO_ENCONTRADO';
+export const ROLES_RESPUESTA_COTIZACION: readonly Rol[] = ['Comercial', 'Administrador'];
+
+/**
+ * La respuesta del cliente a la cotización se puede cambiar (y corregir) mientras el
+ * servicio siga en COTIZADO, sin pasar por una transición de estado (HU-007-3).
+ */
+export const crearCambiarRespuestaCotizacion =
+  (deps: DepsServicios) =>
+  async (id: string, respuesta: EstadoCotizacion, roles: readonly Rol[]): Promise<Servicio> => {
+    const servicio = await deps.servicios.obtener(id);
+    if (!servicio) throw new NoEncontradoError(id);
+    if (servicio.estado !== 'COTIZADO') throw new TransicionInvalidaError();
+    if (!roles.some((rol) => ROLES_RESPUESTA_COTIZACION.includes(rol))) throw new SinPermisoError();
+    if (servicio.cotizacionEstado === respuesta) return servicio;
+
+    const actualizado: Servicio = {
+      ...servicio,
+      cotizacionEstado: respuesta,
+      actualizadoEn: deps.clock.ahoraIso(),
+      syncState: servicio.syncState === 'conflict' ? 'conflict' : 'pending',
+      camposSucios: [...new Set([...servicio.camposSucios, 'cotizacionEstado' as const])],
     };
-
-export async function cambiarRespuestaCotizacion(
-  servicioId: string,
-  nuevaRespuesta: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA',
-  rolUsuario: Rol,
-  db: AppDatabase
-): Promise<CambiarRespuestaCotizacionResultado> {
-  const servicio = await db.servicios.get(servicioId);
-  if (!servicio) {
-    return { ok: false, error: 'NO_ENCONTRADO' };
-  }
-
-  if (servicio.estado !== 'COTIZADO') {
-    return { ok: false, error: 'NO_EN_COTIZADO' };
-  }
-
-  if (!['Comercial', 'Administrador'].includes(rolUsuario)) {
-    return { ok: false, error: 'SIN_PERMISO' };
-  }
-
-  const actualizado: Servicio = {
-    ...servicio,
-    cotizacionEstado: nuevaRespuesta,
-    actualizadoEn: new Date().toISOString(),
-    syncState: 'pending',
+    await deps.servicios.guardar(actualizado);
+    deps.logger.info('servicio.cotizacion.respuesta', { servicioId: id, respuesta });
+    return actualizado;
   };
-
-  await db.servicios.put(actualizado);
-
-  return {
-    ok: true,
-    servicio: actualizado,
-  };
-}

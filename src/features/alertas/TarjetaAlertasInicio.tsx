@@ -1,6 +1,6 @@
-﻿import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useTranslation } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useContainer } from '@/app/containerContext';
 import { filtrarAlertasActivas, DEFAULT_UMBRALES } from '@/domain/alertas';
 import styles from './TarjetaAlertasInicio.module.css';

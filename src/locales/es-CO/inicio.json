@@ -14,5 +14,15 @@
   },
   "accesos": {
     "sincronizar": "Sincronizar"
+  },
+  "tarjetas": {
+    "titulo": "Mis trabajos",
+    "borradores": "Borradores",
+    "recibidos": "Por diagnosticar",
+    "porOT": "Por orden de trabajo",
+    "porEntregar": "Por entregar",
+    "porCotizar": "Por cotizar",
+    "cotizadosPendientes": "Esperando respuesta",
+    "porFacturar": "Por facturar"
   }
 }

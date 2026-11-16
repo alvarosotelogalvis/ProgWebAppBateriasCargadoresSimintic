@@ -1,13 +1,15 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
   filtrarServicios,
   type FiltrosServicios as Filtros,
 } from '@/application/servicios/buscarServicios';
+import { cumpleTarjeta, tarjetaPorClave } from '@/domain/tarjetasInicio';
 import { FiltrosServicios } from '@/features/servicios/components/FiltrosServicios';
 import { useConsultasServicios } from '@/features/servicios/useConsultasServicios';
+import { Banner } from '@/shared/ui/Banner';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { PillInput } from '@/shared/ui/PillInput';
 import { SyncBadge } from '@/shared/ui/SyncBadge';
@@ -28,8 +30,10 @@ const ESTADOS = [
 ] as const;
 
 export function ListaServiciosPage(): React.JSX.Element {
-  const { t } = useTranslation(['servicios', 'common']);
+  const { t } = useTranslation(['servicios', 'common', 'inicio']);
   const navigate = useNavigate();
+  const [parametros, setParametros] = useSearchParams();
+  const tarjeta = tarjetaPorClave(parametros.get('tarjeta') ?? '');
   const { servicios, hoy } = useConsultasServicios();
   const [texto, setTexto] = useState('');
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
@@ -41,7 +45,10 @@ export function ListaServiciosPage(): React.JSX.Element {
     [filtrosPanel, diferido]
   );
 
-  const visibles = useMemo(() => filtrarServicios(servicios, filtros), [servicios, filtros]);
+  const visibles = useMemo(() => {
+    const filtrados = filtrarServicios(servicios, filtros);
+    return tarjeta ? filtrados.filter((servicio) => cumpleTarjeta(servicio, tarjeta)) : filtrados;
+  }, [servicios, filtros, tarjeta]);
 
   return (
     <div className={styles.pagina!}>
@@ -61,6 +68,19 @@ export function ListaServiciosPage(): React.JSX.Element {
           {t('servicios:filtros')}
         </button>
       </div>
+
+      {tarjeta ? (
+        <Banner
+          tipo="info"
+          accion={
+            <button type="button" onClick={() => setParametros({})}>
+              {t('servicios:lista.quitarFiltro')}
+            </button>
+          }
+        >
+          {t('servicios:lista.filtroTarjeta', { nombre: t(`inicio:tarjetas.${tarjeta.clave}`) })}
+        </Banner>
+      ) : null}
 
       {mostrarFiltros ? (
         <FiltrosServicios

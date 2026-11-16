@@ -1,144 +1,205 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useContainer } from '@/app/containerContext';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
-import { cambiarRespuestaCotizacion } from '@/application/servicios/cambiarRespuestaCotizacion';
-import { useRoles } from '@/shared/hooks/useRoles';
-import CampoMoneda from '../components/CampoMoneda';
-import AdjuntoPdf from '@/features/adjuntos/components/AdjuntoPdf';
+import { useNavigate, useParams } from 'react-router-dom';
 
-export function EtapaCotizacionPage() {
-  const { id } = useParams<{ id: string }>();
+import { useContainer } from '@/app/containerContext';
+import { ROLES_RESPUESTA_COTIZACION } from '@/application/servicios/cambiarRespuestaCotizacion';
+import { CLAVES_CATALOGO } from '@/application/setup/claves';
+import { CONFIG_DEFECTO, type ConfigApp } from '@/domain/config';
+import type { EstadoCotizacion } from '@/domain/servicio';
+import { CampoPdf } from '@/features/adjuntos/components/CampoPdf';
+import { useAdjuntos, useCatalogo, useServicio } from '@/infrastructure/db/hooks';
+import { useSesionStore } from '@/shared/stores/sesionStore';
+import { Banner } from '@/shared/ui/Banner';
+import { Card } from '@/shared/ui/Card';
+import { DateChip } from '@/shared/ui/DateChip';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { SecondaryButton } from '@/shared/ui/SecondaryButton';
+import { SegmentedControl } from '@/shared/ui/SegmentedControl';
+import CampoMoneda from '../components/CampoMoneda';
+import { FaltantesEtapa } from '../components/FaltantesEtapa';
+import { useAutoguardado } from '../hooks/useAutoguardado';
+import { useCompletarEtapa } from '../hooks/useCompletarEtapa';
+import styles from './EtapaPage.module.css';
+
+interface CambiosCotizacion {
+  cotizacionFechaEnvio?: string;
+  cotizacionValor?: number;
+}
+
+const formatoCOP = (valor: number): string =>
+  new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(valor);
+
+/** Cotización (HU-007-3): datos de envío en DIAGNOSTICADO y respuesta del cliente en COTIZADO. */
+export function EtapaCotizacionPage(): React.JSX.Element {
+  const { id = '' } = useParams();
+  const { t } = useTranslation(['etapas', 'servicios']);
   const navigate = useNavigate();
   const container = useContainer();
-  const roles = useRoles();
-  const { t } = useTranslation(['etapas', 'servicios']);
+  const servicio = useServicio(id);
+  const adjuntos = useAdjuntos(id);
+  const roles = useSesionStore((estado) => estado.roles);
+  const configGuardada = useCatalogo<Partial<ConfigApp>>(CLAVES_CATALOGO.config, container.db);
+  const config: ConfigApp = { ...CONFIG_DEFECTO, ...configGuardada };
 
-  const [cambios, setCambios] = useState<Record<string, unknown>>({});
+  const [cambios, setCambios] = useState<CambiosCotizacion>({});
+  const [errorRespuesta, setErrorRespuesta] = useState(false);
+  const { completar, completando, faltantes, errorGeneral } = useCompletarEtapa({
+    servicioId: id,
+    roles,
+  });
+  const {
+    estado: estadoGuardado,
+    programar,
+    cancelar,
+  } = useAutoguardado((parciales: CambiosCotizacion) =>
+    container.casosDeUso.actualizarCampos(id, parciales, roles)
+  );
 
-  const servicio = useLiveQuery(async () => {
-    if (!id) return undefined;
-    return container.db.servicios.get(id);
-  }, [id, container.db]);
+  if (!servicio) return <p role="status">{t('servicios:detalle.noEncontrado')}</p>;
 
-  const adjuntos = useLiveQuery(async () => {
-    if (!servicio) return [];
-    return container.db.adjuntos
-      .where('servicioId')
-      .equals(servicio.id)
-      .filter((a) => a.tipo === 'COTIZACION')
-      .toArray();
-  }, [servicio, container.db]);
+  const hoy = new Date().toLocaleDateString('en-CA');
+  const editando = servicio.estado === 'DIAGNOSTICADO';
+  const fecha = cambios.cotizacionFechaEnvio ?? servicio.cotizacionFechaEnvio ?? hoy;
+  const valor = cambios.cotizacionValor ?? servicio.cotizacionValor ?? 0;
+  const respuesta = servicio.cotizacionEstado ?? 'PENDIENTE';
+  const puedeResponder =
+    servicio.estado === 'COTIZADO' && roles.some((rol) => ROLES_RESPUESTA_COTIZACION.includes(rol));
+  const adjuntosCotizacion = adjuntos.filter((adjunto) => adjunto.tipo === 'COTIZACION');
 
-  if (!servicio) return <div>{t('servicios:cargando')}</div>;
-
-  const fechaEnvio = (cambios.cotizacionFechaEnvio as string) ?? servicio.cotizacionFechaEnvio;
-  const valor = (cambios.cotizacionValor as number) ?? servicio.cotizacionValor ?? 0;
-  const estadoActual =
-    (cambios.cotizacionEstado as string) ?? servicio.cotizacionEstado ?? 'PENDIENTE';
-
-  const puedeCambiarRespuesta =
-    servicio.estado === 'COTIZADO' && ['Comercial', 'Administrador'].includes(roles[0] ?? '');
-
-  const handleRegistrarCotizacion = async () => {
-    navigate(`/servicios/${id}`);
+  const actualizar = (parciales: CambiosCotizacion): void => {
+    const siguientes = { ...cambios, ...parciales };
+    setCambios(siguientes);
+    programar(siguientes);
   };
 
-  const handleCambiarRespuesta = async (nuevaRespuesta: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA') => {
-    const resultado = await cambiarRespuestaCotizacion(
-      servicio.id,
-      nuevaRespuesta,
-      roles[0] ?? 'Tecnico',
-      container.db
-    );
-    if (resultado.ok) {
-      setCambios({ ...cambios, cotizacionEstado: resultado.servicio.cotizacionEstado });
+  const cambiarRespuesta = async (nueva: string): Promise<void> => {
+    setErrorRespuesta(false);
+    try {
+      await container.casosDeUso.cambiarRespuestaCotizacion(
+        servicio.id,
+        nueva as EstadoCotizacion,
+        roles
+      );
+    } catch {
+      setErrorRespuesta(true);
     }
   };
 
+  const textoGuardado =
+    estadoGuardado === 'guardando'
+      ? t('etapas:guardando')
+      : estadoGuardado === 'guardado'
+        ? t('etapas:guardado')
+        : '';
+
   return (
-    <div className="etapa-cotizacion">
-      <h2>{t('cotizacion.titulo')}</h2>
-      <p className="subtitulo">{t('cotizacion.subtitulo')}</p>
+    <form
+      className={styles.formulario!}
+      onSubmit={(evento) => {
+        evento.preventDefault();
+        if (!editando) return;
+        cancelar();
+        void completar('registrarCotizacion', {
+          cotizacionFechaEnvio: fecha,
+          cotizacionValor: valor,
+        });
+      }}
+    >
+      <header>
+        <h1>{t('etapas:cotizacion.titulo')}</h1>
+        <p>{t('etapas:cotizacion.subtitulo')}</p>
+      </header>
 
-      <div className="form">
-        <div className="campo-fecha">
-          <label htmlFor="fecha-envio">{t('cotizacion.fechaEnvio')}</label>
-          <input
-            id="fecha-envio"
-            type="date"
-            value={fechaEnvio || ''}
-            onChange={(e) => setCambios({ ...cambios, cotizacionFechaEnvio: e.target.value })}
-          />
-          <small>{t('cotizacion.fechaEnvioAyuda')}</small>
-        </div>
-
-        <CampoMoneda
-          label={t('cotizacion.valor')}
-          valor={valor}
-          onChange={(v) => setCambios({ ...cambios, cotizacionValor: v })}
-          requerido={false}
-          helpText={t('cotizacion.valorAyuda')}
-        />
-
-        <div className="seccion-pdf">
-          <label>{t('cotizacion.cotizacionPdf')}</label>
-          <small>{t('cotizacion.cotizacionPdfAyuda')}</small>
-
-          {adjuntos && adjuntos.length > 0 ? (
-            adjuntos.map((adj) => (
-              <AdjuntoPdf key={adj.id} adjunto={adj} onDelete={() => {}} onReplace={() => {}} />
-            ))
+      <Card fill>
+        <div className={styles.campos!}>
+          {editando ? (
+            <>
+              <DateChip
+                id="fecha-envio"
+                etiqueta={t('etapas:cotizacion.fechaEnvio')}
+                valor={fecha}
+                max={hoy}
+                onCambio={(valorFecha) => actualizar({ cotizacionFechaEnvio: valorFecha })}
+              />
+              <small>{t('etapas:cotizacion.fechaEnvioAyuda')}</small>
+              <CampoMoneda
+                label={t('etapas:cotizacion.valor')}
+                valor={valor}
+                onChange={(monto) => actualizar({ cotizacionValor: monto })}
+                helpText={t('etapas:cotizacion.valorAyuda')}
+              />
+            </>
           ) : (
-            <button className="btn-adjuntar" type="button">
-              {t('cotizacion.adjuntar')}
-            </button>
+            <dl>
+              <dt>{t('etapas:cotizacion.fechaEnvio')}</dt>
+              <dd>{servicio.cotizacionFechaEnvio ?? '—'}</dd>
+              <dt>{t('etapas:cotizacion.valor')}</dt>
+              <dd>{formatoCOP(servicio.cotizacionValor ?? 0)}</dd>
+            </dl>
           )}
+
+          <CampoPdf
+            tipo="COTIZACION"
+            etiqueta={t('etapas:cotizacion.cotizacionPdf')}
+            ayuda={t('etapas:cotizacion.cotizacionPdfAyuda')}
+            textoAdjuntar={t('etapas:cotizacion.adjuntar')}
+            adjuntos={adjuntosCotizacion}
+            maxMB={config.maxTamanoPdfMB}
+            soloLectura={!editando}
+            onAgregar={(archivo, tipo) =>
+              container.casosAdjuntos.agregarPdf(servicio.id, archivo, tipo)
+            }
+            onEliminar={(adjuntoId) => container.casosAdjuntos.eliminarAdjunto(adjuntoId)}
+          />
         </div>
+      </Card>
 
-        {servicio.estado === 'COTIZADO' && (
-          <div className="selector-respuesta">
-            <label>{t('cotizacion.respuesta')}</label>
-
-            <div className="botones-respuesta">
-              <button
-                type="button"
-                onClick={() => handleCambiarRespuesta('PENDIENTE')}
-                className={`btn-respuesta ${estadoActual === 'PENDIENTE' ? 'activo' : ''}`}
-                disabled={!puedeCambiarRespuesta}
-              >
-                {t('cotizacion.respuestaPendiente')}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleCambiarRespuesta('APROBADA')}
-                className={`btn-respuesta ${estadoActual === 'APROBADA' ? 'activo' : ''}`}
-                disabled={!puedeCambiarRespuesta}
-              >
-                {t('cotizacion.respuestaAprobada')}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleCambiarRespuesta('RECHAZADA')}
-                className={`btn-respuesta ${estadoActual === 'RECHAZADA' ? 'activo' : ''}`}
-                disabled={!puedeCambiarRespuesta}
-              >
-                {t('cotizacion.respuestaRechazada')}
-              </button>
-            </div>
+      {!editando ? (
+        <Card fill>
+          <div className={styles.campos!}>
+            <span>{t('etapas:cotizacion.respuesta')}</span>
+            <SegmentedControl
+              aria-label={t('etapas:cotizacion.respuesta')}
+              isDisabled={!puedeResponder}
+              selectedKey={respuesta}
+              onChange={(nueva) => void cambiarRespuesta(nueva)}
+              items={[
+                { id: 'PENDIENTE', etiqueta: t('etapas:cotizacion.respuestaPendiente') },
+                { id: 'APROBADA', etiqueta: t('etapas:cotizacion.respuestaAprobada') },
+                { id: 'RECHAZADA', etiqueta: t('etapas:cotizacion.respuestaRechazada') },
+              ]}
+            />
+            {errorRespuesta ? (
+              <Banner tipo="peligro">{t('etapas:errores.ESTADO')}</Banner>
+            ) : (
+              <small>{t('etapas:cotizacion.respuestaAyuda')}</small>
+            )}
           </div>
-        )}
+        </Card>
+      ) : null}
 
-        <div className="acciones">
-          <button onClick={handleRegistrarCotizacion} className="btn-completar">
-            {t('cotizacion.completar')}
-          </button>
-          <button onClick={() => navigate(`/servicios/${id}`)} className="btn-cancelar">
-            {t('etapas:cancelar')}
-          </button>
+      <FaltantesEtapa faltantes={faltantes} error={errorGeneral} />
+
+      <div className={styles.pie!}>
+        <span className={styles.estado!} role="status">
+          {textoGuardado}
+        </span>
+        <div className={styles.acciones!}>
+          <SecondaryButton onPress={() => navigate(`/servicios/${servicio.id}`)}>
+            {editando ? t('etapas:cancelar') : t('servicios:detalle.volver')}
+          </SecondaryButton>
+          {editando ? (
+            <PrimaryButton type="submit" isDisabled={completando}>
+              {t('etapas:cotizacion.completar')}
+            </PrimaryButton>
+          ) : null}
         </div>
       </div>
-    </div>
+    </form>
   );
 }

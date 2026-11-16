@@ -1,7 +1,5 @@
 import type { ErrorValidacion } from './errores';
 
-export const fechaLocalHoy = (): string => new Date().toISOString().split('T')[0];
-
 export function validacionesCruzadasFechas(
   campos: {
     fechaRecepcion?: string;

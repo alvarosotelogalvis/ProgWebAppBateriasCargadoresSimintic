@@ -1,142 +1,217 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useContainer } from '@/app/containerContext';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
-import CampoDiagnostico from '../components/CampoDiagnostico';
-import AdjuntoPdf from '@/features/adjuntos/components/AdjuntoPdf';
+import { useNavigate, useParams } from 'react-router-dom';
 
-export function EtapaDiagnosticoPage() {
-  const { id } = useParams<{ id: string }>();
+import { useContainer } from '@/app/containerContext';
+import { CLAVES_CATALOGO } from '@/application/setup/claves';
+import { CONFIG_DEFECTO, type ConfigApp } from '@/domain/config';
+import type { CamposServicio } from '@/domain/servicio';
+import { CampoPdf } from '@/features/adjuntos/components/CampoPdf';
+import { useAdjuntos, useCatalogo, useServicio } from '@/infrastructure/db/hooks';
+import { useSesionStore } from '@/shared/stores/sesionStore';
+import { Banner } from '@/shared/ui/Banner';
+import { Card } from '@/shared/ui/Card';
+import { DateChip } from '@/shared/ui/DateChip';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
+import { SecondaryButton } from '@/shared/ui/SecondaryButton';
+import { TextField } from '@/shared/ui/TextField';
+import CampoDiagnostico from '../components/CampoDiagnostico';
+import { FaltantesEtapa } from '../components/FaltantesEtapa';
+import { useCompletarEtapa } from '../hooks/useCompletarEtapa';
+import { useAutoguardado } from '../hooks/useAutoguardado';
+import styles from './EtapaPage.module.css';
+
+type CambiosDiagnostico = Partial<
+  Pick<CamposServicio, 'diagnostico' | 'observacionTecnica' | 'fechaSocializacionDF'>
+>;
+
+/** Diagnóstico (HU-007-1) y su rama Disposición Final (HU-007-2). */
+export function EtapaDiagnosticoPage(): React.JSX.Element {
+  const { id = '' } = useParams();
+  const { t } = useTranslation(['etapas', 'servicios']);
   const navigate = useNavigate();
   const container = useContainer();
-  const { t } = useTranslation(['etapas', 'servicios']);
+  const servicio = useServicio(id);
+  const adjuntos = useAdjuntos(id);
+  const roles = useSesionStore((estado) => estado.roles);
+  const configGuardada = useCatalogo<Partial<ConfigApp>>(CLAVES_CATALOGO.config, container.db);
+  const config: ConfigApp = { ...CONFIG_DEFECTO, ...configGuardada };
 
-  const [cambios, setCambios] = useState<Record<string, unknown>>({});
+  const [cambios, setCambios] = useState<CambiosDiagnostico>({});
+  const [confirmando, setConfirmando] = useState(false);
+  const {
+    completar: completarEtapa,
+    completando,
+    faltantes,
+    errorGeneral,
+  } = useCompletarEtapa({
+    servicioId: id,
+    roles,
+    etiquetaAdjunto: (tipo) =>
+      tipo === 'FORMATO_DIAGNOSTICO'
+        ? t('etapas:diagnostico.faltante_pdf')
+        : tipo === 'DISPOSICION_FINAL'
+          ? t('etapas:disposicionFinal.faltante_pdf')
+          : undefined,
+  });
 
-  const servicio = useLiveQuery(async () => {
-    if (!id) return undefined;
-    return container.db.servicios.get(id);
-  }, [id, container.db]);
+  const {
+    estado: estadoGuardado,
+    programar,
+    cancelar,
+  } = useAutoguardado((parciales: CambiosDiagnostico) =>
+    container.casosDeUso.actualizarCampos(id, parciales, roles)
+  );
 
-  const config = useLiveQuery(async () => {
-    return container.db.catalogos.where('id').equals('config').first();
-  }, [container.db]);
+  if (!servicio) return <p role="status">{t('servicios:detalle.noEncontrado')}</p>;
 
-  const adjuntos = useLiveQuery(async () => {
-    if (!servicio) return [];
-    return container.db.adjuntos
-      .where('servicioId')
-      .equals(servicio.id)
-      .filter((a) => ['FORMATO_DIAGNOSTICO', 'DISPOSICION_FINAL'].includes(a.tipo))
-      .toArray();
-  }, [servicio, container.db]);
-
-  if (!servicio) return <div>{t('servicios:cargando')}</div>;
-
-  const diagnosticoActual = (cambios.diagnostico as string) ?? servicio.diagnostico;
+  const diagnostico = cambios.diagnostico ?? servicio.diagnostico ?? '';
+  const observacion = cambios.observacionTecnica ?? servicio.observacionTecnica ?? '';
+  const fechaSocializacion = cambios.fechaSocializacionDF ?? servicio.fechaSocializacionDF ?? '';
   const esDisposicionFinal =
-    diagnosticoActual === (config?.DiagnosticoValorDisposicionFinal as string);
+    diagnostico !== '' && diagnostico === config.diagnosticoValorDisposicionFinal;
+  const hoy = new Date().toLocaleDateString('en-CA');
 
-  const handleCompletarDiagnostico = async () => {
-    navigate(`/servicios/${id}`);
+  const actualizar = (parciales: CambiosDiagnostico): void => {
+    const siguientes = { ...cambios, ...parciales };
+    setCambios(siguientes);
+    programar(siguientes);
   };
 
+  const completar = async (): Promise<void> => {
+    setConfirmando(false);
+    cancelar();
+    const parciales: CambiosDiagnostico = { ...cambios };
+    if (!esDisposicionFinal) delete parciales.fechaSocializacionDF;
+    await completarEtapa(
+      esDisposicionFinal ? 'registrarDisposicionFinal' : 'completarDiagnostico',
+      parciales
+    );
+  };
+
+  const adjuntosPdf = adjuntos.filter(
+    (adjunto) => adjunto.tipo === 'FORMATO_DIAGNOSTICO' || adjunto.tipo === 'DISPOSICION_FINAL'
+  );
+  const textoGuardado =
+    estadoGuardado === 'guardando'
+      ? t('etapas:guardando')
+      : estadoGuardado === 'guardado'
+        ? t('etapas:guardado')
+        : '';
+
   return (
-    <div className="etapa-diagnostico">
-      <h2>{t('diagnostico.titulo')}</h2>
-      <p className="subtitulo">{t('diagnostico.subtitulo')}</p>
+    <form
+      className={styles.formulario!}
+      onSubmit={(evento) => {
+        evento.preventDefault();
+        if (esDisposicionFinal) setConfirmando(true);
+        else void completar();
+      }}
+    >
+      <header>
+        <h1>
+          {esDisposicionFinal
+            ? t('etapas:disposicionFinal.titulo')
+            : t('etapas:diagnostico.titulo')}
+        </h1>
+        <p>
+          {esDisposicionFinal
+            ? t('etapas:disposicionFinal.subtitulo')
+            : t('etapas:diagnostico.subtitulo')}
+        </p>
+      </header>
 
-      <div className="form">
-        <CampoDiagnostico
-          valor={diagnosticoActual}
-          onChange={(valor) => setCambios({ ...cambios, diagnostico: valor })}
-          disabled={false}
-        />
-
-        <div className="campo-observacion">
-          <label htmlFor="observacion">{t('diagnostico.observacion')}</label>
-          <textarea
-            id="observacion"
-            value={((cambios.observacionTecnica as string) ?? servicio.observacionTecnica) || ''}
-            onChange={(e) => setCambios({ ...cambios, observacionTecnica: e.target.value })}
-            placeholder={t('diagnostico.observacionAyuda')}
-            rows={4}
+      <Card fill>
+        <div className={styles.campos!}>
+          <CampoDiagnostico
+            valor={diagnostico}
+            onChange={(valor) => actualizar({ diagnostico: valor })}
           />
-          <small>{t('diagnostico.observacionAyuda')}</small>
+          <TextField
+            id="observacion"
+            etiqueta={t('etapas:diagnostico.observacion')}
+            ayuda={t('etapas:diagnostico.observacionAyuda')}
+            multilinea
+            value={observacion}
+            onChange={(texto) => actualizar({ observacionTecnica: texto })}
+          />
+          <CampoPdf
+            tipo="FORMATO_DIAGNOSTICO"
+            etiqueta={t('etapas:diagnostico.formatoPdf')}
+            ayuda={t('etapas:diagnostico.formatoPdfAyuda')}
+            textoAdjuntar={t('etapas:diagnostico.adjuntar')}
+            adjuntos={adjuntosPdf}
+            maxMB={config.maxTamanoPdfMB}
+            onAgregar={(archivo, tipo) =>
+              container.casosAdjuntos.agregarPdf(servicio.id, archivo, tipo)
+            }
+            onEliminar={(adjuntoId) => container.casosAdjuntos.eliminarAdjunto(adjuntoId)}
+          />
         </div>
+      </Card>
 
-        {!esDisposicionFinal && (
-          <div className="seccion-pdf">
-            <label>{t('diagnostico.formatoPdf')}</label>
-            <small>{t('diagnostico.formatoPdfAyuda')}</small>
-
-            {adjuntos?.filter((a) => a.tipo === 'FORMATO_DIAGNOSTICO').length > 0 ? (
-              adjuntos
-                ?.filter((a) => a.tipo === 'FORMATO_DIAGNOSTICO')
-                .map((adj) => (
-                  <AdjuntoPdf key={adj.id} adjunto={adj} onDelete={() => {}} onReplace={() => {}} />
-                ))
-            ) : (
-              <button className="btn-adjuntar" type="button">
-                {t('diagnostico.adjuntar')}
-              </button>
-            )}
+      {esDisposicionFinal ? (
+        <Card fill>
+          <div className={styles.campos!}>
+            <Banner tipo="advertencia">{t('etapas:disposicionFinal.aviso')}</Banner>
+            <DateChip
+              id="fecha-socializacion"
+              etiqueta={t('etapas:disposicionFinal.fechaSocializacion')}
+              valor={fechaSocializacion}
+              max={hoy}
+              onCambio={(valor) => actualizar({ fechaSocializacionDF: valor })}
+            />
+            <small>{t('etapas:disposicionFinal.fechaSocializacionAyuda')}</small>
+            <CampoPdf
+              tipo="DISPOSICION_FINAL"
+              etiqueta={t('etapas:disposicionFinal.disposicionPdf')}
+              ayuda={t('etapas:disposicionFinal.disposicionPdfAyuda')}
+              textoAdjuntar={t('etapas:diagnostico.adjuntar')}
+              adjuntos={adjuntosPdf}
+              maxMB={config.maxTamanoPdfMB}
+              onAgregar={(archivo, tipo) =>
+                container.casosAdjuntos.agregarPdf(servicio.id, archivo, tipo)
+              }
+              onEliminar={(adjuntoId) => container.casosAdjuntos.eliminarAdjunto(adjuntoId)}
+            />
           </div>
-        )}
+        </Card>
+      ) : null}
 
-        {esDisposicionFinal && (
-          <div className="rama-df">
-            <div className="banner">{t('disposicionFinal.aviso')}</div>
+      <FaltantesEtapa faltantes={faltantes} error={errorGeneral} />
 
-            <div className="campo-fecha">
-              <label htmlFor="fecha-socializacion">
-                {t('disposicionFinal.fechaSocializacion')}
-              </label>
-              <input
-                id="fecha-socializacion"
-                type="date"
-                value={
-                  ((cambios.fechaSocializacionDF as string) ?? servicio.fechaSocializacionDF) || ''
-                }
-                onChange={(e) => setCambios({ ...cambios, fechaSocializacionDF: e.target.value })}
-              />
-              <small>{t('disposicionFinal.fechaSocializacionAyuda')}</small>
-            </div>
-
-            <div className="seccion-pdf">
-              <label>{t('disposicionFinal.disposicionPdf')}</label>
-              <small>{t('disposicionFinal.disposicionPdfAyuda')}</small>
-
-              {adjuntos?.filter((a) => a.tipo === 'DISPOSICION_FINAL').length > 0 ? (
-                adjuntos
-                  ?.filter((a) => a.tipo === 'DISPOSICION_FINAL')
-                  .map((adj) => (
-                    <AdjuntoPdf
-                      key={adj.id}
-                      adjunto={adj}
-                      onDelete={() => {}}
-                      onReplace={() => {}}
-                    />
-                  ))
-              ) : (
-                <button className="btn-adjuntar" type="button">
-                  {t('diagnostico.adjuntar')}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="acciones">
-          <button onClick={handleCompletarDiagnostico} className="btn-completar">
-            {esDisposicionFinal ? t('disposicionFinal.completar') : t('diagnostico.completar')}
-          </button>
-          <button onClick={() => navigate(`/servicios/${id}`)} className="btn-cancelar">
+      <div className={styles.pie!}>
+        <span className={styles.estado!} role="status">
+          {textoGuardado}
+        </span>
+        <div className={styles.acciones!}>
+          <SecondaryButton onPress={() => navigate(`/servicios/${servicio.id}`)}>
             {t('etapas:cancelar')}
-          </button>
+          </SecondaryButton>
+          <PrimaryButton type="submit" isDisabled={completando}>
+            {esDisposicionFinal
+              ? t('etapas:disposicionFinal.completar')
+              : t('etapas:diagnostico.completar')}
+          </PrimaryButton>
         </div>
       </div>
-    </div>
+
+      <ResponsiveDialog
+        titulo={t('etapas:disposicionFinal.confirmarTitulo')}
+        abierto={confirmando}
+        onCerrar={() => setConfirmando(false)}
+      >
+        <p>{t('etapas:disposicionFinal.confirmarTexto')}</p>
+        <div className={styles.acciones!}>
+          <SecondaryButton onPress={() => setConfirmando(false)}>
+            {t('etapas:cancelar')}
+          </SecondaryButton>
+          <PrimaryButton onPress={() => void completar()}>
+            {t('etapas:disposicionFinal.confirmar')}
+          </PrimaryButton>
+        </div>
+      </ResponsiveDialog>
+    </form>
   );
 }

@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LiberarEspacioDialog } from './LiberarEspacioDialog';
-import * as purgasModule from '@/application/purgas/ejecutarPurgas';
+import * as purgasModule from '@/application/sync/purgas';
+import type { AppDB } from '@/infrastructure/db/dexie';
 
-vi.mock('@/application/purgas/ejecutarPurgas');
+vi.mock('@/application/sync/purgas');
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const map: Record<string, string> = {
-        'tecnico:tecnico.liberar_espacio': 'Liberar espacio',
+        'tecnico:liberar_espacio': 'Liberar espacio',
         'tecnico:respaldo.liberado': 'Espacio liberado',
         'tecnico:respaldo.limpiarAdvertencia': 'Se eliminarán datos...',
         'tecnico:respaldo.serviciosPurgados': 'Servicios purgados',
@@ -23,7 +24,7 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-const mockDb = {} as unknown as Record<string, unknown>;
+const mockDb = {} as unknown as AppDB;
 
 describe('LiberarEspacioDialog', () => {
   beforeEach(() => {
@@ -50,7 +51,7 @@ describe('LiberarEspacioDialog', () => {
       <LiberarEspacioDialog abierto={true} db={mockDb} onCerrar={vi.fn()} onPurgado={onPurgado} />
     );
 
-    const btn = screen.getByText('Liberar espacio');
+    const btn = screen.getByRole('button', { name: 'Liberar espacio' });
     fireEvent.click(btn);
 
     await waitFor(() => {
@@ -70,7 +71,7 @@ describe('LiberarEspacioDialog', () => {
 
     render(<LiberarEspacioDialog abierto={true} db={mockDb} onCerrar={vi.fn()} />);
 
-    fireEvent.click(screen.getByText('Liberar espacio'));
+    fireEvent.click(screen.getByRole('button', { name: 'Liberar espacio' }));
 
     await waitFor(() => {
       expect(screen.getByText('Servicios purgados: 3')).toBeInTheDocument();
@@ -83,10 +84,10 @@ describe('LiberarEspacioDialog', () => {
 
     render(<LiberarEspacioDialog abierto={true} db={mockDb} onCerrar={vi.fn()} />);
 
-    fireEvent.click(screen.getByText('Liberar espacio'));
+    fireEvent.click(screen.getByRole('button', { name: 'Liberar espacio' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Error')).toBeInTheDocument();
+      expect(screen.getByText('Purga fallida')).toBeInTheDocument();
     });
   });
 });

@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import type { AppDB } from '@/infrastructure/db/dexie';
-import type { Servicio, Adjunto } from '@/domain/servicio';
+import type { Adjunto } from '@/domain/adjunto';
+import type { Servicio } from '@/domain/servicio';
 import { ejecutarPurgas } from './purgas';
 
 describe('HU-009-2: Limpieza segura del espacio', () => {
@@ -27,8 +28,8 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       actualizadoEn: hace120Dias.toISOString(),
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
-      ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+      camposSucios: [],
+    } as unknown as Servicio;
 
     const adjunto: Adjunto = {
       id: 'adj-1',
@@ -74,8 +75,8 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       actualizadoEn: hace120Dias.toISOString(),
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
-      ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+      camposSucios: [],
+    } as unknown as Servicio;
 
     const servicioError: Servicio = {
       id: 'srv-error',
@@ -89,8 +90,8 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       actualizadoEn: hace120Dias.toISOString(),
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
-      ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+      camposSucios: [],
+    } as unknown as Servicio;
 
     await db.servicios.add(servicioPending);
     await db.servicios.add(servicioError);
@@ -108,7 +109,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       id: 'srv-purga-blob',
       codigo: 'BAT-001-SN123',
       tipoEquipo: 'BATERIA',
-      estado: 'FACTURADO',
+      estado: 'DIAGNOSTICADO',
       syncState: 'synced',
       capturadoPor: 'user@example.com',
       capturadoPorNombre: 'Usuario',
@@ -116,8 +117,8 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       actualizadoEn: hace120Dias.toISOString(),
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
-      ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+      camposSucios: [],
+    } as unknown as Servicio;
 
     const adjunto: Adjunto = {
       id: 'adj-blob-test',
@@ -161,8 +162,8 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       actualizadoEn: hace120Dias.toISOString(),
       dispositivoId: 'device-1',
       appVersion: '1.0.0',
-      ultimaSincronizacion: hace120Dias.toISOString(),
-    } as Servicio;
+      camposSucios: [],
+    } as unknown as Servicio;
 
     await db.servicios.add(servicio);
 
@@ -177,5 +178,42 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
     // Verificar que el servicio sigue en la BD
     const servicio2 = await db.servicios.get('srv-race');
     expect(servicio2).toBeDefined();
+  });
+
+  it('un cerrado reciente se conserva y uno con adjunto pendiente nunca se purga', async () => {
+    const hace120Dias = new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString();
+    const base = {
+      codigo: 'BAT-1-X',
+      tipoEquipo: 'BATERIA',
+      estado: 'FACTURADO',
+      syncState: 'synced',
+      camposSucios: [],
+      creadoEn: hace120Dias,
+    };
+    await db.servicios.bulkAdd([
+      { ...base, id: 'reciente', actualizadoEn: new Date().toISOString() },
+      { ...base, id: 'con-pendiente', actualizadoEn: hace120Dias },
+    ] as unknown as Servicio[]);
+    await db.adjuntos.add({
+      id: 'adj-pendiente',
+      servicioId: 'con-pendiente',
+      tipo: 'FACTURA',
+      nombreArchivo: 'f.pdf',
+      mime: 'application/pdf',
+      tamanoBytes: 10,
+      sha256: 'x',
+      capturadoEn: hace120Dias,
+      capturadoPor: 'u',
+      blob: new Blob(['x']),
+      miniatura: null,
+      syncState: 'pending',
+      eliminarRemoto: false,
+    } as Adjunto);
+
+    const resultado = await ejecutarPurgas(db, 7, 3);
+
+    expect(resultado.serviciosPurgados).toEqual([]);
+    expect(await db.servicios.count()).toBe(2);
+    expect(await db.adjuntos.count()).toBe(1);
   });
 });

@@ -22,13 +22,49 @@
         "Los datos se enviarán a SharePoint de forma segura."
       ]
     },
+    "etapas-servicio": {
+      "titulo": "Etapas de un servicio y quién las hace",
+      "cuerpo": "Cada servicio avanza por etapas. En su detalle verás el botón de la etapa que te corresponde según tu rol; si le toca a otro rol, la línea de tiempo indica «Pendiente de…».",
+      "pasos": [
+        "Recepción (Técnico): registra cliente, equipo y al menos una foto de ingreso. Al completarla el servicio pasa a Recibido.",
+        "Diagnóstico (Técnico): elige el diagnóstico, escribe la observación y adjunta el PDF del formato. El servicio pasa a Diagnosticado.",
+        "Disposición final (Técnico): si el diagnóstico es «D. FINAL», indica la fecha en que se informó al cliente y adjunta el PDF de disposición final. El servicio se cierra sin más etapas.",
+        "Cotización (Comercial): registra la fecha de envío, el valor y, si lo tienes, el PDF. El servicio pasa a Cotizado.",
+        "Respuesta del cliente (Comercial): marca Aprobada o Rechazada. Puedes cambiarla mientras el servicio siga en Cotizado.",
+        "Orden de trabajo (Técnico): solo con la cotización aprobada. Describe la reparación y su costo; el servicio pasa a En reparación.",
+        "Entrega (Técnico): indica la fecha, adjunta al menos una foto de salida y la proyección de vida útil. Si el cliente rechazó la cotización la entrega es sin reparación y la vida útil es opcional.",
+        "Facturación (Comercial): indica la fecha, adjunta el PDF de la factura y, si quieres, su número. El servicio queda Facturado.",
+        "En Inicio, «Mis trabajos» muestra cuántos servicios esperan tu acción; tócalo para ver la lista filtrada."
+      ]
+    },
+    "adjuntar-pdf": {
+      "titulo": "Adjuntar un PDF",
+      "cuerpo": "Los PDF se validan por su contenido, no solo por la extensión. Cada etapa admite un único PDF de su tipo.",
+      "pasos": [
+        "Pulsa «Adjuntar PDF» y elige el archivo.",
+        "Si el archivo no es un PDF válido o supera el tamaño máximo (20 MB por defecto), la app lo rechaza y te explica el motivo.",
+        "Para cambiarlo usa «Reemplazar PDF»: el anterior se sustituye.",
+        "«Eliminar PDF» pide confirmación. Un PDF que ya estaba sincronizado se borra de SharePoint en la siguiente sincronización.",
+        "Sin conexión puedes adjuntar con normalidad; los archivos se suben al sincronizar."
+      ]
+    },
+    "corregir-anular": {
+      "titulo": "Corregir o anular un servicio (administradores)",
+      "cuerpo": "Solo los administradores ven estas opciones en el detalle del servicio.",
+      "pasos": [
+        "«Editar datos» abre las etapas ya registradas para corregir un dato. El estado no cambia y la corrección queda pendiente de sincronizar.",
+        "La app rechaza las fechas incoherentes, por ejemplo una entrega anterior a la recepción.",
+        "«Anular servicio» pide un motivo de al menos 10 caracteres y una confirmación. Un servicio anulado queda en solo lectura y no se puede reabrir.",
+        "Los servicios Facturados, en Disposición final o Anulados ya están cerrados: se pueden corregir, pero no anular ni reabrir."
+      ]
+    },
     "preguntas-frecuentes": {
       "titulo": "Preguntas frecuentes",
       "cuerpo": "Respuestas a las dudas más comunes sobre el funcionamiento de la app.",
       "pasos": [
         "¿La app borra mis datos? No. Los datos se guardan en el dispositivo y solo se purgan de forma segura después de confirmar que ya están en SharePoint.",
         "¿Necesito internet para todo? No. Solo para sincronizar y configuración inicial. Captura de fotos, consulta de servicios y registro funcionan completamente sin conexión.",
-        "¿Qué pasa si cambio de celular? Exporta un respaldo en el menú Técnico (comprimido como ZIP) e importalo en el nuevo dispositivo. Todos tus datos se restaurarán.",
+        "¿Qué pasa si cambio de celular? Sincroniza antes de cambiar de dispositivo: lo sincronizado queda en SharePoint y se vuelve a descargar al iniciar sesión en el nuevo celular. Si no alcanzas a sincronizar, un administrador puede exportar un respaldo desde el menú Técnico (un ZIP con los servicios completos y sus fotos y PDF) e importarlo en el otro dispositivo; los servicios que ya existan allí no se sobrescriben.",
         "¿Cuánto espacio ocupan las fotos? La app optimiza automáticamente: JPEG a 1920px con calidad 0.75. Puedes liberar espacio en Técnico > Liberar espacio.",
         "¿Por qué un servicio tiene estado 'Error'? Verifica conexión y que completaste todos los campos requeridos. Intenta sincronizar nuevamente desde el menú de Sincronización.",
         "¿Es seguro sincronizar con internet móvil? Sí. La app solo sincroniza después de tu confirmación explícita y usa conexión segura con SharePoint."

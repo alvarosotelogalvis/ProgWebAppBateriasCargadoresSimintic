@@ -19,10 +19,3 @@ describe('T008: esFirmaPdf', () => {
     expect(esFirmaPdf(notPdf)).toBe(false);
   });
 });
-
-describe('T008: tarjetasPorRol', () => {
-  it('debe retornar tarjetas según rol', () => {
-    // stub: completar cuando se implemente
-    expect(true).toBe(true);
-  });
-});

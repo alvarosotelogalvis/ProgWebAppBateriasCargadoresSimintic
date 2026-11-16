@@ -1,0 +1,25 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.etiqueta {
+  font-weight: var(--peso-medio);
+  color: var(--text-primary);
+}
+
+.ayuda {
+  font-size: var(--texto-sm);
+  color: var(--text-secondary);
+}
+
+.entrada {
+  display: none;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}

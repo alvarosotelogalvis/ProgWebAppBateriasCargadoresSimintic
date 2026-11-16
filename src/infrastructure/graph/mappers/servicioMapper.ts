@@ -88,6 +88,7 @@ function valorASharePoint(campo: keyof CamposServicio, valor: unknown): unknown 
 /**
  * Proyecta el dominio a columnas de SharePoint (SDD §7.4).
  * Sin `camposSucios` envía el registro completo (creación); con ellos, solo esos campos.
+ * Un campo sucio vacío se envía como `null` para borrarlo en SharePoint.
  * Siempre se envían `AppVersion`, `ActualizadoEnDispositivo` y `DispositivoId`.
  */
 export function aCamposSP(
@@ -112,7 +113,11 @@ export function aCamposSP(
     const clave = campo as keyof CamposServicio;
     if (camposSucios !== undefined && !camposSucios.includes(clave)) continue;
     const valor = servicio[clave];
-    if (valor === undefined) continue;
+    if (valor === undefined) {
+      // Un campo sucio sin valor es un campo que se vació: se envía `null` para limpiar la columna.
+      if (camposSucios !== undefined) campos[columna] = null;
+      continue;
+    }
     const convertido = valorASharePoint(clave, valor);
     if (convertido !== undefined) campos[columna] = convertido;
   }

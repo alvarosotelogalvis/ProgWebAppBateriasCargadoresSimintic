@@ -106,7 +106,9 @@
     "faltante_vidaUtil": "Proyección de vida útil",
     "error_fechaAnterior": "No puede ser anterior a la recepción",
     "error_fechaPosterior": "No puede ser posterior a hoy",
-    "error_vidaUtilAnterior": "Debe ser posterior a la entrega"
+    "error_vidaUtilAnterior": "Debe ser posterior a la entrega",
+    "soloRechazada": "La entrega sin reparación solo aplica cuando el cliente rechazó la cotización.",
+    "soloReparada": "El equipo debe pasar primero por la orden de trabajo."
   },
   "facturacion": {
     "titulo": "Facturación",
@@ -117,13 +119,13 @@
     "fecha": "Fecha de facturación",
     "fechaAyuda": "Fecha en que se emitió la factura. Debe ser ≥ recepción y ≤ hoy.",
     "numero": "Número de factura (opcional)",
-    "numeroAyuda": "Ejemplo: FE-2026-001234 (solo letras, números, guiones y espacios).",
+    "numeroAyuda": "Ejemplo: FE-2026-001234 (solo letras, números y guiones; máximo 30 caracteres).",
     "completar": "Completar facturación",
     "faltante_pdf": "PDF de la factura",
     "faltante_fecha": "Fecha de facturación",
     "error_fechaAnterior": "No puede ser anterior a la recepción",
     "error_fechaPosterior": "No puede ser posterior a hoy",
-    "error_numeroFormato": "Formato de número inválido. Usa solo letras, números, guiones y espacios."
+    "error_numeroFormato": "Formato de número inválido. Usa solo letras, números y guiones (máx. 30)."
   },
   "anulacion": {
     "titulo": "Anular servicio",
@@ -136,14 +138,22 @@
     "confirmarTexto": "El servicio quedará de solo lectura y no se podrá reabrir. ¿Deseas continuar?",
     "confirmar": "Sí, anular",
     "faltante_motivo": "Motivo de la anulación (mín. 10 caracteres)",
-    "error_permisos": "Solo administradores pueden anular servicios"
+    "error_permisos": "Solo administradores pueden anular servicios",
+    "error": "No se pudo anular el servicio. Intenta de nuevo."
   },
   "pdf": {
     "noEsPdf": "El archivo no es un PDF válido.",
     "tamanoExcedido": "El PDF supera el tamaño máximo de {{maxMB}} MB.",
     "almacenamientoLleno": "No hay espacio suficiente en el dispositivo.",
     "error": "Error al adjuntar el PDF.",
-    "protegido": "PDF protegido con contraseña. El cliente necesitará la contraseña para abrirlo."
+    "protegido": "PDF protegido con contraseña. El cliente necesitará la contraseña para abrirlo.",
+    "ver": "Ver PDF",
+    "reemplazar": "Reemplazar PDF",
+    "eliminar": "Eliminar PDF",
+    "verEnSharePoint": "Abrir en SharePoint",
+    "confirmarEliminacion": "¿Eliminar este PDF?",
+    "confirmarSi": "Sí, eliminar",
+    "confirmarNo": "No"
   },
   "roles": {
     "Tecnico": "Técnico",
@@ -163,5 +173,13 @@
     "PERMISO": "No tienes permiso para esta acción",
     "ESTADO": "El estado actual no permite esta acción",
     "SINCRONIZACION": "Error al sincronizar. Intenta más tarde."
+  },
+  "corregir": {
+    "titulo": "Corregir datos del servicio",
+    "subtitulo": "Corrige datos de etapas ya registradas. El estado del servicio no cambia y la corrección queda pendiente de sincronizar.",
+    "guardar": "Guardar correcciones",
+    "sinCampos": "No hay datos para corregir en este servicio.",
+    "error": "No se pudieron guardar las correcciones. Intenta de nuevo.",
+    "revisar": "Revisa estos datos:"
   }
 }

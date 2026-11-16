@@ -1,12 +1,12 @@
 ﻿.container {
-  padding: var(--space-md);
+  padding: var(--espacio-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--espacio-4);
 }
 
 .titulo {
-  font-size: var(--size-lg);
+  font-size: var(--texto-lg);
   font-weight: var(--peso-bold);
   margin: 0;
   color: var(--text-primary);
@@ -14,56 +14,58 @@
 
 .filtros {
   display: flex;
-  gap: var(--space-sm);
+  gap: var(--espacio-3);
 }
 
 .combobox {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--espacio-2);
   flex: 1;
   max-width: 300px;
 }
 
 .combobox label {
   font-weight: var(--peso-semibold);
-  font-size: var(--size-sm);
+  font-size: var(--texto-sm);
   color: var(--text-secondary);
 }
 
 .select {
-  padding: var(--space-xs) var(--space-sm);
-  border: 1px solid var(--border-default);
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--border);
   border-radius: var(--radio-sm);
-  font-size: var(--size-sm);
-  background-color: var(--background-primary);
+  font-size: var(--texto-sm);
+  background-color: var(--surface);
   color: var(--text-primary);
   cursor: pointer;
+  min-height: var(--objetivo-tactil);
 }
 
 .select:hover {
-  border-color: var(--border-focus);
+  border-color: var(--primary);
 }
 
 .select:focus {
-  outline: 2px solid var(--border-focus);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
 .tabs {
   display: flex;
-  gap: var(--space-xs);
-  border-bottom: 1px solid var(--border-default);
+  gap: var(--espacio-2);
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
 }
 
 .tab {
-  padding: var(--space-xs) var(--space-sm);
+  padding: var(--espacio-2) var(--espacio-3);
   border: none;
   background: none;
   color: var(--text-secondary);
-  font-size: var(--size-sm);
+  font-size: var(--texto-sm);
   cursor: pointer;
+  min-height: var(--objetivo-tactil);
   border-bottom: 3px solid transparent;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -75,42 +77,42 @@
 
 .tab-active {
   color: var(--text-primary);
-  border-bottom-color: var(--border-focus);
+  border-bottom-color: var(--primary);
   font-weight: var(--peso-semibold);
 }
 
 .vacio {
   text-align: center;
   color: var(--text-secondary);
-  padding: var(--space-lg);
-  font-size: var(--size-sm);
+  padding: var(--espacio-6);
+  font-size: var(--texto-sm);
 }
 
 .lista {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--espacio-2);
 }
 
 .fila {
   display: grid;
   grid-template-columns: 1fr 1.5fr 1fr 1.2fr 1.2fr;
-  gap: var(--space-sm);
-  padding: var(--space-sm);
-  border: 1px solid var(--border-default);
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  border: 1px solid var(--border);
   border-radius: var(--radio-sm);
-  background-color: var(--background-secondary);
+  background-color: var(--surface-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .fila:hover {
-  background-color: var(--background-tertiary);
-  border-color: var(--border-focus);
+  background-color: var(--surface-sunken);
+  border-color: var(--primary);
 }
 
 .fila:focus {
-  outline: 2px solid var(--border-focus);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -121,28 +123,28 @@
 
 .cliente {
   color: var(--text-secondary);
-  font-size: var(--size-sm);
+  font-size: var(--texto-sm);
 }
 
 .serie {
   color: var(--text-secondary);
-  font-size: var(--size-sm);
+  font-size: var(--texto-sm);
 }
 
 .fecha {
   color: var(--text-secondary);
-  font-size: var(--size-sm);
+  font-size: var(--texto-sm);
 }
 
 .dias {
   font-weight: var(--peso-semibold);
-  color: var(--border-error);
+  color: var(--peligro);
 }
 
 @media (width <= 768px) {
   .fila {
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-xs);
+    gap: var(--espacio-2);
   }
 
   .serie {
@@ -156,23 +158,23 @@
 
 @media (width <= 480px) {
   .container {
-    padding: var(--space-sm);
+    padding: var(--espacio-3);
   }
 
   .tabs {
     gap: 0;
-    margin: 0 calc(var(--space-sm) * -1);
-    padding: 0 var(--space-sm);
+    margin: 0 calc(var(--espacio-3) * -1);
+    padding: 0 var(--espacio-3);
   }
 
   .tab {
-    padding: var(--space-xs) var(--space-xs);
-    font-size: var(--size-xs);
+    padding: var(--espacio-2) var(--espacio-2);
+    font-size: var(--texto-xs);
   }
 
   .fila {
     grid-template-columns: 1fr;
-    gap: var(--space-xs);
+    gap: var(--espacio-2);
   }
 
   .serie {

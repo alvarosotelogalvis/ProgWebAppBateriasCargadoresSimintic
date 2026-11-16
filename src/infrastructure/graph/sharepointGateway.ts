@@ -7,9 +7,15 @@ import type {
   ResultadoActualizacion,
   ServicioRemotoPush,
 } from '@/application/ports/RemoteGatewayPush';
+import type {
+  ArchivoRemotoServicio,
+  CambiosServicios,
+  RemoteGatewayPull,
+} from '@/application/ports/RemoteGatewayPull';
 import type { Catalogos, ClienteCatalogo, SitioResuelto } from '@/application/ports/remoteGateway';
 import { ConflictoError } from '@/application/sync/ConflictoError';
 import type { Entorno } from '@/shared/env';
+import type { RemotoCambio } from '@/domain/sync/remoto';
 import { AppError } from '@/shared/errors';
 
 import type { GraphClient } from './graphClient';
@@ -21,6 +27,7 @@ import {
   type ColumnaGraph,
   type ItemGraph,
 } from './mappers/catalogos';
+import { itemACambio } from './mappers/cambioRemotoMapper';
 import { CLAVES_META, COLUMNAS_CHOICE, type ColumnaChoice } from '@/application/setup/claves';
 
 const LISTAS_REQUERIDAS = [
@@ -39,6 +46,10 @@ interface ListaGraph {
 }
 
 interface ItemPushGraph extends ItemGraph {
+  readonly '@removed'?: unknown;
+  readonly lastModifiedBy?: {
+    readonly user?: { readonly email?: string; readonly displayName?: string };
+  };
   readonly '@odata.etag'?: string;
   readonly eTag?: string;
   readonly webUrl?: string;
@@ -75,9 +86,11 @@ export interface DepsSharePointGateway {
   readonly env: Entorno;
   readonly meta: MetaRepository;
   readonly logger: Logger;
+  /** Para descargar miniaturas con URL prefirmada (sin token). Por defecto, `fetch`. */
+  readonly fetchImpl?: typeof fetch;
 }
 
-export class SharePointGateway implements RemoteGatewayPush {
+export class SharePointGateway implements RemoteGatewayPush, RemoteGatewayPull {
   private sitio: SitioResuelto | undefined;
 
   constructor(private readonly deps: DepsSharePointGateway) {}
@@ -370,4 +383,121 @@ export class SharePointGateway implements RemoteGatewayPush {
       timeoutMs: 10_000,
     });
   }
+
+  // Operaciones de pull (spec 006)
+
+  async cambiosServicios(deltaLink?: string, signal?: AbortSignal): Promise<CambiosServicios> {
+    const sitio = await this.obtenerSitio();
+    const inicio = `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items/delta?$expand=fields`;
+    try {
+      return await this.recorrerDelta(
+        deltaLink ?? inicio,
+        deltaLink ? 'delta' : 'completa',
+        signal
+      );
+    } catch (error) {
+      // 410 Gone: el deltaLink caducó. Se descarga todo de nuevo (FR-006-10).
+      if (deltaLink !== undefined && error instanceof AppError && error.estadoHttp === 410) {
+        this.deps.logger.warn('pull.delta.caducado', { siteId: sitio.siteId });
+        return this.recorrerDelta(inicio, 'completa', signal);
+      }
+      throw error;
+    }
+  }
+
+  private async recorrerDelta(
+    rutaInicial: string,
+    metodo: CambiosServicios['metodo'],
+    signal: AbortSignal | undefined
+  ): Promise<CambiosServicios> {
+    const cambios: RemotoCambio[] = [];
+    let ruta: string | undefined = rutaInicial;
+    let deltaLink: string | undefined;
+
+    while (ruta !== undefined) {
+      signal?.throwIfAborted();
+      const respuesta: { datos: DeltaGraph } = await this.deps.graph.enviar<DeltaGraph>({
+        metodo: 'GET',
+        ruta,
+        ...(signal ? { signal } : {}),
+      });
+      for (const item of respuesta.datos.value ?? []) {
+        if (item.id === undefined) continue;
+        cambios.push(itemACambio(item));
+      }
+      deltaLink = respuesta.datos['@odata.deltaLink'];
+      ruta = respuesta.datos['@odata.nextLink'];
+    }
+
+    return { cambios, metodo, ...(deltaLink ? { deltaLink } : {}) };
+  }
+
+  async leerServicioRemoto(servicioId: string, signal?: AbortSignal): Promise<RemotoCambio | null> {
+    signal?.throwIfAborted();
+    const sitio = await this.obtenerSitio();
+    const item = await this.buscarItemServicio(sitio, servicioId);
+    return item && item.id !== undefined ? itemACambio(item) : null;
+  }
+
+  async listarArchivosServicio(
+    carpeta: string,
+    signal?: AbortSignal
+  ): Promise<readonly ArchivoRemotoServicio[]> {
+    const sitio = await this.obtenerSitio();
+    const ruta = carpeta.split('/').map(encodeURIComponent).join('/');
+    const archivos: ArchivoRemotoServicio[] = [];
+    try {
+      for await (const item of this.deps.graph.paginar<ArchivoGraph>(
+        `/drives/${sitio.driveId}/root:/${ruta}:/children?$select=id,name,size,webUrl,eTag,file&$top=200`,
+        signal ? { signal } : {}
+      )) {
+        if (item.file === undefined) continue; // subcarpetas
+        archivos.push({
+          id: item.id,
+          nombre: item.name,
+          tamanoBytes: item.size ?? 0,
+          webUrl: item.webUrl ?? '',
+          ...(item.eTag ? { eTag: item.eTag } : {}),
+        });
+      }
+    } catch (error) {
+      if (error instanceof AppError && error.estadoHttp === 404) return [];
+      throw error;
+    }
+    return archivos;
+  }
+
+  async descargarMiniatura(driveItemId: string, signal?: AbortSignal): Promise<Blob | null> {
+    const sitio = await this.obtenerSitio();
+    const respuesta = await this.deps.graph.enviar<{
+      value?: Array<{ small?: { url?: string }; medium?: { url?: string } }>;
+    }>({
+      metodo: 'GET',
+      ruta: `/drives/${sitio.driveId}/items/${driveItemId}/thumbnails`,
+      ...(signal ? { signal } : {}),
+    });
+    const miniaturas = respuesta.datos.value?.[0];
+    const url = miniaturas?.small?.url ?? miniaturas?.medium?.url;
+    if (!url) return null;
+    // La URL ya viene autorizada: no se envía el token de Graph a otro host.
+    const ejecutar = this.deps.fetchImpl ?? ((...args: Parameters<typeof fetch>) => fetch(...args));
+    const archivo = await ejecutar(url, signal ? { signal } : {});
+    if (!archivo.ok) return null;
+    return archivo.blob();
+  }
+}
+
+interface DeltaGraph {
+  readonly value?: ItemPushGraph[];
+  readonly '@odata.nextLink'?: string;
+  readonly '@odata.deltaLink'?: string;
+}
+
+interface ArchivoGraph {
+  readonly id: string;
+  readonly name: string;
+  readonly size?: number;
+  readonly webUrl?: string;
+  readonly eTag?: string;
+  readonly file?: unknown;
 }

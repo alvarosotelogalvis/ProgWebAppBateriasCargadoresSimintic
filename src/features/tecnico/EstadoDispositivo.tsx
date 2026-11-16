@@ -12,13 +12,11 @@ interface InfoDispositivo {
 }
 
 const obtenerInfo = async (): Promise<InfoDispositivo> => {
-  const nav = navigator as Record<string, unknown>;
-
   // Plataforma
-  const plataforma = (nav.platform as string) || 'Desconocida';
+  const plataforma = navigator.platform || 'Desconocida';
 
   // Navegador
-  const ua = (nav.userAgent as string) || '';
+  const ua = navigator.userAgent || '';
   let navegador = 'Desconocido';
   if (ua.includes('Chrome')) navegador = 'Chrome';
   else if (ua.includes('Safari')) navegador = 'Safari';
@@ -30,12 +28,13 @@ const obtenerInfo = async (): Promise<InfoDispositivo> => {
   let tamanoUsado = 0;
   let persistenteHabilitado = false;
 
-  const storage = nav.storage as Record<string, unknown>;
+  // Los métodos de StorageManager deben llamarse sobre su objeto (extraerlos lanza "Illegal invocation").
+  const storage: StorageManager | undefined = navigator.storage;
   if (storage?.estimate) {
     try {
-      const est = (await (storage.estimate as () => Promise<Record<string, unknown>>)()) || {};
-      tamanoDisponible = (est.quota as number) || 0;
-      tamanoUsado = (est.usage as number) || 0;
+      const estimacion = await storage.estimate();
+      tamanoDisponible = estimacion.quota || 0;
+      tamanoUsado = estimacion.usage || 0;
     } catch {
       // Silenciar errores de StorageManager
     }
@@ -43,7 +42,7 @@ const obtenerInfo = async (): Promise<InfoDispositivo> => {
 
   if (storage?.persisted) {
     try {
-      persistenteHabilitado = (await (storage.persisted as () => Promise<boolean>)()) || false;
+      persistenteHabilitado = (await storage.persisted()) || false;
     } catch {
       // Silenciar errores
     }
@@ -88,52 +87,52 @@ export function EstadoDispositivo(): React.JSX.Element {
       <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-3)' }}>
         <div>
           <dt style={{ fontWeight: 500 }}>{t('plataforma')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>{info.plataforma}</dd>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>{info.plataforma}</dd>
         </div>
 
         <div>
           <dt style={{ fontWeight: 500 }}>{t('navegador')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>{info.navegador}</dd>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>{info.navegador}</dd>
         </div>
 
         <div>
           <dt style={{ fontWeight: 500 }}>{t('almacenamiento_persistente')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>
             {info.persistenteHabilitado ? '✓ Habilitado' : '✗ No habilitado'}
           </dd>
         </div>
 
         <div>
           <dt style={{ fontWeight: 500 }}>{t('version_base_local')}</dt>
-          <dd style={{ margin: 0, color: 'var(--color-texto-secundario)' }}>{info.versionDb}</dd>
+          <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>{info.versionDb}</dd>
         </div>
 
         <div style={{ gridColumn: '1 / -1' }}>
           <dt style={{ fontWeight: 500, marginBottom: 'var(--espacio-2)' }}>{t('uso_espacio')}</dt>
-          <div style={{ display: 'flex', gap: 'var(--espacio-2)', alignItems: 'center' }}>
+          <dd style={{ margin: 0, display: 'flex', gap: 'var(--espacio-2)', alignItems: 'center' }}>
             <div
               style={{
                 flex: 1,
                 height: '8px',
-                background: 'var(--color-borde)',
-                borderRadius: 'var(--radio-1)',
+                background: 'var(--border)',
+                borderRadius: 'var(--radio-sm)',
                 overflow: 'hidden',
               }}
             >
               <div
                 style={{
                   height: '100%',
-                  background: porcentajeUsado < 80 ? 'var(--color-exito)' : 'var(--color-peligro)',
+                  background: porcentajeUsado < 80 ? 'var(--exito)' : 'var(--peligro)',
                   width: `${porcentajeUsado}%`,
                   transition: 'width 0.2s',
                 }}
               />
             </div>
-            <span style={{ fontSize: 'var(--texto-pequeno)' }}>
+            <span style={{ fontSize: 'var(--texto-sm)' }}>
               {Math.round(info.tamanoUsado / 1024 / 1024)} MB /{' '}
               {Math.round(info.tamanoDisponible / 1024 / 1024)} MB ({porcentajeUsado}%)
             </span>
-          </div>
+          </dd>
         </div>
 
         <div style={{ gridColumn: '1 / -1' }}>
@@ -143,8 +142,8 @@ export function EstadoDispositivo(): React.JSX.Element {
           <dd
             style={{
               margin: 0,
-              color: 'var(--color-texto-secundario)',
-              fontSize: 'var(--texto-pequeno)',
+              color: 'var(--text-secondary)',
+              fontSize: 'var(--texto-sm)',
               wordBreak: 'break-all',
               fontFamily: 'monospace',
             }}

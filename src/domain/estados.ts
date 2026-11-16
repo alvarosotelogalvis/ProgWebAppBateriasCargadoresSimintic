@@ -159,10 +159,20 @@ export const TODOS_LOS_CAMPOS: readonly (keyof CamposServicio)[] = [
   'anulacionFecha',
 ];
 
-const resultadoEsquema = (resultado: {
-  success: boolean;
-  error?: { issues: Array<{ path: (string | number)[]; message: string }> };
-}): ErrorValidacion[] => {
+/** Forma mínima de un resultado de `safeParse` (compatible con Zod 4 y `exactOptionalPropertyTypes`). */
+interface ResultadoEsquema {
+  readonly success: boolean;
+  readonly error?:
+    | {
+        readonly issues: ReadonlyArray<{
+          readonly path: readonly PropertyKey[];
+          readonly message: string;
+        }>;
+      }
+    | undefined;
+}
+
+const resultadoEsquema = (resultado: ResultadoEsquema): ErrorValidacion[] => {
   if (resultado.success || !resultado.error) return [];
   const vistos = new Set<string>();
   const errores: ErrorValidacion[] = [];

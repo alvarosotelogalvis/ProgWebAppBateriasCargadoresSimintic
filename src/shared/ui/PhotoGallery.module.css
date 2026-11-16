@@ -67,3 +67,23 @@
 .eliminar:hover {
   background-color: var(--surface-muted);
 }
+
+.remoto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  font-size: var(--texto-xs);
+}
+
+.etiqueta-remoto {
+  font-weight: var(--peso-semibold);
+  color: var(--text-secondary);
+}
+
+.enlace {
+  color: var(--text-link);
+}
+
+.enlace-inactivo {
+  color: var(--text-muted);
+}

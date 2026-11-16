@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { ListRow } from '@/shared/ui/ListRow';
 
-const TEMAS = ['instalar', 'sin-conexion', 'preguntas-frecuentes'] as const;
+import { TEMAS_AYUDA } from './temas';
 
 export function AyudaPage(): React.JSX.Element {
   const { t } = useTranslation('ayuda');
@@ -12,7 +12,7 @@ export function AyudaPage(): React.JSX.Element {
     <div>
       <Card fill>
         <h2 className="titulo-seccion">{t('titulo')}</h2>
-        {TEMAS.map((tema) => (
+        {TEMAS_AYUDA.map((tema) => (
           <ListRow
             key={tema}
             icono="ayuda"

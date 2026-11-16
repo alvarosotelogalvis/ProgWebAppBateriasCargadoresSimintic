@@ -33,12 +33,15 @@ const CONCURRENCIA_ARCHIVOS = 2;
 
 const estaDefinido = (valor: unknown): boolean => valor !== undefined && valor !== null;
 
-/** Marca los valores sucios que se enviarán después de asegurar el ítem remoto. */
+/**
+ * Marca los valores sucios que se enviarán después de asegurar el ítem remoto.
+ * Un campo que se vació (`undefined`) también se envía: el gateway lo manda como `null`.
+ */
 function snapshotSucios(servicio: Servicio): Map<keyof CamposServicio, unknown> {
   const enviados = new Map<keyof CamposServicio, unknown>();
   for (const campo of servicio.camposSucios) {
     const valor = servicio[campo];
-    if (estaDefinido(valor)) enviados.set(campo, valor);
+    enviados.set(campo, estaDefinido(valor) ? valor : undefined);
   }
   return enviados;
 }

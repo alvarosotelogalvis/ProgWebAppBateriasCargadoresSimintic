@@ -27,5 +27,11 @@
   "almacenamiento": {
     "aviso": "El almacenamiento del dispositivo está al {{porcentaje}} %. Sincroniza y libera espacio.",
     "lleno": "El almacenamiento está lleno. No se pueden agregar fotos."
+  },
+  "remoto": {
+    "badge": "En SharePoint",
+    "abrir": "Abrir en SharePoint",
+    "sinRed": "Abrir en SharePoint (requiere conexión)",
+    "documentos": "Documentos en SharePoint"
   }
 }

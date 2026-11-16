@@ -17,7 +17,14 @@ export function QuickActionGrid({ acciones }: Props): React.JSX.Element {
     <ul className={styles.grid!}>
       {acciones.map((accion) => (
         <li key={accion.id}>
-          <button type="button" className={styles.boton!} onClick={accion.onClick}>
+          <button
+            type="button"
+            className={styles.boton!}
+            onClick={accion.onClick}
+            {...(typeof accion.badge === 'number' && accion.badge > 0
+              ? { 'aria-label': `${accion.etiqueta} (${accion.badge})` }
+              : {})}
+          >
             <span className={styles.circulo!}>
               {accion.icono}
               {typeof accion.badge === 'number' && accion.badge > 0 ? (

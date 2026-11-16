@@ -1,46 +1,69 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
+import '@/shared/i18n';
+import { adjuntoBuilder } from '../../../../tests/builders/adjuntoBuilder';
 import AdjuntoPdf from './AdjuntoPdf';
-import { adjuntoBuilder } from '../../../tests/builders';
 
-describe('T018: AdjuntoPdf (HU-007-7)', () => {
-  it('debe mostrar nombre y tamaño', () => {
-    const adjunto = adjuntoBuilder()
-      .tipo('FACTURA')
-      .blob(new Blob(['pdf'], { type: 'application/pdf' }))
-      .build();
+const pdf = () =>
+  adjuntoBuilder({
+    tipo: 'FACTURA',
+    mime: 'application/pdf',
+    blob: new Blob(['pdf'], { type: 'application/pdf' }),
+  }).construir();
 
-    render(<AdjuntoPdf adjunto={adjunto} onReplace={() => {}} onDelete={() => {}} />);
+describe('AdjuntoPdf (HU-007-7)', () => {
+  it('muestra el tipo del documento y sus acciones con textos traducidos', () => {
+    render(<AdjuntoPdf adjunto={pdf()} onReplace={() => {}} onDelete={() => {}} />);
 
-    expect(screen.getByText(/pdf/i)).toBeInTheDocument();
+    expect(screen.getByText('FACTURA')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver PDF' })).toBeInTheDocument();
+    expect(screen.getByText('Reemplazar PDF')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Eliminar PDF' })).toBeInTheDocument();
   });
 
-  it('debe mostrar botón "Ver"', () => {
-    const adjunto = adjuntoBuilder()
-      .tipo('FACTURA')
-      .blob(new Blob(['pdf'], { type: 'application/pdf' }))
-      .build();
+  it('en solo lectura no ofrece ver, reemplazar ni eliminar', () => {
+    render(<AdjuntoPdf adjunto={pdf()} onReplace={() => {}} onDelete={() => {}} readOnly />);
 
-    render(<AdjuntoPdf adjunto={adjunto} onReplace={() => {}} onDelete={() => {}} />);
-
-    expect(screen.getByRole('button', { name: /ver/i })).toBeInTheDocument();
+    expect(screen.queryByText('Reemplazar PDF')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Eliminar PDF' })).not.toBeInTheDocument();
   });
 
-  it('debe mostrar solo lectura si readOnly=true', () => {
-    const adjunto = adjuntoBuilder()
-      .tipo('FACTURA')
-      .blob(new Blob(['pdf'], { type: 'application/pdf' }))
-      .build();
+  it('pide confirmación antes de eliminar y solo elimina al confirmar', () => {
+    const onDelete = vi.fn();
+    const adjunto = pdf();
+    render(<AdjuntoPdf adjunto={adjunto} onReplace={() => {}} onDelete={onDelete} />);
 
-    render(
-      <AdjuntoPdf adjunto={adjunto} onReplace={() => {}} onDelete={() => {}} readOnly={true} />
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar PDF' }));
+    expect(onDelete).not.toHaveBeenCalled();
+    expect(screen.getByText('¿Eliminar este PDF?')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, eliminar' }));
+    expect(onDelete).toHaveBeenCalledWith(adjunto.id);
+  });
+
+  it('al cancelar la confirmación no elimina', () => {
+    const onDelete = vi.fn();
+    render(<AdjuntoPdf adjunto={pdf()} onReplace={() => {}} onDelete={onDelete} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar PDF' }));
+    fireEvent.click(screen.getByRole('button', { name: 'No' }));
+
+    expect(onDelete).not.toHaveBeenCalled();
+    expect(screen.queryByText('¿Eliminar este PDF?')).not.toBeInTheDocument();
+  });
+
+  it('entrega el archivo elegido al reemplazar', () => {
+    const onReplace = vi.fn();
+    const { container } = render(
+      <AdjuntoPdf adjunto={pdf()} onReplace={onReplace} onDelete={() => {}} />
     );
+    const archivo = new File(['%PDF-1.4'], 'nuevo.pdf', { type: 'application/pdf' });
 
-    expect(screen.queryByRole('button', { name: /reemplazar/i })).not.toBeInTheDocument();
-  });
+    fireEvent.change(container.querySelector('input[type="file"]')!, {
+      target: { files: [archivo] },
+    });
 
-  it('debe confirmar antes de eliminar', () => {
-    // stub
-    expect(true).toBe(true);
+    expect(onReplace).toHaveBeenCalledWith(archivo);
   });
 });

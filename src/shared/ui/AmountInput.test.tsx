@@ -26,9 +26,31 @@ describe('T027: AmountInput (HU-007-3)', () => {
     expect(onChange).not.toHaveBeenCalledWith(-100000);
   });
 
-  it('debe mostrar "COP" a la izquierda del monto en estilo primary', () => {
+  it('debe mostrar "COP" a la izquierda del monto', () => {
     render(<AmountInput value={500000} onChange={() => {}} label="Monto" />);
-    expect(screen.getByText('COP')).toHaveClass('primary');
+    const cop = screen.getByText('COP');
+    const monto = screen.getByRole('textbox');
+    expect(cop.compareDocumentPosition(monto) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('debe asociar la etiqueta con el campo', () => {
+    render(<AmountInput value={0} onChange={() => {}} label="Valor de la cotización" />);
+    expect(screen.getByLabelText('Valor de la cotización')).toBe(screen.getByRole('textbox'));
+  });
+
+  it('debe reflejar un valor que llega después (carga asíncrona) si no se está editando', () => {
+    const { rerender } = render(<AmountInput value={0} onChange={() => {}} label="Valor" />);
+    rerender(<AmountInput value={750000} onChange={() => {}} label="Valor" />);
+    expect(screen.getByDisplayValue('$ 750.000')).toBeInTheDocument();
+  });
+
+  it('debe volver a formatear al perder el foco', () => {
+    render(<AmountInput value={0} onChange={() => {}} label="Valor" />);
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '1250000' } });
+    fireEvent.blur(input);
+    expect((input as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('$ 1.250.000');
   });
 
   it('debe permitir 0 como valor válido', () => {

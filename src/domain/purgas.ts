@@ -1,4 +1,5 @@
-import type { Servicio, Adjunto } from './servicio';
+import type { Adjunto } from './adjunto';
+import type { Servicio } from './servicio';
 
 export interface PurgableSelection {
   servicios: Servicio[];
@@ -24,9 +25,9 @@ export function seleccionarPurgables(
   const archivosPurgables: Array<{ servicioId: string; adjunto: Adjunto }> = [];
 
   for (const servicio of servicios) {
-    // Servicios cerrados y sincronizados más antiguos que retención
+    // Servicios cerrados y sincronizados cuya última modificación supera la retención
     if (puedeEliminarse(servicio)) {
-      const fechaSinc = new Date(servicio.ultimaSincronizacion || '');
+      const fechaSinc = new Date(servicio.actualizadoEn);
       fechaSinc.setHours(0, 0, 0, 0);
 
       const diasTranscurridos = Math.floor(
@@ -74,7 +75,7 @@ export function calcularEspacioLiberado(selection: PurgableSelection): number {
 
   // Archivos originales
   for (const { adjunto } of selection.archivos) {
-    bytes += adjunto.tamaño || 0;
+    bytes += adjunto.tamanoBytes || 0;
   }
 
   return bytes;
