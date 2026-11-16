@@ -109,7 +109,7 @@ export function EstadoDispositivo(): React.JSX.Element {
 
         <div style={{ gridColumn: '1 / -1' }}>
           <dt style={{ fontWeight: 500, marginBottom: 'var(--espacio-2)' }}>{t('uso_espacio')}</dt>
-          <div style={{ display: 'flex', gap: 'var(--espacio-2)', alignItems: 'center' }}>
+          <dd style={{ margin: 0, display: 'flex', gap: 'var(--espacio-2)', alignItems: 'center' }}>
             <div
               style={{
                 flex: 1,
@@ -132,7 +132,7 @@ export function EstadoDispositivo(): React.JSX.Element {
               {Math.round(info.tamanoUsado / 1024 / 1024)} MB /{' '}
               {Math.round(info.tamanoDisponible / 1024 / 1024)} MB ({porcentajeUsado}%)
             </span>
-          </div>
+          </dd>
         </div>
 
         <div style={{ gridColumn: '1 / -1' }}>
