@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
+import { reintentarErrores } from '@/application/mantenimiento/reintentarErrores';
 import { useDb } from '@/shared/hooks/useDb';
+import { Banner } from '@/shared/ui/Banner';
 import { Card } from '@/shared/ui/Card';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
@@ -29,6 +31,22 @@ export function MenuTecnicoPage({ onRestablecerApp }: Props): React.JSX.Element 
   const db = useDb();
   const [dialogo, setDialogo] = useState<DialogoAbierto>(null);
   const cerrar = (): void => setDialogo(null);
+  const [aviso, setAviso] = useState<{ tipo: 'exito' | 'peligro'; texto: string } | null>(null);
+
+  const reintentar = async (): Promise<void> => {
+    try {
+      const { reintentados } = await reintentarErrores(db);
+      setAviso({
+        tipo: 'exito',
+        texto:
+          reintentados.length === 0
+            ? t('reintentar_errores_ninguno')
+            : t('reintentar_errores_resultado', { count: reintentados.length }),
+      });
+    } catch {
+      setAviso({ tipo: 'peligro', texto: t('reintentar_errores_fallo') });
+    }
+  };
 
   return (
     <div className={styles.pagina!}>
@@ -73,14 +91,18 @@ export function MenuTecnicoPage({ onRestablecerApp }: Props): React.JSX.Element 
           </SecondaryButton>
         </Card>
 
-        {onRestablecerApp ? (
-          <Card>
-            <h2>{t('acciones_mantenimiento')}</h2>
+        <Card>
+          <h2>{t('acciones_mantenimiento')}</h2>
+          {aviso ? <Banner tipo={aviso.tipo}>{aviso.texto}</Banner> : null}
+          <SecondaryButton onPress={() => void reintentar()}>
+            {t('reintentar_errores')}
+          </SecondaryButton>
+          {onRestablecerApp ? (
             <SecondaryButton onPress={() => setDialogo('restablecer')}>
               {t('restablecer_app')}
             </SecondaryButton>
-          </Card>
-        ) : null}
+          ) : null}
+        </Card>
       </div>
 
       <ExportarRespaldoDialog abierto={dialogo === 'exportar'} db={db} onCerrar={cerrar} />

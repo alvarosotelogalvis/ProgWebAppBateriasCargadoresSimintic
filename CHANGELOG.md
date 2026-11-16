@@ -9,6 +9,9 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **«Reintentar errores» en el menú técnico (ES-009-16).** Devuelve a la cola todos los servicios en
+  error (intentos a 0, sin espera) y avisa cuántos quedaron; no toca conflictos ni sincroniza por sí solo.
+  El caso de uso previo solo borraba el mensaje de error y dejaba el servicio en `error`.
 - **Menú técnico operativo (spec 009).** La ruta `/tecnico` mostraba «Próximamente»: ahora abre el
   diagnóstico del dispositivo y de SharePoint, el visor de registros, el respaldo, «Liberar espacio» y
   «Restablecer la app» (pide escribir BORRAR).

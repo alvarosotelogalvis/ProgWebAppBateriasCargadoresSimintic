@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import '@/shared/i18n';
@@ -28,6 +28,8 @@ vi.mock('./RestablecerAppDialog', () => ({
   RestablecerAppDialog: ({ abierto }: { abierto: boolean }) =>
     abierto ? <div data-testid="dialogo-restablecer" /> : null,
 }));
+const reintentarErrores = vi.hoisted(() => vi.fn());
+vi.mock('@/application/mantenimiento/reintentarErrores', () => ({ reintentarErrores }));
 vi.mock('@/shared/hooks/useDb', () => ({ useDb: () => ({}) }));
 
 beforeEach(() => {
@@ -73,5 +75,29 @@ describe('MenuTecnicoPage', () => {
     render(<MenuTecnicoPage onRestablecerApp={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: 'Restablecer la app' }));
     expect(screen.getByTestId('dialogo-restablecer')).toBeInTheDocument();
+  });
+
+  it.each([
+    [[], 'No hay servicios con error.'],
+    [['a'], '1 servicio quedó en cola para la próxima sincronización.'],
+    [['a', 'b'], '2 servicios quedaron en cola para la próxima sincronización.'],
+  ])('«Reintentar errores» informa el resultado (%j)', async (reintentados, texto) => {
+    reintentarErrores.mockResolvedValue({ reintentados });
+    render(<MenuTecnicoPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar errores' }));
+
+    expect(await screen.findByText(texto)).toBeInTheDocument();
+  });
+
+  it('«Reintentar errores» avisa si falla', async () => {
+    reintentarErrores.mockRejectedValue(new Error('x'));
+    render(<MenuTecnicoPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar errores' }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/No se pudieron reintentar los errores/)).toBeInTheDocument()
+    );
   });
 });
