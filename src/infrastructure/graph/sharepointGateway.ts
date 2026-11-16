@@ -18,6 +18,7 @@ import type { Entorno } from '@/shared/env';
 import type { RemotoCambio } from '@/domain/sync/remoto';
 import { AppError } from '@/shared/errors';
 
+import { esValorUnicoDuplicado } from './errores';
 import type { GraphClient } from './graphClient';
 import {
   mapearChoices,
@@ -269,8 +270,9 @@ export class SharePointGateway implements RemoteGatewayPush, RemoteGatewayPull {
         fields: respuesta.datos.fields ?? campos,
       });
     } catch (error) {
-      // Carrera de idempotencia: el valor único ServicioId ya existe (SDD §9.2).
-      if (error instanceof AppError && error.estadoHttp === 409) {
+      // Carrera de idempotencia: el valor único ServicioId ya existe (SDD §9.2). SharePoint real
+      // lo responde con 400 (no 409): ver `esValorUnicoDuplicado`.
+      if (esValorUnicoDuplicado(error)) {
         const servicioId = campos.ServicioId;
         if (typeof servicioId === 'string') {
           const encontrado = await this.buscarItemServicio(sitio, servicioId);

@@ -216,6 +216,19 @@ Opciones: `-GrupoUsuarios` (por defecto `ServicioTecnico-Usuarios`), `-OmitirPer
 
 Al terminar: agrega a los usuarios al grupo `ServicioTecnico-Usuarios`, concede `Sites.Selected` (write) a la app (§1.7) y ejecuta [`docs/spikes/S2-sites-selected.md`](spikes/S2-sites-selected.md). Un sitio ya creado a mano se puede **completar** con el script: solo añade lo que falta.
 
+**Alternativa por Microsoft Graph (con una aplicación y su secreto):** `scripts/provision-sharepoint-graph.mjs` crea las mismas listas, la biblioteca, las columnas (nombre interno exacto, `ServicioId` único, índices), los datos iniciales y las claves de `ConfiguracionApp`, **sin inicio de sesión interactivo**. Es de **ensayo por defecto** (solo lee), idempotente y nunca borra. Requiere una app con el permiso de aplicación `Sites.Manage.All` (o `Sites.Selected` con rol manage/owner en el sitio) y consentimiento de administrador:
+
+```bash
+# Ensayo (solo lectura)
+node scripts/provision-sharepoint-graph.mjs --site <tenant>.sharepoint.com/sites/<Sitio> --env-file <ruta/.env>
+# Crear
+node scripts/provision-sharepoint-graph.mjs --site <tenant>.sharepoint.com/sites/<Sitio> --env-file <ruta/.env> --aplicar --correo-ot ot@empresa.com --correo-alertas alertas@empresa.com
+```
+
+El `.env` debe traer `SP_TENANT_ID`, `SP_CLIENT_ID` y `SP_CLIENT_SECRET`; el secreto **no se pasa por la línea de comandos ni se guarda en el repositorio**. Usa un secreto **temporal** y rótalo o elimínalo al terminar.
+
+**Lo que Graph no puede hacer** (hay que completarlo con el `.ps1` ejecutado con una cuenta propietaria del sitio, o a mano): versionado (50) y datos adjuntos deshabilitados en `Servicios`, las vistas sugeridas, los permisos del grupo de usuarios (§2.5), renombrar `Title` e indexar `Modified` (columnas de sistema; Graph responde 404) y la zona horaria. Las columnas de moneda quedan con los decimales por defecto (Graph solo fija la configuración regional).
+
 > **Estado de la verificación:** escrito contra la documentación de PnP.PowerShell y probado con un SharePoint **simulado** (`npm run test:ps-provision`: creación, idempotencia, `-WhatIf`, opciones) y con una prueba (`provisionSharepoint.test.ts`) que comprueba que nombres de columnas, valores de Choice y claves de configuración **coinciden con los de la app**. **No se ha ejecutado contra un tenant real:** la primera vez, usa `-WhatIf` y luego un sitio DEV, y revisa los nombres internos en _Configuración de la lista_.
 
 ---

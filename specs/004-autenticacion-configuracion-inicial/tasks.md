@@ -10,7 +10,7 @@
 - [x] T001 Crear la rama `feature/004-autenticacion-configuracion-inicial` y marcar la spec como `En implementación` en `specs/README.md`
 - [x] T002 [P] Emulador de Graph en memoria para MSW y Playwright: sitio, listas por nombre, drive, `columns` con choices, items de `Clientes`, `Marcas` y `ConfiguracionApp`, paginación y errores inyectables (`failNext(status)`, `desconectar()`) — `tests/fixtures/graph/handlers.ts`, `tests/fixtures/graph/emulador.ts`
 - [x] T003 [P] Namespaces i18n `auth` y `configuracion` (+ mensajes de los `CodigoError` de auth y SharePoint en `errores.json`) — `src/locales/es-CO/`
-- [x] T004 [P] (Opcional) `scripts/provision-sharepoint.ps1` idempotente con PnP.PowerShell (listas, columnas con nombres internos, índices, valor único, versiones, vistas, datos iniciales y claves de configuración; `docs/06` §2.6) — `scripts/` _(escrito y probado con SharePoint simulado; falta ejecutarlo contra un tenant real)_
+- [x] T004 [P] (Opcional) `scripts/provision-sharepoint.ps1` idempotente con PnP.PowerShell (listas, columnas con nombres internos, índices, valor único, versiones, vistas, datos iniciales y claves de configuración; `docs/06` §2.6) — `scripts/` _(`provision-sharepoint.ps1` probado con SharePoint simulado; `provision-sharepoint-graph.mjs` ejecutado el 2026-11-16 contra el sitio `MineroIndustrial`: 6 listas creadas y verificadas. Falta completar versionado, vistas y permisos)_
 
 ## Fase 2 — Fundamentos: cliente Graph (bloquea las historias y la 005)
 

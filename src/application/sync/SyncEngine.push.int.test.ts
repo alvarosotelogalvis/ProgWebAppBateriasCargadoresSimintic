@@ -160,7 +160,7 @@ describe('MotorSync · push', () => {
     expect(adjuntoFinal?.uploadSession).toBeUndefined();
   });
 
-  it('resuelve el 409 de ServicioId único buscando el ítem existente', async () => {
+  it('resuelve el duplicado de ServicioId (400 «unique constraints» de SharePoint real) buscando el ítem existente', async () => {
     const entorno = await crear();
     const servicio = {
       ...servicioPendiente(),
@@ -175,6 +175,36 @@ describe('MotorSync · push', () => {
     });
     await entorno.servicios.guardar(servicio);
 
+    entorno.emulador.simularCarrera409();
+    const resumen = await entorno.sincronizar();
+
+    expect(resumen).toMatchObject({ subidos: 1, errores: 0 });
+    expect(entorno.emulador.itemsDe('Servicios')).toHaveLength(1);
+    expect(entorno.emulador.itemsDe('Servicios')[0]?.fields.ObservacionTecnica).toBe(
+      'Revisado tras perder la confirmación'
+    );
+
+    const guardado = await entorno.servicios.obtener(servicio.id);
+    expect(guardado).toMatchObject({ syncState: 'synced', camposSucios: [] });
+    expect(guardado?.sp?.itemId).toBe(remoto.id);
+  });
+
+  it('resuelve también un 409 de ServicioId único (por si otro tenant lo devuelve así)', async () => {
+    const entorno = await crear();
+    const servicio = {
+      ...servicioPendiente(),
+      observacionTecnica: 'Revisado tras perder la confirmación',
+      camposSucios: ['observacionTecnica' as const],
+    };
+    const remoto = entorno.emulador.sembrarServicio({
+      ServicioId: servicio.id,
+      Title: servicio.codigo,
+      Estado: 'Recibido',
+      TipoEquipo: 'Cargador',
+    });
+    await entorno.servicios.guardar(servicio);
+
+    entorno.emulador.duplicadoDevuelve409();
     entorno.emulador.simularCarrera409();
     const resumen = await entorno.sincronizar();
 

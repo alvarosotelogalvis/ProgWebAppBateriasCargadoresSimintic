@@ -1,4 +1,5 @@
-﻿import { AppError, type CodigoError } from '@/shared/errors';
+﻿import { esMensajeDeValorUnico } from '@/domain/sync/errores';
+import { AppError, type CodigoError } from '@/shared/errors';
 export type { CodigoError } from '@/shared/errors';
 
 export interface RespuestaGraphError {
@@ -95,5 +96,19 @@ export function esReintentable(codigo: CodigoError): boolean {
     codigo === 'SP_SERVIDOR' ||
     codigo === 'RED_SIN_CONEXION' ||
     codigo === 'SIN_CONEXION'
+  );
+}
+
+/**
+ * ¿Es un `POST`/`PATCH` rechazado porque el valor único (`ServicioId`) ya existe? SharePoint real responde
+ * 400 `invalidRequest` con «unique constraints…»; el 409 se acepta por si otro tenant lo devuelve así.
+ */
+export function esValorUnicoDuplicado(error: unknown): boolean {
+  if (!(error instanceof AppError)) return false;
+  if (error.estadoHttp === 409) return true;
+  if (error.estadoHttp !== 400) return false;
+  const respuesta = error.detalles?.respuesta as { message?: unknown } | undefined;
+  return esMensajeDeValorUnico(
+    typeof respuesta?.message === 'string' ? respuesta.message : undefined
   );
 }

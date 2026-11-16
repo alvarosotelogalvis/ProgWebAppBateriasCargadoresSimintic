@@ -20,6 +20,16 @@ export interface EntradaClasificacionError {
   readonly esRed?: boolean;
   /** El 404 provino de la `uploadUrl` de una sesión de subida. */
   readonly esSesionSubida?: boolean;
+  /**
+   * El fallo es una violación de valor único (el ítem ya existe). SharePoint real la responde como
+   * 400 `invalidRequest`, no como 409 (comprobado en un tenant); se reconoce por el mensaje.
+   */
+  readonly esValorUnico?: boolean;
+}
+
+/** ¿El mensaje de error de Graph/SharePoint indica un valor único duplicado? */
+export function esMensajeDeValorUnico(mensaje: string | undefined): boolean {
+  return mensaje !== undefined && /unique constraint/i.test(mensaje);
 }
 
 /**
@@ -30,6 +40,9 @@ export function clasificarError(entrada: EntradaClasificacionError): ClaseError 
   if (entrada.esRed === true) return 'RED';
   if (entrada.status === 404 && entrada.esSesionSubida === true) return 'SESION_SUBIDA_EXPIRADA';
   if (entrada.esTimeout === true || entrada.status === 408) return 'REINTENTABLE';
+
+  // 400 + mensaje de valor único = el ítem ya existe: mismo tratamiento que un 409 (idempotencia).
+  if (entrada.status === 400 && entrada.esValorUnico === true) return 'IDEMPOTENCIA';
 
   switch (entrada.status) {
     case 401:

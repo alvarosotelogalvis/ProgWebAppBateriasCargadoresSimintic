@@ -46,6 +46,10 @@ El motor de sincronización usa `If-Match` para no pisar cambios de otra persona
 11. (Opcional) `POST …/items` con `{ "fields": { "Title": "S3-DUP", "ServicioId": "<ServicioId de S-1>" } }`. Si responde que faltan columnas obligatorias, añade las que pida. Anota el error de duplicado, que es el que la app maneja en el caso T-12.
 12. **Restaura** `Referencia`, `FechaEntrega` y `ServicioId` originales de S-1 y S-2.
 
+## Dato ya observado (2026-11-16, sitio `MineroIndustrial`, por Graph)
+
+Al crear un elemento con un `ServicioId` que ya existía, SharePoint respondió **`400 invalidRequest`** con el mensaje «One or more fields with unique constraints already has the provided value.» (**no un 409**). La app esperaba un 409, así que el reintento tras una carrera no encontraba el ítem ya creado: se corrigió (`esValorUnicoDuplicado`) y el emulador de pruebas responde ahora igual que SharePoint real. En la prueba, `SoloFecha` enviada como `2026-10-01T00:00:00Z` volvió como `2026-10-01T00:00:00Z`. Sigue pendiente confirmar el 412 con `If-Match` y las fechas con otra zona horaria del sitio.
+
 ## Resultado
 
 | Caso                                                         | Esperado       | Obtenido (código, `error.code`, mensaje) |
@@ -66,6 +70,6 @@ El motor de sincronización usa `If-Match` para no pisar cambios de otra persona
 - [ ] **412 confirmado** → la lógica actual (`If-Match` + resolutor de conflictos) es correcta; ADR-0010 pasa a `Aceptado`.
 - [ ] **No hay 412** → implementar el respaldo «GET + comparar `eTag` antes del PATCH» (SDD §9.5) y registrar el cambio en un ADR nuevo.
 - [ ] **Las fechas cambian de día** → ajustar `fechaASharePoint`/`deCamposSP` en `src/infrastructure/graph/mappers/servicioMapper.ts` (hoy: `T00:00:00Z` al enviar y primeros 10 caracteres al leer) según lo observado.
-- [ ] **El código de error del duplicado difiere** del que espera el motor → ajustar el reconocimiento del conflicto en `infrastructure/graph/` y su prueba.
+- [x] **El código de error del duplicado difería** (400 en vez de 409) → ya corregido en `infrastructure/graph/errores.ts` y el motor de sincronización, con su prueba.
 
 Notas / observaciones adicionales:

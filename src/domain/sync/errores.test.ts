@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { clasificarError, debeAbortarSync, esReintentable } from './errores';
+import { clasificarError, debeAbortarSync, esMensajeDeValorUnico, esReintentable } from './errores';
 
 describe('clasificarError (tabla SDD §9.6)', () => {
   it.each([
@@ -12,6 +12,7 @@ describe('clasificarError (tabla SDD §9.6)', () => {
     ['404 de lista o sitio', { status: 404 }, 'CONFIGURACION'],
     ['404 de uploadUrl', { status: 404, esSesionSubida: true }, 'SESION_SUBIDA_EXPIRADA'],
     ['409 de valor único', { status: 409 }, 'IDEMPOTENCIA'],
+    ['400 de valor único (SharePoint real)', { status: 400, esValorUnico: true }, 'IDEMPOTENCIA'],
     ['412', { status: 412 }, 'CONFLICTO'],
     ['413', { status: 413 }, 'NO_REINTENTABLE'],
     ['429', { status: 429 }, 'REINTENTABLE'],
@@ -40,5 +41,17 @@ describe('clasificarError (tabla SDD §9.6)', () => {
     expect(debeAbortarSync('CONFIGURACION')).toBe(true);
     expect(debeAbortarSync('REINTENTABLE')).toBe(false);
     expect(debeAbortarSync('SIN_PERMISO')).toBe(false);
+  });
+});
+
+describe('esMensajeDeValorUnico', () => {
+  it.each([
+    ['One or more fields with unique constraints already has the provided value.', true],
+    ['ONE OR MORE FIELDS WITH UNIQUE CONSTRAINT ALREADY HAS THE PROVIDED VALUE', true],
+    ['Solicitud inválida', false],
+    ['The field Marca exceeds its maximum length', false],
+    [undefined, false],
+  ])('«%s» → %s', (mensaje, esperado) => {
+    expect(esMensajeDeValorUnico(mensaje)).toBe(esperado);
   });
 });

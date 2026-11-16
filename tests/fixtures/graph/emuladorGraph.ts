@@ -154,6 +154,7 @@ export class EmuladorGraph {
   private bytesRecibidosCorte = 0;
   private forzarEtagMismatch = false;
   private carrera409 = false;
+  private duplicadoComo409 = false;
   private desconectado = false;
   private conMiniaturas = true;
   miniaturasServidas = 0;
@@ -192,6 +193,11 @@ export class EmuladorGraph {
   /** La siguiente búsqueda por ServicioId no lo encuentra, pero el POST sí detecta el duplicado. */
   simularCarrera409(): void {
     this.carrera409 = true;
+  }
+
+  /** Hace que un `ServicioId` duplicado responda 409 en vez del 400 que devuelve SharePoint real. */
+  duplicadoDevuelve409(): void {
+    this.duplicadoComo409 = true;
   }
 
   desconectar(): void {
@@ -483,7 +489,15 @@ export class EmuladorGraph {
     if (lista.name === 'Servicios' && fields.ServicioId !== undefined) {
       const duplicado = lista.items.some((item) => item.fields.ServicioId === fields.ServicioId);
       if (duplicado) {
-        return errorGraph(409, 'conflict', 'Ya existe un ítem con ese ServicioId');
+        // SharePoint real (probado en un tenant): 400 invalidRequest con este mensaje, no 409.
+        if (this.duplicadoComo409) {
+          return errorGraph(409, 'conflict', 'Ya existe un ítem con ese ServicioId');
+        }
+        return errorGraph(
+          400,
+          'invalidRequest',
+          'One or more fields with unique constraints already has the provided value.'
+        );
       }
     }
 

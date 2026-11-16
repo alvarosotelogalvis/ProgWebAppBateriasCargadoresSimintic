@@ -16,7 +16,7 @@ import {
   proximoIntento,
 } from '@/domain/sync/backoff';
 import { resumirErroresLog, type ErrorBitacora } from '@/domain/sync/bitacora';
-import { clasificarError, type ClaseError } from '@/domain/sync/errores';
+import { clasificarError, esMensajeDeValorUnico, type ClaseError } from '@/domain/sync/errores';
 import { esVersionMinimaSuficiente } from '@/domain/sync/version';
 import { AppError } from '@/shared/errors';
 
@@ -106,6 +106,9 @@ function clasificar(error: unknown): ClaseError {
       esRed: error.codigo === 'RED_SIN_CONEXION' || error.codigo === 'SIN_CONEXION' || !hayRed(),
       esTimeout: detalles.timeout === true,
       esSesionSubida: detalles.sesionSubida === true,
+      esValorUnico: esMensajeDeValorUnico(
+        (detalles.respuesta as { message?: string } | undefined)?.message
+      ),
     });
   }
 

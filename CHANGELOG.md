@@ -9,6 +9,9 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **`scripts/provision-sharepoint-graph.mjs`:** aprovisiona por Microsoft Graph (aplicación + secreto, sin inicio de
+  sesión interactivo) las listas, columnas, índices, datos iniciales y claves de configuración. Ensayo por defecto,
+  idempotente, nunca borra. Verificado contra un sitio real. Esquema en `scripts/esquema-sharepoint.mjs`.
 - **`scripts/provision-sharepoint.ps1` (spec 004, T004).** Aprovisiona en SharePoint las 5 listas y la biblioteca
   con columnas de nombre interno exacto, `ServicioId` único, índices, versionado, vistas, datos iniciales,
   claves de `ConfiguracionApp` y permisos; idempotente y con `-WhatIf`. Probado con un SharePoint simulado
@@ -29,6 +32,9 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- **El motor no reconocía el duplicado de `ServicioId` en SharePoint real:** SharePoint responde 400
+  `invalidRequest` («unique constraints…»), no 409, así que la idempotencia ante una carrera de reintento
+  habría fallado. Ahora se reconoce por el mensaje (`esValorUnicoDuplicado`) y el emulador de pruebas responde igual.
 - **`.env.production.example` traía `VITE_APP_ENV=prod`, valor que el esquema rechaza (`dev` o `prd`):** quien
   copiara la plantilla tal cual vería la pantalla de error de configuración en producción. Se corrige y una
   prueba valida que las plantillas de entorno usen valores aceptados.
