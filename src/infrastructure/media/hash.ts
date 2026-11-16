@@ -1,3 +1,5 @@
+import type { ContenidoArchivoPort } from '@/application/ports/contenidoArchivoPort';
+
 export const leerBuffer = async (blob: Blob): Promise<ArrayBuffer> => {
   if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
   return new Promise((resolve, reject) => {
@@ -13,3 +15,6 @@ export const sha256Blob = async (blob: Blob): Promise<string> => {
   const digest = await crypto.subtle.digest('SHA-256', buffer);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 };
+
+/** Adaptador del puerto `ContenidoArchivoPort` con Web Crypto. */
+export const contenidoArchivo: ContenidoArchivoPort = { sha256: sha256Blob, leerBytes: leerBuffer };

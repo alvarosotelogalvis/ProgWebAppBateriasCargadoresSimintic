@@ -7,7 +7,6 @@ import {
 } from '@/domain/errores';
 import { normalizarCodigoAlfanumerico } from '@/domain/normalizacion';
 import type { Servicio, TipoAdjunto } from '@/domain/servicio';
-import { sha256Blob } from '@/infrastructure/media/hash';
 import { crearAgregarPdf } from './agregarPdf';
 import type { DepsAdjuntos } from './deps';
 
@@ -38,7 +37,7 @@ export const crearAgregarFoto =
       (adjunto) => adjunto.tipo === tipo
     );
 
-    const sha256 = await sha256Blob(archivo);
+    const sha256 = await deps.contenido.sha256(archivo);
     if (await deps.adjuntos.buscarPorHash(servicioId, tipo, sha256)) {
       throw new AdjuntoDuplicadoError();
     }

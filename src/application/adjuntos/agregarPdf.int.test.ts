@@ -19,6 +19,7 @@ import { FakeLogger } from '../../../tests/fakes/FakeLogger';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import { crearAgregarPdf } from './agregarPdf';
 import type { DepsAdjuntos } from './deps';
+import { contenidoArchivo } from '@/infrastructure/media/hash';
 
 const fixture = (nombre: string): File => {
   const bytes = readFileSync(resolve(__dirname, '../../../tests/fixtures/pdf', nombre));
@@ -54,6 +55,7 @@ const crearDeps = async () => {
   const deps: DepsAdjuntos = {
     servicios,
     adjuntos,
+    contenido: contenidoArchivo,
     uow: new UnidadDeTrabajoDexie(db, servicios, adjuntos),
     ids: new FakeIdGenerator(),
     clock: new FakeClock(),

@@ -1,8 +1,12 @@
+import type { UnidadDeTrabajo } from '@/application/ports/unidadDeTrabajo';
 import type { Servicio } from '@/domain/servicio';
-import type { AppDB } from '@/infrastructure/db/dexie';
 
 export interface ResultadoReintento {
   reintentados: string[];
+}
+
+export interface DepsReintentarErrores {
+  readonly uow: UnidadDeTrabajo;
 }
 
 /**
@@ -10,19 +14,17 @@ export interface ResultadoReintento {
  * reiniciando intentos y espera. No sincroniza: la subida ocurre en la siguiente
  * sincronización. No toca conflictos (requieren decisión del usuario).
  */
-export async function reintentarErrores(db: AppDB): Promise<ResultadoReintento> {
-  const reintentados: string[] = [];
-
-  await db.transaction('rw', db.servicios, async () => {
-    const enError = await db.servicios.where('syncState').equals('error').toArray();
-    for (const actual of enError) {
+export async function reintentarErrores(deps: DepsReintentarErrores): Promise<ResultadoReintento> {
+  return deps.uow.ejecutar(async ({ servicios }) => {
+    const reintentados: string[] = [];
+    for (const actual of await servicios.listarTodos()) {
+      if (actual.syncState !== 'error') continue;
       const guardado: Servicio = { ...actual, syncState: 'pending', intentos: 0 };
       delete guardado.proximoIntentoEn;
       delete guardado.ultimoError;
-      await db.servicios.put(guardado);
+      await servicios.guardar(guardado);
       reintentados.push(actual.id);
     }
+    return { reintentados };
   });
-
-  return { reintentados };
 }

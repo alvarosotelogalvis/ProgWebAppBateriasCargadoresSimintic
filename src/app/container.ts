@@ -48,6 +48,7 @@ import { AppDB } from '@/infrastructure/db/dexie';
 import { MetaRepositoryDexie } from '@/infrastructure/db/metaRepository';
 import { ServicioRepositoryDexie } from '@/infrastructure/db/servicioRepository';
 import { UnidadDeTrabajoDexie } from '@/infrastructure/db/unidadDeTrabajo';
+import { contenidoArchivo } from '@/infrastructure/media/hash';
 import { UuidGenerator } from '@/infrastructure/ids/uuidGenerator';
 import { LoggerDexie } from '@/infrastructure/logging/logger';
 import { ImageProcessorCanvas } from '@/infrastructure/media/imageProcessor';
@@ -186,6 +187,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
   const casosAdjuntos = crearCasosDeUsoAdjuntos({
     ...depsServicios,
     imageProcessor: new ImageProcessorCanvas(),
+    contenido: contenidoArchivo,
     storage,
   });
 
@@ -253,7 +255,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
         try {
           const cfg = config();
           await ejecutarPurgas(
-            db,
+            { servicios, adjuntos, uow },
             cfg.retencionOriginalesDias ?? 7,
             cfg.retencionCerradosMeses ?? 3,
             logger

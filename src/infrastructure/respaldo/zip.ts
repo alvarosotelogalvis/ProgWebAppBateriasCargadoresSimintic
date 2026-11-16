@@ -1,10 +1,8 @@
 import { unzipSync, zipSync, type Zippable } from 'fflate';
 
-export interface ArchivoEnZip {
-  ruta: string;
-  contenido: Blob | string;
-  tipo?: string;
-}
+import type { ArchivoEnZip, ZipPort } from '@/application/ports/zipPort';
+
+export type { ArchivoEnZip };
 
 /** `Blob.text()` con alternativa para entornos sin esa API (p. ej. jsdom, navegadores antiguos). */
 export const leerTexto = (blob: Blob): Promise<string> => {
@@ -95,3 +93,6 @@ export function estimarTamano(archivos: ArchivoEnZip[]): number {
   }
   return bytes;
 }
+
+/** Adaptador del puerto `ZipPort` con fflate. */
+export const zipFflate: ZipPort = { empaquetar, desempaquetar, estimarTamano, leerTexto };

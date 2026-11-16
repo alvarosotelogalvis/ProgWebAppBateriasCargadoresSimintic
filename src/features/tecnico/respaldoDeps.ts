@@ -5,6 +5,7 @@ import { MetaRepositoryDexie } from '@/infrastructure/db/metaRepository';
 import { ServicioRepositoryDexie } from '@/infrastructure/db/servicioRepository';
 import { UnidadDeTrabajoDexie } from '@/infrastructure/db/unidadDeTrabajo';
 import { UuidGenerator } from '@/infrastructure/ids/uuidGenerator';
+import { zipFflate } from '@/infrastructure/respaldo/zip';
 
 const versionApp = (): string => (typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0');
 
@@ -17,9 +18,10 @@ export function depsRespaldo(db: AppDB): { exportar: DepsExportar; importar: Dep
     exportar: {
       servicios,
       adjuntos,
+      zip: zipFflate,
       appVersion: versionApp(),
       dispositivoId: () => meta.dispositivoId(),
     },
-    importar: { servicios, uow: new UnidadDeTrabajoDexie(db, servicios, adjuntos) },
+    importar: { servicios, uow: new UnidadDeTrabajoDexie(db, servicios, adjuntos), zip: zipFflate },
   };
 }

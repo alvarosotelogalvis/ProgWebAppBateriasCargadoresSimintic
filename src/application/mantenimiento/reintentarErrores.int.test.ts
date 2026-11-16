@@ -5,6 +5,7 @@ import type { AppDB } from '@/infrastructure/db/dexie';
 import { servicioBuilder } from '../../../tests/builders/servicioBuilder';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import { reintentarErrores } from './reintentarErrores';
+import { depsMantenimiento } from '@/features/tecnico/depsMantenimiento';
 
 let db: AppDB;
 
@@ -26,7 +27,7 @@ describe('reintentarErrores (ES-009-16)', () => {
       ultimoError: { codigo: 'red', mensaje: 'sin red', fecha: '2026-11-16T00:00:00.000Z' },
     } as never);
 
-    const resultado = await reintentarErrores(db);
+    const resultado = await reintentarErrores(depsMantenimiento(db).reintentar);
 
     expect(resultado.reintentados).toEqual(['e1']);
     const guardado = await db.servicios.get('e1');
@@ -43,7 +44,7 @@ describe('reintentarErrores (ES-009-16)', () => {
       { ...servicioBuilder().conId('c').construir(), syncState: 'conflict' },
     ]);
 
-    const resultado = await reintentarErrores(db);
+    const resultado = await reintentarErrores(depsMantenimiento(db).reintentar);
 
     expect(resultado.reintentados).toEqual([]);
     expect((await db.servicios.get('c'))?.syncState).toBe('conflict');

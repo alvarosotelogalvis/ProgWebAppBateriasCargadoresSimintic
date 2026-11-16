@@ -22,6 +22,7 @@ import { FakeLogger } from '../../../tests/fakes/FakeLogger';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import { servicioBuilder } from '../../../tests/builders/servicioBuilder';
 import { adjuntoBuilder } from '../../../tests/builders/adjuntoBuilder';
+import { contenidoArchivo } from '@/infrastructure/media/hash';
 
 class ImageProcessorFalso implements ImageProcessor {
   llamadas = 0;
@@ -72,6 +73,7 @@ const crearDeps = async (config: ConfigApp = CONFIG_DEFECTO) => {
   const deps: DepsAdjuntos = {
     servicios,
     adjuntos,
+    contenido: contenidoArchivo,
     uow: new UnidadDeTrabajoDexie(db, servicios, adjuntos),
     ids: new FakeIdGenerator(),
     clock: new FakeClock(),

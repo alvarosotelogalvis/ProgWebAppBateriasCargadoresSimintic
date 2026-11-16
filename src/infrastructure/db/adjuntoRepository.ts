@@ -14,6 +14,10 @@ export class AdjuntoRepositoryDexie implements AdjuntoRepository {
     return this.db.adjuntos.where('servicioId').equals(servicioId).toArray();
   }
 
+  async listarTodos(): Promise<Adjunto[]> {
+    return this.db.adjuntos.toArray();
+  }
+
   async buscarPorHash(
     servicioId: string,
     tipo: TipoAdjunto,

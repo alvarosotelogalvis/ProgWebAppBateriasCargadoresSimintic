@@ -4,6 +4,7 @@ import type { TipoAdjunto } from '@/domain/servicio';
 export interface AdjuntoRepository {
   obtener(id: string): Promise<Adjunto | undefined>;
   listarPorServicio(servicioId: string): Promise<Adjunto[]>;
+  listarTodos(): Promise<Adjunto[]>;
   buscarPorHash(
     servicioId: string,
     tipo: TipoAdjunto,

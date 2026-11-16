@@ -1,4 +1,6 @@
-import type { AppDB } from '@/infrastructure/db/dexie';
+import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
+import type { BorradoLocalPort } from '@/application/ports/borradoLocalPort';
+import type { ServicioRepository } from '@/application/ports/servicioRepository';
 
 export class ErrorRestablecimiento extends Error {
   constructor(message: string) {
@@ -14,11 +16,17 @@ export interface ResultadoRestablecimiento {
   timestamp: string;
 }
 
-export async function restablecerApp(db: AppDB): Promise<ResultadoRestablecimiento> {
+export interface DepsRestablecerApp {
+  readonly servicios: ServicioRepository;
+  readonly adjuntos: AdjuntoRepository;
+  readonly borrado: BorradoLocalPort;
+}
+
+export async function restablecerApp(deps: DepsRestablecerApp): Promise<ResultadoRestablecimiento> {
   // Nada que no esté ya en SharePoint se puede perder: borradores, pendientes, con error o en
   // conflicto bloquean el restablecimiento (regla de oro: nunca perder datos locales).
-  const servicios = await db.servicios.toArray();
-  const adjuntos = await db.adjuntos.toArray();
+  const servicios = await deps.servicios.listarTodos();
+  const adjuntos = await deps.adjuntos.listarTodos();
   const sinSincronizar =
     servicios.filter((s) => s.syncState !== 'synced').length +
     adjuntos.filter((a) => a.syncState !== 'synced' || a.eliminarRemoto).length;
@@ -30,14 +38,10 @@ export async function restablecerApp(db: AppDB): Promise<ResultadoRestablecimien
   }
 
   // Contar antes de eliminar
-  const logsTotal = await db.logs.count();
+  const logsTotal = await deps.borrado.contarLogs();
 
-  // Ejecutar borrado en transacción
-  await db.transaction('rw', db.servicios, db.adjuntos, db.logs, async () => {
-    await db.servicios.clear();
-    await db.adjuntos.clear();
-    await db.logs.clear();
-  });
+  // Una sola transacción para los tres almacenes
+  await deps.borrado.vaciarTodo();
 
   return {
     serviciosEliminados: servicios.length,

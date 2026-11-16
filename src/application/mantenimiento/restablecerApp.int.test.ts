@@ -6,6 +6,7 @@ import { adjuntoBuilder } from '../../../tests/builders/adjuntoBuilder';
 import { servicioBuilder } from '../../../tests/builders/servicioBuilder';
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 import { ErrorRestablecimiento, restablecerApp } from './restablecerApp';
+import { depsMantenimiento } from '@/features/tecnico/depsMantenimiento';
 
 let db: AppDB;
 
@@ -24,7 +25,7 @@ describe('restablecerApp', () => {
       adjuntoBuilder().enServicio('s1').conCampos({ syncState: 'synced' }).construir()
     );
 
-    const resultado = await restablecerApp(db);
+    const resultado = await restablecerApp(depsMantenimiento(db).restablecer);
 
     expect(resultado).toMatchObject({ serviciosEliminados: 1, adjuntosEliminados: 1 });
     expect(await db.servicios.count()).toBe(0);
@@ -39,7 +40,9 @@ describe('restablecerApp', () => {
         syncState,
       });
 
-      await expect(restablecerApp(db)).rejects.toBeInstanceOf(ErrorRestablecimiento);
+      await expect(restablecerApp(depsMantenimiento(db).restablecer)).rejects.toBeInstanceOf(
+        ErrorRestablecimiento
+      );
       expect(await db.servicios.count()).toBe(1);
     }
   );
@@ -50,7 +53,9 @@ describe('restablecerApp', () => {
       adjuntoBuilder().enServicio('s1').conCampos({ syncState: 'pending' }).construir()
     );
 
-    await expect(restablecerApp(db)).rejects.toBeInstanceOf(ErrorRestablecimiento);
+    await expect(restablecerApp(depsMantenimiento(db).restablecer)).rejects.toBeInstanceOf(
+      ErrorRestablecimiento
+    );
     expect(await db.adjuntos.count()).toBe(1);
 
     await db.adjuntos.clear();
@@ -60,6 +65,8 @@ describe('restablecerApp', () => {
         .conCampos({ syncState: 'synced', eliminarRemoto: true })
         .construir()
     );
-    await expect(restablecerApp(db)).rejects.toBeInstanceOf(ErrorRestablecimiento);
+    await expect(restablecerApp(depsMantenimiento(db).restablecer)).rejects.toBeInstanceOf(
+      ErrorRestablecimiento
+    );
   });
 });

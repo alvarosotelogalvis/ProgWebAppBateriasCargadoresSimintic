@@ -11,9 +11,10 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 - **Regla de capas con `eslint-plugin-boundaries` (ADR-0004, T007).** `domain` solo importa `domain`;
   `application` solo `domain` y puertos; `shared` no importa `application` ni `features`; además `domain` y
-  `application` no importan React, Dexie ni MSAL ni usan `fetch`. Seis archivos de `application/` que aún usan
-  Dexie, zip o hash de `infrastructure` quedan como excepción explícita por archivo en `eslint.config.js`
-  (deuda: migrarlos a puertos). Se añade `eslint-import-resolver-typescript` (solo desarrollo).
+  `application` no importan React, Dexie ni MSAL ni usan `fetch`. Sin excepciones: los casos de uso de purgas,
+  restablecer, reintentar errores, respaldo y adjuntos (hash) dependen ahora de puertos nuevos
+  (`ContenidoArchivoPort`, `ZipPort`, `BorradoLocalPort`, `AdjuntoRepository.listarTodos`) con adaptadores en
+  `infrastructure/`. Se añade `eslint-import-resolver-typescript` (solo desarrollo).
 - **Borrado remoto de campos también en el 412.** Al combinar tras un choque de versión al subir, el resolutor
   aplica los campos que SharePoint vació con las mismas reglas que la descarga. Si el campo vaciado es un dato
   mínimo del estado actual, queda en conflicto de estado para que lo revise el usuario.

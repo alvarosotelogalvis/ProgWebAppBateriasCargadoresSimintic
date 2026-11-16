@@ -1,16 +1,10 @@
 import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
 import type { ServicioRepository } from '@/application/ports/servicioRepository';
 import type { UnidadDeTrabajo } from '@/application/ports/unidadDeTrabajo';
+import type { ArchivoEnZip, ZipPort } from '@/application/ports/zipPort';
 import type { Adjunto } from '@/domain/adjunto';
 import { crearManifiesto, validarManifiesto } from '@/domain/respaldo';
 import type { Servicio } from '@/domain/servicio';
-import {
-  desempaquetar,
-  empaquetar,
-  estimarTamano,
-  leerTexto,
-  type ArchivoEnZip,
-} from '@/infrastructure/respaldo/zip';
 
 export type AlcanceRespaldo = 'solo-pendientes' | 'todos';
 
@@ -57,6 +51,7 @@ const respaldable = (adjunto: Adjunto): boolean =>
 export interface DepsExportar {
   readonly servicios: ServicioRepository;
   readonly adjuntos: AdjuntoRepository;
+  readonly zip: ZipPort;
   readonly appVersion: string;
   readonly dispositivoId: () => Promise<string>;
   readonly ahora?: () => Date;
@@ -107,8 +102,8 @@ export async function exportarRespaldo(
   ];
 
   return {
-    blob: await empaquetar(contenido),
-    tamanoEstimado: estimarTamano(contenido),
+    blob: await deps.zip.empaquetar(contenido),
+    tamanoEstimado: deps.zip.estimarTamano(contenido),
     nombreArchivo: `respaldo-${alcance}-${ahora.toISOString().slice(0, 10)}.zip`,
     serviciosIncluidos: aExportar.length,
     adjuntosIncluidos: metadatos.length,
@@ -118,13 +113,20 @@ export async function exportarRespaldo(
 export interface DepsImportar {
   readonly servicios: ServicioRepository;
   readonly uow: UnidadDeTrabajo;
+  readonly zip: ZipPort;
 }
 
-const leerJson = async (archivos: readonly ArchivoEnZip[], ruta: string): Promise<unknown> => {
+const leerJson = async (
+  zip: ZipPort,
+  archivos: readonly ArchivoEnZip[],
+  ruta: string
+): Promise<unknown> => {
   const archivo = archivos.find((candidato) => candidato.ruta === ruta);
   if (!archivo) throw new RespaldoInvalidoError(`Falta ${ruta} en el respaldo`);
   const texto =
-    typeof archivo.contenido === 'string' ? archivo.contenido : await leerTexto(archivo.contenido);
+    typeof archivo.contenido === 'string'
+      ? archivo.contenido
+      : await zip.leerTexto(archivo.contenido);
   try {
     return JSON.parse(texto);
   } catch {
@@ -154,13 +156,13 @@ const sinEnvioEnCurso = <T extends { syncState: Servicio['syncState'] }>(registr
  * una sola transacción. Nunca sobrescribe un servicio que ya existe en el dispositivo (se omite).
  */
 export async function importarRespaldo(deps: DepsImportar, blob: Blob): Promise<ResultadoImportar> {
-  const archivos = await desempaquetar(blob);
+  const archivos = await deps.zip.desempaquetar(blob);
 
-  const validacion = validarManifiesto(await leerJson(archivos, RUTA_MANIFIESTO));
+  const validacion = validarManifiesto(await leerJson(deps.zip, archivos, RUTA_MANIFIESTO));
   if (!validacion.ok) throw new RespaldoInvalidoError(validacion.error ?? 'Respaldo no válido');
 
-  const servicios = await leerJson(archivos, RUTA_SERVICIOS);
-  const adjuntos = await leerJson(archivos, RUTA_ADJUNTOS);
+  const servicios = await leerJson(deps.zip, archivos, RUTA_SERVICIOS);
+  const adjuntos = await leerJson(deps.zip, archivos, RUTA_ADJUNTOS);
   if (!Array.isArray(servicios) || !servicios.every(esServicio)) {
     throw new RespaldoInvalidoError('servicios.json no tiene el formato esperado');
   }

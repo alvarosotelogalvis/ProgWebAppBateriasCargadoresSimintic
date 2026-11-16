@@ -1,6 +1,8 @@
-import type { AppDB } from '@/infrastructure/db/dexie';
-import { seleccionarPurgables } from '@/domain/purgas';
+import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
 import type { Logger } from '@/application/ports/loggerPort';
+import type { ServicioRepository } from '@/application/ports/servicioRepository';
+import type { UnidadDeTrabajo } from '@/application/ports/unidadDeTrabajo';
+import { seleccionarPurgables } from '@/domain/purgas';
 
 export interface ResultadoPurga {
   serviciosPurgados: string[];
@@ -9,13 +11,19 @@ export interface ResultadoPurga {
   timestamp: string;
 }
 
+export interface DepsPurgas {
+  readonly servicios: ServicioRepository;
+  readonly adjuntos: AdjuntoRepository;
+  readonly uow: UnidadDeTrabajo;
+}
+
 /**
  * Ejecuta purgas de servicios cerrados sincronizados y archivos antiguos.
- * Transaccional: re-verifica syncState antes de borrar para evitar carreras.
+ * Transaccional: re-verifica el estado antes de borrar para evitar carreras.
  * Nunca toca datos pendientes de sincronizar.
  */
 export async function ejecutarPurgas(
-  db: AppDB,
+  deps: DepsPurgas,
   diasOriginales: number = 7,
   mesesCerrados: number = 3,
   logger?: Logger
@@ -26,11 +34,9 @@ export async function ejecutarPurgas(
   let espacioLiberado = 0;
 
   try {
-    // Cargar datos locales
-    const servicios = await db.servicios.toArray();
-    const adjuntos = await db.adjuntos.toArray();
+    const servicios = await deps.servicios.listarTodos();
+    const adjuntos = await deps.adjuntos.listarTodos();
 
-    // Mapear adjuntos por servicio
     const adjuntosMap = new Map<string, typeof adjuntos>();
     for (const adj of adjuntos) {
       if (!adjuntosMap.has(adj.servicioId)) {
@@ -39,56 +45,42 @@ export async function ejecutarPurgas(
       adjuntosMap.get(adj.servicioId)!.push(adj);
     }
 
-    // Seleccionar candidatos a purga
     const purgables = seleccionarPurgables(servicios, adjuntosMap, diasOriginales, mesesCerrados);
 
-    // Ejecutar en transacción con re-verificación
-    await db.transaction('rw', db.servicios, db.adjuntos, db.logs, async () => {
-      // Purgar servicios cerrados
+    await deps.uow.ejecutar(async (repos) => {
       for (const svc of purgables.servicios) {
-        // Re-verificar antes de borrar
-        const actual = await db.servicios.get(svc.id);
-        if (actual && actual.syncState === 'synced' && actual.camposSucios.length === 0) {
-          const propios = await db.adjuntos.where('servicioId').equals(svc.id).toArray();
-          // Un adjunto pendiente de subir o de eliminar en SharePoint impide la purga.
-          if (propios.some((adj) => adj.syncState !== 'synced' || adj.eliminarRemoto)) continue;
+        const propios = await repos.adjuntos.listarPorServicio(svc.id);
+        // `eliminarSincronizado` re-verifica: servicio sincronizado, sin campos sucios y sin
+        // adjuntos pendientes de subir o de eliminar en SharePoint. Si no cumple, no borra nada.
+        if (await repos.servicios.eliminarSincronizado(svc.id)) {
           for (const adj of propios) {
             adjuntosPurgados.push(adj.id);
             espacioLiberado += (adj.blob ? adj.tamanoBytes : 0) + (adj.miniatura?.size ?? 0);
           }
-          await db.adjuntos.where('servicioId').equals(svc.id).delete();
-          await db.servicios.delete(svc.id);
           serviciosPurgados.push(svc.id);
         }
       }
 
-      // Purgar archivos originales
       for (const { adjunto } of purgables.archivos) {
-        // Re-verificar antes de liberar
-        const actual = await db.adjuntos.get(adjunto.id);
+        const actual = await repos.adjuntos.obtener(adjunto.id);
         if (actual && actual.blob && actual.syncState === 'synced') {
-          // Conservar miniatura, liberar blob
-          await db.adjuntos.update(adjunto.id, { blob: null });
+          // Conservar miniatura, liberar el original
+          await repos.adjuntos.guardar({ ...actual, blob: null });
           adjuntosPurgados.push(adjunto.id);
           espacioLiberado += actual.tamanoBytes;
         }
       }
+    });
 
-      // Registrar en logs
-      if (logger) {
-        logger.info('purga', {
-          serviciosPurgados: serviciosPurgados.length,
-          adjuntosPurgados: adjuntosPurgados.length,
-          espacioLiberadoBytes: espacioLiberado,
-        });
-      }
+    logger?.info('purga', {
+      serviciosPurgados: serviciosPurgados.length,
+      adjuntosPurgados: adjuntosPurgados.length,
+      espacioLiberadoBytes: espacioLiberado,
     });
   } catch (error) {
-    if (logger) {
-      logger.error('purga.error', {
-        mensaje: error instanceof Error ? error.message : 'Error desconocido',
-      });
-    }
+    logger?.error('purga.error', {
+      mensaje: error instanceof Error ? error.message : 'Error desconocido',
+    });
     throw error;
   }
 

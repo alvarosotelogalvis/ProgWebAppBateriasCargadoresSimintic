@@ -9,6 +9,7 @@ import { Card } from '@/shared/ui/Card';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
 
+import { depsMantenimiento } from './depsMantenimiento';
 import { EstadoDispositivo } from './EstadoDispositivo';
 import { EstadoSharePoint } from './EstadoSharePoint';
 import { ExportarRespaldoDialog } from './ExportarRespaldoDialog';
@@ -35,7 +36,7 @@ export function MenuTecnicoPage({ onRestablecerApp }: Props): React.JSX.Element 
 
   const reintentar = async (): Promise<void> => {
     try {
-      const { reintentados } = await reintentarErrores(db);
+      const { reintentados } = await reintentarErrores(depsMantenimiento(db).reintentar);
       setAviso({
         tipo: 'exito',
         texto:

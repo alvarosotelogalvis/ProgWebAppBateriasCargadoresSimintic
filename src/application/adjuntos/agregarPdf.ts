@@ -2,7 +2,6 @@ import type { Adjunto } from '@/domain/adjunto';
 import { NoEncontradoError } from '@/domain/errores';
 import { normalizarCodigoAlfanumerico } from '@/domain/normalizacion';
 import { esFirmaPdf } from '@/domain/pdf';
-import { leerBuffer, sha256Blob } from '@/infrastructure/media/hash';
 import type { DepsAdjuntos } from './deps';
 
 export type TipoPdf = 'FORMATO_DIAGNOSTICO' | 'DISPOSICION_FINAL' | 'COTIZACION' | 'FACTURA';
@@ -27,7 +26,9 @@ export const crearAgregarPdf =
     const servicio = await deps.servicios.obtener(servicioId);
     if (!servicio) throw new NoEncontradoError(servicioId);
 
-    const cabecera = new Uint8Array(await leerBuffer(archivo.slice(0, BYTES_CABECERA)));
+    const cabecera = new Uint8Array(
+      await deps.contenido.leerBytes(archivo.slice(0, BYTES_CABECERA))
+    );
     if (!esFirmaPdf(cabecera)) return { ok: false, error: 'NO_ES_PDF' };
 
     if (archivo.size > deps.config().maxTamanoPdfMB * BYTES_POR_MB) {
@@ -47,7 +48,7 @@ export const crearAgregarPdf =
       nombreArchivo: `${normalizarCodigoAlfanumerico(servicio.codigo || servicio.id)}_${tipo}_${id}.pdf`,
       mime: 'application/pdf',
       tamanoBytes: blob.size,
-      sha256: await sha256Blob(blob),
+      sha256: await deps.contenido.sha256(blob),
       capturadoEn: deps.clock.ahoraIso(),
       capturadoPor: cuenta?.correo ?? 'local',
       blob,

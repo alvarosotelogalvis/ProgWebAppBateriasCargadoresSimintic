@@ -221,32 +221,6 @@ export default tseslint.config(
     },
   },
 
-  // DEUDA CONOCIDA (ADR-0004): estos casos de uso usan Dexie o utilidades de infrastructure en vez de
-  // un puerto. Es una excepción por archivo, no por capa: cualquier archivo nuevo sigue bajo la regla.
-  // Al migrarlos a puertos (repositorios / hash / zip), quitar el archivo de esta lista.
-  {
-    files: [
-      'src/application/adjuntos/agregarPdf.ts',
-      'src/application/adjuntos/casosDeUso.ts',
-      'src/application/mantenimiento/reintentarErrores.ts',
-      'src/application/mantenimiento/restablecerApp.ts',
-      'src/application/respaldo/respaldo.ts',
-      'src/application/sync/purgas.ts',
-    ],
-    rules: {
-      'boundaries/element-types': [
-        'error',
-        {
-          default: 'disallow',
-          message: '${file.type} no puede importar ${dependency.type} (ADR-0004, SDD §4.1).',
-          rules: [
-            { from: 'application', allow: ['domain', 'application', 'errores', 'infrastructure'] },
-          ],
-        },
-      ],
-    },
-  },
-
   {
     files: ['scripts/**/*', '*.config.ts', '*.config.js', 'eslint.config.js'],
     rules: {

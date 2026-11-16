@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { AppDB } from '@/infrastructure/db/dexie';
 import type { Logger } from '@/application/ports/loggerPort';
 import { ejecutarPurgas } from '@/application/sync/purgas';
+import { depsMantenimiento } from './depsMantenimiento';
 import { ResponsiveDialog } from '@/shared/ui/ResponsiveDialog';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { SecondaryButton } from '@/shared/ui/SecondaryButton';
@@ -36,7 +37,7 @@ export function LiberarEspacioDialog({
     try {
       setCargando(true);
       setError(null);
-      const res = await ejecutarPurgas(db, 7, 3, logger);
+      const res = await ejecutarPurgas(depsMantenimiento(db).purgas, 7, 3, logger);
 
       setResultado({
         serviciosPurgados: res.serviciosPurgados.length,

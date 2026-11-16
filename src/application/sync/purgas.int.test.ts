@@ -4,6 +4,7 @@ import type { AppDB } from '@/infrastructure/db/dexie';
 import type { Adjunto } from '@/domain/adjunto';
 import type { Servicio } from '@/domain/servicio';
 import { ejecutarPurgas } from './purgas';
+import { depsMantenimiento } from '@/features/tecnico/depsMantenimiento';
 
 describe('HU-009-2: Limpieza segura del espacio', () => {
   let db: AppDB;
@@ -52,7 +53,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
     await db.adjuntos.add(adjunto);
 
     // Ejecutar purgas
-    const resultado = await ejecutarPurgas(db, 7, 3);
+    const resultado = await ejecutarPurgas(depsMantenimiento(db).purgas, 7, 3);
 
     // Verificar que se purgaron
     expect(resultado.serviciosPurgados).toContain('srv-facturado');
@@ -96,7 +97,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
     await db.servicios.add(servicioPending);
     await db.servicios.add(servicioError);
 
-    const resultado = await ejecutarPurgas(db, 7, 3);
+    const resultado = await ejecutarPurgas(depsMantenimiento(db).purgas, 7, 3);
 
     expect(resultado.serviciosPurgados).not.toContain('srv-pending');
     expect(resultado.serviciosPurgados).not.toContain('srv-error');
@@ -140,7 +141,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
     await db.servicios.add(servicio);
     await db.adjuntos.add(adjunto);
 
-    await ejecutarPurgas(db, 7, 3);
+    await ejecutarPurgas(depsMantenimiento(db).purgas, 7, 3);
 
     const adjuntoActualizado = await db.adjuntos.get('adj-blob-test');
     expect(adjuntoActualizado?.blob).toBeNull();
@@ -170,7 +171,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
     // Simular que alguien cambió el estado a 'pending' justo antes de borrar
     await db.servicios.update('srv-race', { syncState: 'pending' });
 
-    const resultado = await ejecutarPurgas(db, 7, 3);
+    const resultado = await ejecutarPurgas(depsMantenimiento(db).purgas, 7, 3);
 
     // Aunque fue seleccionado inicialmente, re-verificación debe evitar la purga
     expect(resultado.serviciosPurgados).not.toContain('srv-race');
@@ -210,7 +211,7 @@ describe('HU-009-2: Limpieza segura del espacio', () => {
       eliminarRemoto: false,
     } as Adjunto);
 
-    const resultado = await ejecutarPurgas(db, 7, 3);
+    const resultado = await ejecutarPurgas(depsMantenimiento(db).purgas, 7, 3);
 
     expect(resultado.serviciosPurgados).toEqual([]);
     expect(await db.servicios.count()).toBe(2);

@@ -20,6 +20,7 @@ import {
   type DepsExportar,
   type DepsImportar,
 } from './respaldo';
+import { zipFflate } from '@/infrastructure/respaldo/zip';
 
 interface Dispositivo {
   readonly db: AppDB;
@@ -37,8 +38,14 @@ const crearDispositivo = async (id: string): Promise<Dispositivo> => {
     db,
     servicios,
     adjuntos,
-    exportar: { servicios, adjuntos, appVersion: '0.1.0', dispositivoId: async () => id },
-    importar: { servicios, uow: new UnidadDeTrabajoDexie(db, servicios, adjuntos) },
+    exportar: {
+      servicios,
+      adjuntos,
+      zip: zipFflate,
+      appVersion: '0.1.0',
+      dispositivoId: async () => id,
+    },
+    importar: { servicios, uow: new UnidadDeTrabajoDexie(db, servicios, adjuntos), zip: zipFflate },
   };
 };
 
