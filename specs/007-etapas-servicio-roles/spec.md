@@ -156,9 +156,9 @@ Como **usuario** quiero ver en Inicio cuántos servicios esperan mi acción, par
 
 ## 8. Aclaraciones
 
-| Fecha | Pregunta                                                                                                                                                               | Respuesta |
-| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| —     | [NECESITA ACLARACIÓN: ¿qué valores tiene la lista de diagnóstico? — por defecto: Reparable, Garantía, Sin falla, D. FINAL; la disposición final es "D. FINAL" (PA-01)] | —         |
-| —     | [NECESITA ACLARACIÓN: ¿qué datos lleva la cotización? — por defecto: fecha de envío, valor, respuesta y PDF opcional (PA-02)]                                          | —         |
-| —     | [NECESITA ACLARACIÓN: ¿qué pasa si el cliente rechaza la cotización? — por defecto: entrega sin reparación sin OT, luego facturación (PA-03)]                          | —         |
-| —     | [NECESITA ACLARACIÓN: ¿la observación técnica "verbal" requiere audio? — por defecto: no, texto con dictado del teclado (PA-13)]                                       | —         |
+| Fecha      | Pregunta                                                                                                                                                               | Respuesta                                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| —          | [NECESITA ACLARACIÓN: ¿qué valores tiene la lista de diagnóstico? — por defecto: Reparable, Garantía, Sin falla, D. FINAL; la disposición final es "D. FINAL" (PA-01)] | —                                                                                                             |
+| —          | [NECESITA ACLARACIÓN: ¿qué datos lleva la cotización? — por defecto: fecha de envío, valor, respuesta y PDF opcional (PA-02)]                                          | —                                                                                                             |
+| —          | [NECESITA ACLARACIÓN: ¿qué pasa si el cliente rechaza la cotización? — por defecto: entrega sin reparación sin OT, luego facturación (PA-03)]                          | —                                                                                                             |
+| 2026-11-16 | ¿La observación técnica "verbal" requiere audio? (PA-13)                                                                                                               | **No.** Se queda el texto con dictado del teclado; no hay notas de voz. Confirmado por el dueño del producto. |
