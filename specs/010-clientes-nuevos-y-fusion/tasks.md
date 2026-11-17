@@ -8,7 +8,7 @@
 ## Fase 1 — Preparación
 
 - [x] T001 Marcar la spec 010 como `En implementación` en `specs/README.md`
-- [ ] T002 **Spike S10** contra SharePoint real (`MineroIndustrial`): (a) crear en `Clientes` las columnas `ClienteGuid` y `NombreNormalizado` (texto, únicas, indexadas), `FusionadoConId` (número) y `CreadoDesdeApp` (Sí/No); (b) ¿la unicidad de una columna **de texto** es inmediata o llega tarde (como en `NumeroSolicitud`)?; (c) ¿se admiten varios valores vacíos en una columna única?; (d) filtrar `Servicios` por el lookup `Cliente` (`fields/ClienteLookupId eq N`); (e) `PATCH` de `ClienteLookupId` en un servicio; (f) consultar `Clientes` incluidos los `Activo = No`. Documentar en `docs/spikes/S10-clientes.md` y ajustar el plan si algo difiere. _Crea columnas en el sitio real: confirmar con el usuario antes de ejecutarlo_
+- [x] T002 **Spike S10** contra SharePoint real (`MineroIndustrial`): (a) crear en `Clientes` las columnas `ClienteGuid` y `NombreNormalizado` (texto, únicas, indexadas), `FusionadoConId` (número) y `CreadoDesdeApp` (Sí/No); (b) ¿la unicidad de una columna **de texto** es inmediata o llega tarde (como en `NumeroSolicitud`)?; (c) ¿se admiten varios valores vacíos en una columna única?; (d) filtrar `Servicios` por el lookup `Cliente` (`fields/ClienteLookupId eq N`); (e) `PATCH` de `ClienteLookupId` en un servicio; (f) consultar `Clientes` incluidos los `Activo = No`. Documentar en `docs/spikes/S10-clientes.md` y ajustar el plan si algo difiere. **Hecho** (`docs/spikes/S10-clientes.md`): la unicidad de texto es inmediata (se elimina la verificación posterior); el filtro por cliente exige indexar `Servicios.Cliente`
 - [x] T003 [P] Textos i18n: agregar cliente, sugerencia del existente, errores de nombre, página y diálogo de fusión, resumen, avisos — `src/locales/es-CO/servicios.json`, `tecnico.json`
 
 ## Fase 2 — Fundamentos (bloquean las historias)
@@ -16,13 +16,13 @@
 ### Pruebas
 
 - [ ] T004 [P] `normalizarNombre` («aris mining segovía» → `ARIS MINING SEGOVIA`), `tituloDeNombre` (conserva tildes), `validarNombre` (vacío, 101 caracteres), `resolverVigente` (cadena A→B→C, sin cambios, ciclo A→B→A se corta) — `src/domain/cliente.test.ts`
-- [ ] T005 [P] Esquema: `Clientes` con las 4 columnas nuevas (únicas e indexadas las dos de texto) y `LogSincronizacion.Detalle`; el aprovisionamiento corrige columnas existentes y **rellena `NombreNormalizado`** de los clientes que ya existen sin pisar los demás datos — `src/infrastructure/graph/provisionSharepointGraph.test.ts`
+- [ ] T005 [P] Esquema: `Clientes` con las 4 columnas nuevas (únicas e indexadas las dos de texto), `Servicios.Cliente` **indexada** y `LogSincronizacion.Detalle`; el aprovisionamiento corrige columnas existentes y **rellena `NombreNormalizado`** de los clientes que ya existen sin pisar los demás datos — `src/infrastructure/graph/provisionSharepointGraph.test.ts`
 
 ### Implementación
 
 - [ ] T006 Implementar `domain/cliente.ts` hasta pasar T004 — `src/domain/cliente.ts`
 - [ ] T007 Esquema y aprovisionamiento hasta pasar T005; permiso _Colaborar_ del grupo de técnicos sobre `Clientes` en el script PowerShell — `scripts/esquema-sharepoint.mjs`, `provision-sharepoint-graph.mjs`, `provision-sharepoint.ps1`
-- [ ] T008 [P] Emulador de Graph: lista `Clientes` con valor único (400 como el real) y retraso configurable, filtro de `Servicios` por `ClienteLookupId`, PATCH del lookup, ítems inactivos; con sus pruebas — `tests/fixtures/graph/emuladorGraph.ts`, `src/infrastructure/graph/emuladorGraph.clientes.int.test.ts`
+- [ ] T008 [P] Emulador de Graph: lista `Clientes` con valor único inmediato (400 como el real), filtro de `Servicios` por `ClienteLookupId`, PATCH del lookup, ítems inactivos; con sus pruebas — `tests/fixtures/graph/emuladorGraph.ts`, `src/infrastructure/graph/emuladorGraph.clientes.int.test.ts`
 - [ ] T009 [P] Puertos: `ClientesRemotos`, `Catalogos.fusionados` y `ClienteCatalogo.fusionadoCon`; el adaptador simulado — `src/application/ports/clientesRemotos.ts`, `remoteGateway.ts`, `src/infrastructure/graph/mockRemoteGateway.ts`
 
 ## Fase 3 — HU-010-1 Agregar un cliente nuevo al registrar un servicio (P1) 🎯 MVP
@@ -33,8 +33,8 @@
 
 - [ ] T010 [P] [HU-010-1] `agregarCliente`: sugiere el existente aunque cambien tildes, mayúsculas o espacios (ES-010-02); crea el pendiente con id negativo y guid (ES-010-01); no duplica entre pendientes; rechaza vacío y > 100 — `src/application/clientes/agregarCliente.int.test.ts`
 - [ ] T011 [P] [HU-010-1] El refresco del catálogo **conserva** `clientesNuevos` y guarda `clientesFusionados` (ES-010-05, regla 1 de CLAUDE.md) — `src/application/setup/refrescarCatalogosSync.test.ts`
-- [ ] T012 [P] [HU-010-1] `subirClientesNuevos`: crea el cliente (ES-010-03), es idempotente al reintentar, adopta el existente por nombre normalizado, sigue una fusión hasta el vigente, la verificación posterior desempata por id (ES-010-04), remapea los servicios (también los que ya tenían `sp` y `clienteId` sucio) y limpia el pendiente — `src/application/clientes/subirClientesNuevos.int.test.ts`
-- [ ] T013 [P] [HU-010-1] Motor con emulador: crea el cliente **antes** de los servicios; un servicio cuyo cliente sigue temporal no se sube y queda pendiente; dos dispositivos con el mismo cliente nuevo terminan con un solo cliente (con y sin retraso de unicidad) — `src/application/sync/SyncEngine.clientes.int.test.ts`
+- [ ] T012 [P] [HU-010-1] `subirClientesNuevos`: crea el cliente (ES-010-03), es idempotente al reintentar, adopta el existente por nombre normalizado, sigue una fusión hasta el vigente, un choque de valor único (400) adopta el cliente existente buscándolo por guid y por nombre normalizado (ES-010-04), remapea los servicios (también los que ya tenían `sp` y `clienteId` sucio) y limpia el pendiente — `src/application/clientes/subirClientesNuevos.int.test.ts`
+- [ ] T013 [P] [HU-010-1] Motor con emulador: crea el cliente **antes** de los servicios; un servicio cuyo cliente sigue temporal no se sube y queda pendiente; dos dispositivos con el mismo cliente nuevo terminan con un solo cliente — `src/application/sync/SyncEngine.clientes.int.test.ts`
 - [ ] T014 [P] [HU-010-1] Gateway + emulador: `buscarPorGuid`, `buscarPorNormalizado` (ordenado por id), `crearCliente` y su choque de valor único — `src/infrastructure/graph/sharepointGateway.clientes.int.test.ts`
 - [ ] T015 [P] [HU-010-1] El mapeador nunca escribe un `clienteId` ≤ 0 (ni en la creación ni como campo sucio) — `src/infrastructure/graph/mappers/servicioMapper.test.ts`
 - [ ] T016 [P] [HU-010-1] `CampoCliente`: ofrece «Agregar», sugiere el existente, el cliente pendiente aparece como uno más y se puede elegir en otro servicio; `useClientes` une remotos y pendientes — `CampoCliente.test.tsx`, `src/infrastructure/db/hooks.test.ts`
@@ -83,7 +83,7 @@
 
 ## Dependencias
 
-- T002 antes de T020, T030 (depende de lo que SharePoint real permita).
+- T002 (hecho) antes de T020, T030.
 - T004 → T006; T005 → T007; T008 y T009 antes de las pruebas de integración de la fase 3.
 - T018 → T021 → T022; T019 y T020 antes de T021.
 - La fase 4 depende de T020 y T022.
