@@ -70,7 +70,7 @@ export const siguienteNumero = (maximo: number | null | undefined): number => (m
 // application/ports/RemoteGatewayPush.ts
 ultimoNumeroSolicitud(): Promise<number>; // 0 si la lista está vacía
 contarPorNumeroSolicitud(numero: number): Promise<readonly { itemId: string }[]>; // ids ordenables
-renumerarServicio(itemId: string, numero: number): Promise<void>;
+renumerarServicio(itemId: string, numero: number, codigo: string): Promise<{ eTag?: string }>; // devuelve el eTag nuevo (el PATCH lo cambia)
 
 // application/sync/pushServicio.ts
 export interface ResultadoPushServicio { /* … */ readonly numeroSolicitud?: number; }

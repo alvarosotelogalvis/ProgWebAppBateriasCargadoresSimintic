@@ -26,8 +26,8 @@ test('sin conexión → recepciones → aviso al volver la red → sincronizar �
 
   // ES-005-21/23: sin red se captura igual; el contador muestra los pendientes.
   await context.setOffline(true);
-  const primero = await crearRecepcion(page, '701', 'SYNC-E2E-1');
-  const segundo = await crearRecepcion(page, '702', 'SYNC-E2E-2');
+  await crearRecepcion(page, 'SYNC-E2E-1');
+  await crearRecepcion(page, 'SYNC-E2E-2');
   await expect(page.getByRole('link', { name: /2\s*pendientes/i })).toBeVisible();
 
   // Al volver la conexión se ofrece sincronizar; nunca sincroniza solo.
@@ -61,9 +61,12 @@ test('sin conexión → recepciones → aviso al volver la red → sincronizar �
 
   // Badges de sync en la lista.
   await page.goto('/servicios');
-  for (const codigo of [primero, segundo]) {
-    await expect(page.getByRole('button', { name: new RegExp(codigo) })).toContainText(
+  for (const serie of ['SYNC-E2E-1', 'SYNC-E2E-2']) {
+    await expect(page.getByRole('button', { name: new RegExp(serie) })).toContainText(
       'Sincronizado'
     );
   }
+  // ES-011-02/04: al sincronizar cada servicio recibió el siguiente número, en el orden en que se registraron.
+  await expect(page.getByText('BAT-1-SYNC-E2E-1')).toBeVisible();
+  await expect(page.getByText('BAT-2-SYNC-E2E-2')).toBeVisible();
 });

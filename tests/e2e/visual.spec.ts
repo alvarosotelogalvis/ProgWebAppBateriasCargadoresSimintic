@@ -69,8 +69,8 @@ test('sincronizacion: confirmar, cola y resumen', async ({ page, browserName }) 
   test.skip(browserName === 'webkit', 'Playwright WebKit no soporta guardar Blob en IndexedDB');
   test.setTimeout(90_000);
 
-  await crearRecepcion(page, '801', 'VIS-1');
-  await crearRecepcion(page, '802', 'VIS-2');
+  await crearRecepcion(page, 'VIS-1');
+  await crearRecepcion(page, 'VIS-2');
 
   // Confirmar (referencia 09) + cola (referencia 07) con pendientes.
   await page.goto('/sincronizacion');

@@ -199,7 +199,7 @@ test.describe('CSP real (public/_headers) — spike S8', () => {
 
     await paso(page, 'recepción');
     // Recepción: comboboxes (popover de React Aria), fechas, foto (canvas, blob:) y miniaturas.
-    await crearRecepcion(page, '901', 'CSP-1');
+    await crearRecepcion(page, 'CSP-1');
 
     await paso(page, 'filtros');
     // Lista: filtros (selects con popover, chips de fecha).
@@ -211,9 +211,9 @@ test.describe('CSP real (public/_headers) — spike S8', () => {
 
     await paso(page, 'detalle');
     // Detalle del servicio.
-    await page.getByText('BAT-901-CSP-1').first().click();
+    await page.getByText('BAT-PEND-CSP-1').first().click();
     await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+$/);
-    await expect(page.getByText('BAT-901-CSP-1').first()).toBeVisible();
+    await expect(page.getByText('BAT-PEND-CSP-1').first()).toBeVisible();
 
     await paso(page, 'menú técnico');
     // Menú técnico: pestañas, diálogos de respaldo y de liberar espacio.

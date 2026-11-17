@@ -31,21 +31,21 @@
 
 ### Pruebas
 
-- [ ] T010 [P] [HU-011-1] `pushServicio`: asigna máximo+1 (ES-011-02), empieza en 1 (ES-011-03), adopta el número del ítem ya existente (ES-011-06), reintenta ante choque de número y agota los intentos con error reintentable (ES-011-05), **y la verificación posterior: si tras crear hay otro ítem con el mismo número, gana el de menor id y el otro se renumera** — `src/application/sync/pushServicio.numero.int.test.ts`
-- [ ] T011 [P] [HU-011-1] Motor: dos pendientes reciben consecutivos en el orden registrado (ES-011-04); un corte tras asignar conserva el número (ES-011-06); el servicio queda con código definitivo — `src/application/sync/SyncEngine.numero.int.test.ts`
-- [ ] T012 [P] [HU-011-1] Gateway + emulador: `ultimoNumeroSolicitud` (0 si vacío) y distinción entre choque de `ServicioId` y de `NumeroSolicitud` — `src/infrastructure/graph/sharepointGateway.numero.int.test.ts`
-- [ ] T013 [P] [HU-011-1] Buscador: encuentra un servicio pendiente por serie y no indexa «0» (ES-011-09); advertencia por serie repetida en servicios no finales — `src/application/servicios/buscarServicios.test.ts`
-- [ ] T014 [P] [HU-011-1] Componentes: el formulario no tiene campo de número (ES-011-01); el detalle muestra «Pendiente» y luego el número, sin edición (ES-011-08); `camposCorregibles` sin `numeroSolicitud` — `FormRecepcion.test.tsx`, `DetalleServicioPage.test.tsx`, `camposCorregibles.test.ts`
+- [x] T010 [P] [HU-011-1] `pushServicio`: asigna máximo+1 (ES-011-02), empieza en 1 (ES-011-03), adopta el número del ítem ya existente (ES-011-06), reintenta ante choque de número y agota los intentos con error reintentable (ES-011-05), **y la verificación posterior: si tras crear hay otro ítem con el mismo número, gana el de menor id y el otro se renumera** — `src/application/sync/pushServicio.numero.int.test.ts`
+- [x] T011 [P] [HU-011-1] Motor: dos pendientes reciben consecutivos en el orden registrado (ES-011-04); un corte tras asignar conserva el número (ES-011-06); el servicio queda con código definitivo — `src/application/sync/SyncEngine.numero.int.test.ts`
+- [x] T012 [P] [HU-011-1] Gateway + emulador: `ultimoNumeroSolicitud` (0 si vacío) y distinción entre choque de `ServicioId` y de `NumeroSolicitud` — `src/infrastructure/graph/sharepointGateway.numero.int.test.ts`
+- [x] T013 [P] [HU-011-1] Buscador: encuentra un servicio pendiente por serie y no indexa «0» (ES-011-09); advertencia por serie repetida en servicios no finales — `src/application/servicios/buscarServicios.test.ts`
+- [x] T014 [P] [HU-011-1] Componentes: el formulario no tiene campo de número (ES-011-01); el detalle muestra «Pendiente» y luego el número, sin edición (ES-011-08); `camposCorregibles` sin `numeroSolicitud` — `FormRecepcion.test.tsx`, `DetalleServicioPage.test.tsx`, `camposCorregibles.test.ts`
 
 ### Implementación
 
-- [ ] T015 [HU-011-1] Puerto `ultimoNumeroSolicitud` y `contarPorNumeroSolicitud`/`renumerarServicio`, adaptador (`sharepointGateway`) con `SP_NUMERO_DUPLICADO` — `src/application/ports/RemoteGatewayPush.ts`, `src/infrastructure/graph/sharepointGateway.ts`
-- [ ] T016 [HU-011-1] `pushServicio`: asignación, reintento acotado con pausa inyectable, adopción del número existente y verificación posterior — `src/application/sync/pushServicio.ts`
-- [ ] T017 [HU-011-1] Motor: `fusionarConLaBase` guarda `numeroSolicitud`, `codigo` y `base` — `src/application/sync/SyncEngine.ts`
-- [ ] T018 [P] [HU-011-1] Mapeadores: la creación omite `NumeroSolicitud = 0` y recalcula `Title` — `src/infrastructure/graph/mappers/servicioMapper.ts`
-- [ ] T019 [P] [HU-011-1] Buscador y duplicados por serie — `src/application/servicios/buscarServicios.ts`, `EtapaRecepcionPage.tsx`
-- [ ] T020 [HU-011-1] UI: quitar el campo del formulario, «Pendiente» en el detalle y sacar el campo de las correcciones — `FormRecepcion.tsx`, `DetalleServicioPage.tsx`, `camposCorregibles.ts`
-- [ ] T021 [P] [HU-011-1] Esquema y aprovisionamiento: `NumeroSolicitud` única; el script la aplica también a una columna ya existente (PATCH), avisa si hay repetidos y verifica la unicidad por comportamiento (no solo por `enforceUniqueValues`) — `scripts/esquema-sharepoint.mjs`, `scripts/provision-sharepoint-graph.mjs` (+ su prueba)
+- [x] T015 [HU-011-1] Puerto `ultimoNumeroSolicitud` y `contarPorNumeroSolicitud`/`renumerarServicio`, adaptador (`sharepointGateway`) con `SP_NUMERO_DUPLICADO` — `src/application/ports/RemoteGatewayPush.ts`, `src/infrastructure/graph/sharepointGateway.ts`
+- [x] T016 [HU-011-1] `pushServicio`: asignación, reintento acotado con pausa inyectable, adopción del número existente y verificación posterior — `src/application/sync/pushServicio.ts`
+- [x] T017 [HU-011-1] Motor: `fusionarConLaBase` guarda `numeroSolicitud`, `codigo` y `base` — `src/application/sync/SyncEngine.ts`
+- [x] T018 [P] [HU-011-1] Mapeadores: la creación omite `NumeroSolicitud = 0` y recalcula `Title` — `src/infrastructure/graph/mappers/servicioMapper.ts`
+- [x] T019 [P] [HU-011-1] Buscador y duplicados por serie — `src/application/servicios/buscarServicios.ts`, `EtapaRecepcionPage.tsx`
+- [x] T020 [HU-011-1] UI: quitar el campo del formulario, «Pendiente» en el detalle y sacar el campo de las correcciones — `FormRecepcion.tsx`, `DetalleServicioPage.tsx`, `camposCorregibles.ts`
+- [x] T021 [P] [HU-011-1] Esquema y aprovisionamiento: `NumeroSolicitud` única; el script la aplica también a una columna ya existente (PATCH), avisa si hay repetidos y verifica la unicidad por comportamiento (no solo por `enforceUniqueValues`) — `scripts/esquema-sharepoint.mjs`, `scripts/provision-sharepoint-graph.mjs` (+ su prueba)
 
 **Punto de control**: ES-011-01 a ES-011-09 en verde con el emulador.
 
