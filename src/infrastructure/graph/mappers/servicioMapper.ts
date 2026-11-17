@@ -1,4 +1,5 @@
-﻿import type { CamposServicio, Servicio } from '@/domain/servicio';
+﻿import { esPendiente } from '@/domain/sync/numeroSolicitud';
+import type { CamposServicio, Servicio } from '@/domain/servicio';
 
 import {
   VALOR_COTIZACION_ESTADO,
@@ -113,6 +114,8 @@ export function aCamposSP(
     const clave = campo as keyof CamposServicio;
     if (camposSucios !== undefined && !camposSucios.includes(clave)) continue;
     const valor = servicio[clave];
+    // Pendiente (0): el número lo asigna la subida; nunca se escribe un 0 en SharePoint (ADR-0024).
+    if (clave === 'numeroSolicitud' && esPendiente(Number(valor))) continue;
     if (valor === undefined) {
       // Un campo sucio sin valor es un campo que se vació: se envía `null` para limpiar la columna.
       if (camposSucios !== undefined) campos[columna] = null;
