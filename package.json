@@ -20,8 +20,9 @@
     "test:live": "vitest run --config vitest.live.config.ts",
     "test:ps-provision": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pruebas/provision-sharepoint.simulado.ps1",
     "verify": "npm run lint && npm run typecheck && npm run check:build-mock && npm run test -- --run",
-    "deploy:dev": "wrangler pages deploy dist --project-name st-bc-dev",
-    "deploy:prod": "wrangler pages deploy dist --project-name st-bc-prod",
+    "deploy:dev": "npm run verify && npm run build:dev && wrangler pages deploy dist --project-name st-bc-dev --branch dev",
+    "deploy:prueba": "npm run verify && npm run build && npm run bundle:medir && wrangler pages deploy dist --project-name st-bc-prod --branch prueba",
+    "deploy:prod": "npm run verify && npm run build && npm run bundle:medir && wrangler pages deploy dist --project-name st-bc-prod --branch main",
     "release": "commit-and-tag-version",
     "prepare": "husky"
   },
