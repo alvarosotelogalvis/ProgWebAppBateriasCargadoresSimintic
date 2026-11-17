@@ -804,7 +804,7 @@ export class AppError extends Error {
 
 ```
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' blob: data: https://*.sharepoint.com https://*.svc.ms; connect-src 'self' https://login.microsoftonline.com https://graph.microsoft.com https://*.sharepoint.com; frame-src https://login.microsoftonline.com; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self' https://login.microsoftonline.com; frame-ancestors 'none'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' blob: data: https://*.sharepoint.com https://*.svc.ms; connect-src 'self' https://login.microsoftonline.com https://graph.microsoft.com https://*.sharepoint.com https://*.svc.ms; frame-src https://login.microsoftonline.com; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self' https://login.microsoftonline.com; frame-ancestors 'none'; object-src 'none'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
