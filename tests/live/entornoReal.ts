@@ -8,6 +8,17 @@ import type { RemoteGatewayPush } from '@/application/ports/RemoteGatewayPush';
 import type { LockSync } from '@/application/ports/syncLock';
 import { crearListarAdjuntosRemotos } from '@/application/adjuntos/listarAdjuntosRemotos';
 import { crearDescargarMiniaturas } from '@/application/sync/descargarMiniaturas';
+import { crearClientesLocales, type ClientesLocales } from '@/application/clientes/clientesLocales';
+import {
+  crearFusionarClientes,
+  type OpcionesFusion,
+  type ResultadoFusion,
+} from '@/application/clientes/fusionarClientes';
+import { crearPrepararClientes } from '@/application/clientes/prepararClientes';
+import { crearRemapearFusionados } from '@/application/clientes/remapearFusionados';
+import { crearSubirClientesNuevos } from '@/application/clientes/subirClientesNuevos';
+import type { ClientesRemotos } from '@/application/ports/clientesRemotos';
+import { refrescarCatalogosRemotos } from '@/application/setup/refrescarCatalogosSync';
 import { crearDespuesDelPush } from '@/application/sync/despuesDelPush';
 import { EventBusSync, type ResumenSync } from '@/application/sync/eventosSync';
 import { crearPullServicios } from '@/application/sync/pullServicios';
@@ -75,6 +86,15 @@ const lockDirecto: LockSync = async (_clave, fn) => ({ adquirido: true, valor: a
 
 export interface DispositivoReal {
   readonly nombre: string;
+  /** Clientes creados sin red que aún no están en SharePoint (spec 010). */
+  readonly clientesLocales: ClientesLocales;
+  /** El mismo gateway real, visto como puerto de clientes. */
+  readonly clientesRemotos: ClientesRemotos;
+  /** Fusión de clientes con el puerto real; `envolver` permite simular un corte. */
+  readonly fusionar: (
+    opciones: OpcionesFusion,
+    envolver?: (clientes: ClientesRemotos) => ClientesRemotos
+  ) => Promise<ResultadoFusion>;
   readonly db: AppDB;
   readonly servicios: ServicioRepositoryDexie;
   readonly adjuntos: AdjuntoRepositoryDexie;
@@ -157,6 +177,30 @@ export async function crearDispositivoReal(opciones: {
     config: () => config,
   });
 
+  const clientesLocales = crearClientesLocales(catalogos);
+  const remapearFusionados = crearRemapearFusionados({ catalogos, servicios, logger });
+  const refrescarCatalogos = () => refrescarCatalogosRemotos({ gateway, catalogos, logger });
+  const subirClientesNuevos = crearSubirClientesNuevos({
+    clientesRemotos: gateway,
+    clientesLocales,
+    catalogos,
+    servicios,
+    logger,
+  });
+  const fusionar = (
+    opciones: OpcionesFusion,
+    envolver?: (clientes: ClientesRemotos) => ClientesRemotos
+  ): Promise<ResultadoFusion> =>
+    crearFusionarClientes({
+      clientesRemotos: envolver ? envolver(gateway) : gateway,
+      logger,
+      cuentaActiva: () => auth.cuentaActiva(),
+      refrescarCatalogos: async () => {
+        await refrescarCatalogos();
+        await remapearFusionados();
+      },
+    })(opciones);
+
   const bus = new EventBusSync();
   const motor = new MotorSync({
     servicios,
@@ -171,6 +215,11 @@ export async function crearDispositivoReal(opciones: {
     appVersion: '0.1.0',
     lock: lockDirecto,
     bus,
+    antesDelPush: crearPrepararClientes({
+      refrescarCatalogos,
+      remapearFusionados,
+      subirClientesNuevos,
+    }),
     usuario: () => auth.cuentaActiva()?.correo,
     despuesDelPush: crearDespuesDelPush({
       gateway,
@@ -188,6 +237,9 @@ export async function crearDispositivoReal(opciones: {
   let secuencia = 0;
   return {
     nombre: opciones.nombre,
+    clientesLocales,
+    clientesRemotos: gateway,
+    fusionar,
     db,
     servicios,
     adjuntos,
