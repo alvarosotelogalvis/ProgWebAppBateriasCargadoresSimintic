@@ -146,7 +146,7 @@ Si algún paso falla: mensaje del error y botón Reintentar. No se puede avanzar
 - **Campo cliente**: `ComboboxField` con autocompletado desde el catálogo local, sin texto libre. Si el cliente no existe: texto de ayuda "¿No está el cliente? Pide a un administrador que lo agregue en SharePoint y sincroniza".
 - **Campo marca**: `ComboboxField` con texto libre que se normaliza a MAYÚSCULAS.
 - **Referencia y serie**: se normalizan mientras se escribe. Teclado `inputMode="text"` con `autoCapitalize="characters"`.
-- **Número de solicitud**: `inputMode="numeric"`, `pattern="[0-9]*"`.
+- **Número de solicitud**: no es un campo. El formulario muestra el aviso «El número de solicitud se asigna solo cuando el servicio se sincroniza» y el detalle muestra «Pendiente» hasta entonces (ADR-0024).
 - **Fechas**: `DateChip` + `Calendar` (estilo de la referencia 08) con validación de rango.
 - **Diagnóstico**: `SelectField` con los valores de SharePoint. Si se elige el valor DF, aparecen los campos de disposición final y el aviso "Se cerrará el registro sin reparación".
 - **Moneda**: entrada numérica con formato COP al perder el foco.

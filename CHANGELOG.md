@@ -7,6 +7,13 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Número de solicitud automático** (spec 011, ADR-0024): el formulario ya no lo pide. Al sincronizar la app lee el mayor número en SharePoint y asigna el siguiente (uno por equipo); mientras tanto el servicio muestra «Pendiente» y su código usa `PEND` (`BAT-PEND-NV4520`). Reemplaza la decisión PA-07 del PRD.
+- **Verificación posterior de la numeración**: como la unicidad de SharePoint llega tarde y no es fiable (spike S9), tras crear el ítem la app comprueba si otro tiene el mismo número y, si lo tiene, el de menor id conserva el número y el otro se renumera. Probado contra SharePoint real con dos dispositivos a la vez.
+- `NumeroSolicitud` ya no se puede editar ni corregir desde la app; el buscador no indexa el «0» de pendiente; el aviso de duplicados compara por serie.
+- El script de aprovisionamiento ahora corrige con PATCH una columna existente sin índice (`NumeroSolicitud`).
+
 ### Removed
 
 - Textos i18n sin uso (`config.json`, «proximamente») y los campos `editor`/`editorNombre` del cambio remoto: el delta de SharePoint no trae `lastModifiedBy`, así que nunca se llenaban ni se mostraban.

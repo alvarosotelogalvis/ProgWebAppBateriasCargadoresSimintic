@@ -26,7 +26,7 @@
       "titulo": "Etapas de un servicio y quién las hace",
       "cuerpo": "Cada servicio avanza por etapas. En su detalle verás el botón de la etapa que te corresponde según tu rol; si le toca a otro rol, la línea de tiempo indica «Pendiente de…».",
       "pasos": [
-        "Recepción (Técnico): registra cliente, equipo y al menos una foto de ingreso. Al completarla el servicio pasa a Recibido.",
+        "Recepción (Técnico): registra cliente, equipo y al menos una foto de ingreso. Al completarla el servicio pasa a Recibido. El número de solicitud no se escribe: se asigna solo al sincronizar; hasta entonces verás «Pendiente» y un código con PEND (por ejemplo BAT-PEND-NV4520) que cambia al recibir el número.",
         "Diagnóstico (Técnico): elige el diagnóstico, escribe la observación y adjunta el PDF del formato. El servicio pasa a Diagnosticado.",
         "Disposición final (Técnico): si el diagnóstico es «D. FINAL», indica la fecha en que se informó al cliente y adjunta el PDF de disposición final. El servicio se cierra sin más etapas.",
         "Cotización (Comercial): registra la fecha de envío, el valor y, si lo tienes, el PDF. El servicio pasa a Cotizado.",

@@ -20,7 +20,7 @@ Hoy quien llena el servicio digita el número de solicitud. El usuario quiere qu
 - El formulario **ya no pide** el número de solicitud. Mientras el servicio no se ha sincronizado muestra **«Pendiente»**.
 - Al subir un servicio nuevo, la app **lee el mayor número existente** en SharePoint en ese momento y asigna **el siguiente** (máximo + 1). Si no hay ninguno, empieza en 1.
 - **Un número por servicio (equipo)**. Dos equipos de la misma visita reciben números distintos.
-- **Unicidad y concurrencia**: dos dispositivos pueden leer el mismo máximo a la vez. Por eso `NumeroSolicitud` pasa a ser **valor único** en SharePoint. Si la escritura falla por valor único, la app **vuelve a leer el máximo y reintenta** (acotado, con espera aleatoria). Es el mismo patrón de idempotencia del ADR-0010.
+- **Unicidad y concurrencia**: dos dispositivos pueden leer el mismo máximo a la vez. El valor único de SharePoint **no es fiable** en esta columna (spike S9: acepta duplicados durante varios segundos y Graph no refleja el ajuste). La garantía es una **verificación posterior** de la app: tras crear el ítem cuenta los que tienen ese número; el de menor id de ítem lo conserva y los demás toman el máximo + 1 (acotado a 5 intentos, con espera aleatoria). Si SharePoint sí rechaza un duplicado (400), la app relee el máximo y reintenta. Es el mismo espíritu de idempotencia del ADR-0010.
 - **Idempotencia**: si el servicio ya tiene número (reintento tras un corte), **no se reasigna**; se conserva el que quedó en SharePoint.
 - **Código visible**: `{BAT|CAR}-{numero}-{serie}` se calcula al recibir el número. Antes de eso el código usa `PEND` en lugar del número (`BAT-PEND-{serie}`) y se actualiza al sincronizar.
 - Los servicios ya existentes con número digitado conservan su número. El siguiente consecutivo parte del mayor existente.
@@ -30,7 +30,7 @@ Hoy quien llena el servicio digita el número de solicitud. El usuario quiere qu
 
 - **Positivas**: numeración consecutiva y sin errores de digitación; el técnico captura menos datos.
 - **Negativas**: el número no existe hasta sincronizar, y el código visible cambia en ese momento (una etiqueta impresa antes mostraría `PEND`). Ya no hay varios equipos con el mismo número de solicitud.
-- **Riesgos**: carrera entre dispositivos (mitigada con valor único + reintento); si se elimina en SharePoint el servicio con el número más alto, ese número puede volver a asignarse (se toma el máximo vigente); se acepta y se documenta.
+- **Riesgos**: carrera entre dispositivos (mitigada con la verificación posterior y el reintento); si se elimina en SharePoint el servicio con el número más alto, ese número puede volver a asignarse (se toma el máximo vigente); se acepta y se documenta.
 
 ## Cumplimiento / verificación
 

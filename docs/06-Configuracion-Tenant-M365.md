@@ -170,7 +170,7 @@ _Configuración de la lista_:
 
 - _Versiones_: crear una versión cada vez que se edite = Sí, conservar 50.
 - _Avanzada_: datos adjuntos = **Deshabilitado**.
-- _Columnas indizadas_: `Estado`, `SerieEquipo`, `NumeroSolicitud`, `ProyeccionVidaUtil`, `Modified` (`ServicioId` ya queda indexada por ser única).
+- _Columnas indizadas_: `Estado`, `SerieEquipo`, `NumeroSolicitud`, `ProyeccionVidaUtil`, `Modified` (`ServicioId` ya queda indexada por ser única). `NumeroSolicitud` debe estar indexada: la app lee el mayor con `$orderby` y cuenta por número. **No hace falta (ni sirve) marcarla como única**: SharePoint no lo garantiza con fiabilidad en esta columna (spike S9); la unicidad la asegura la app.
 
 **Lista `Clientes`**: `Title` (Nombre), `NIT` (texto), `Activo` (Sí/No, predeterminado Sí), `CorreoContacto` (texto). Datos: NAVAR ASOCIADOS, ARIS MINING SEGOVIA, ARIS MINING MARMATO.
 

@@ -39,3 +39,14 @@ Esto no necesita bloqueos ni backend y es determinista: ambos dispositivos llega
 - Aplicar `indexed` y `enforceUniqueValues` también a una columna ya existente (PATCH), sin confiar solo en la creación.
 - Verificar la unicidad por **comportamiento** (intentar un duplicado y esperar el 400, con reintento), no solo leyendo `enforceUniqueValues`, que se actualiza tarde.
 - Estado actual en `MineroIndustrial`: la columna `NumeroSolicitud` quedó **indexada y única** (aplicado durante este spike).
+
+## Actualización (2026-11-16): la unicidad de SharePoint no es fiable en esta columna
+
+Al repetir las pruebas durante la implementación:
+
+- Un duplicado se aceptó **8 s** después de crear el primer ítem (y otro a 0,9 s); se rechazó solo en intentos posteriores, cuando ya existían dos ítems con ese número.
+- Graph reporta `enforceUniqueValues: false` para `NumeroSolicitud` aunque se haya hecho el PATCH a `true`; el valor cambia entre lecturas.
+
+**Conclusión**: no se puede apoyar la numeración en el valor único de SharePoint, ni siquiera como barrera principal. La garantía es la **verificación posterior** de la app (el ítem de menor id conserva el número; los demás se renumeran). Se comprobó contra el sitio real con dos dispositivos subiendo 5 servicios a la vez: en una de las pruebas hubo un choque real, la verificación lo resolvió y los 10 números quedaron únicos y consecutivos.
+
+**Cambios derivados**: el esquema deja `NumeroSolicitud` solo indexada (sin `unico`) y el aprovisionamiento ya no la marca como única, para no generar alarmas falsas ni PATCH repetidos. El `PATCH` a la columna sigue sirviendo para indexarla si existía sin índice.
