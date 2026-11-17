@@ -1,5 +1,6 @@
 import type { AuthPort } from '@/application/ports/authPort';
 import type { StoragePort } from '@/application/ports/storagePort';
+import type { ClientesRemotos } from '@/application/ports/clientesRemotos';
 import type { RemoteGatewayPush } from '@/application/ports/RemoteGatewayPush';
 import type { LockSync } from '@/application/ports/syncLock';
 import type { Uploader } from '@/application/ports/UploaderPort';
@@ -13,6 +14,8 @@ import {
 } from '@/application/sync/descargarMiniaturas';
 import { crearDespuesDelPush } from '@/application/sync/despuesDelPush';
 import { EventBusSync, type EventoSync, type ResumenSync } from '@/application/sync/eventosSync';
+import { crearClientesLocales, type ClientesLocales } from '@/application/clientes/clientesLocales';
+import { crearSubirClientesNuevos } from '@/application/clientes/subirClientesNuevos';
 import { crearPullServicios, type PullServicios } from '@/application/sync/pullServicios';
 import { crearResolutorConflicto412 } from '@/application/sync/resolverConflicto412';
 import { MotorSync } from '@/application/sync/SyncEngine';
@@ -57,6 +60,8 @@ export interface OpcionesEntornoSync {
   readonly reintentosPorLlamada?: number;
   readonly dormir?: (ms: number) => Promise<void>;
   readonly envolverUploader?: (uploader: Uploader) => Uploader;
+  /** Envuelve el puerto de clientes (p. ej. para hacer fallar solo el alta de un cliente). */
+  readonly envolverClientesRemotos?: (clientes: ClientesRemotos) => ClientesRemotos;
   readonly lock?: LockSync;
   readonly config?: ConfigApp;
   readonly appVersion?: string;
@@ -80,6 +85,10 @@ export interface EntornoSync {
   readonly bus: EventBusSync;
   readonly eventos: EventoSync[];
   readonly gateway: RemoteGatewayPush;
+  /** El mismo gateway, visto como puerto de clientes (spec 010). */
+  readonly clientesRemotos: ClientesRemotos;
+  /** Clientes creados sin red que aún no están en SharePoint. */
+  readonly clientesLocales: ClientesLocales;
   readonly uploader: Uploader;
   readonly catalogos: CatalogoRepositoryDexie;
   readonly pull: PullServicios;
@@ -191,6 +200,15 @@ export async function crearEntornoSync(opciones: OpcionesEntornoSync = {}): Prom
     config: () => config,
   });
 
+  const clientesLocales = crearClientesLocales(catalogos);
+  const subirClientesNuevos = crearSubirClientesNuevos({
+    clientesRemotos: opciones.envolverClientesRemotos?.(gatewayReal) ?? gatewayReal,
+    clientesLocales,
+    catalogos,
+    servicios,
+    logger,
+  });
+
   const engine = new MotorSync({
     servicios,
     adjuntos,
@@ -208,6 +226,9 @@ export async function crearEntornoSync(opciones: OpcionesEntornoSync = {}): Prom
     appVersion: opciones.appVersion ?? '0.1.0',
     lock: opciones.lock ?? lockDirecto,
     bus,
+    antesDelPush: async () => {
+      await subirClientesNuevos();
+    },
     usuario: () => auth.cuentaActiva()?.correo,
     ...(opciones.conPull
       ? {
@@ -248,6 +269,8 @@ export async function crearEntornoSync(opciones: OpcionesEntornoSync = {}): Prom
     bus,
     eventos,
     gateway,
+    clientesRemotos: gatewayReal,
+    clientesLocales,
     uploader,
     catalogos,
     pull,

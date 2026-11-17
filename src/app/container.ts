@@ -12,6 +12,10 @@ import type { StoragePort } from '@/application/ports/storagePort';
 import type { Uploader } from '@/application/ports/UploaderPort';
 import type { CasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearCasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
+import { crearAgregarCliente } from '@/application/clientes/agregarCliente';
+import { crearClientesLocales, type ClientesLocales } from '@/application/clientes/clientesLocales';
+import { crearSubirClientesNuevos } from '@/application/clientes/subirClientesNuevos';
+import type { ClientesRemotos } from '@/application/ports/clientesRemotos';
 import {
   crearListarAdjuntosRemotos,
   type ListarAdjuntosRemotos,
@@ -69,8 +73,16 @@ import { IntencionSyncSessionStorage } from '@/infrastructure/sync/intencionSync
 import { obtenerEnv, type Entorno } from '@/shared/env';
 import { useSesionStore } from '@/shared/stores/sesionStore';
 
-/** El gateway de SharePoint sirve a la subida (spec 005) y a la descarga (spec 006). */
-export type GatewayRemoto = RemoteGatewayPush & RemoteGatewayPull;
+/**
+ * El gateway de SharePoint sirve a la subida (spec 005), a la descarga (spec 006) y, si lo implementa, a los
+ * clientes nuevos y su fusión (spec 010). Los gateways de prueba pueden no implementarlo.
+ */
+export type GatewayRemoto = RemoteGatewayPush & RemoteGatewayPull & Partial<ClientesRemotos>;
+
+const esClientesRemotos = (gateway: GatewayRemoto): gateway is GatewayRemoto & ClientesRemotos =>
+  typeof gateway.crearCliente === 'function' &&
+  typeof gateway.listarClientes === 'function' &&
+  typeof gateway.buscarPorGuid === 'function';
 
 export interface DependenciasContainer {
   db?: AppDB;
@@ -105,6 +117,9 @@ export interface Container {
   appVersion: string;
   config: () => ConfigApp;
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
+  /** Clientes creados sin red que aún no están en SharePoint (spec 010). */
+  clientesLocales: ClientesLocales;
+  casosClientes: { agregarCliente: ReturnType<typeof crearAgregarCliente> };
   casosAdjuntos: CasosDeUsoAdjuntos;
   listarAdjuntosRemotos: ListarAdjuntosRemotos;
 }
@@ -184,6 +199,19 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
   };
 
   const casosDeUso = crearCasosDeUso(depsServicios);
+  const clientesLocales = crearClientesLocales(catalogos);
+  const casosClientes = {
+    agregarCliente: crearAgregarCliente({ catalogos, clientesLocales, ids, clock, logger }),
+  };
+  const subirClientesNuevos = esClientesRemotos(gateway)
+    ? crearSubirClientesNuevos({
+        clientesRemotos: gateway,
+        clientesLocales,
+        catalogos,
+        servicios,
+        logger,
+      })
+    : undefined;
   const casosAdjuntos = crearCasosDeUsoAdjuntos({
     ...depsServicios,
     imageProcessor: new ImageProcessorCanvas(),
@@ -243,6 +271,13 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     appVersion,
     lock: conLockSync,
     bus: eventosSync,
+    ...(subirClientesNuevos
+      ? {
+          antesDelPush: async () => {
+            await subirClientesNuevos();
+          },
+        }
+      : {}),
     despuesDelPush,
     resolutorConflictos,
     ...(deps.config
@@ -290,6 +325,8 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     appVersion,
     config,
     casosDeUso,
+    clientesLocales,
+    casosClientes,
     casosAdjuntos,
     listarAdjuntosRemotos,
   };
