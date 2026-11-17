@@ -30,6 +30,8 @@ vi.mock('./RestablecerAppDialog', () => ({
 }));
 const reintentarErrores = vi.hoisted(() => vi.fn());
 vi.mock('@/application/mantenimiento/reintentarErrores', () => ({ reintentarErrores }));
+const navegar = vi.hoisted(() => vi.fn());
+vi.mock('react-router-dom', () => ({ useNavigate: () => navegar }));
 vi.mock('@/shared/hooks/useDb', () => ({ useDb: () => ({}) }));
 
 beforeEach(() => {
@@ -65,6 +67,14 @@ describe('MenuTecnicoPage', () => {
     fireEvent.click(screen.getByRole('button', { name: boton }));
 
     expect(screen.getByTestId(dialogo)).toBeInTheDocument();
+  });
+
+  it('ofrece la gestión de clientes y lleva a su pantalla (spec 010)', () => {
+    render(<MenuTecnicoPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clientes' }));
+
+    expect(navegar).toHaveBeenCalledWith('/tecnico/clientes');
   });
 
   it('ofrece restablecer solo cuando se le da la acción', () => {

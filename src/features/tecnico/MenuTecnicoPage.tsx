@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { reintentarErrores } from '@/application/mantenimiento/reintentarErrores';
 import { useDb } from '@/shared/hooks/useDb';
@@ -30,6 +31,7 @@ interface Props {
 export function MenuTecnicoPage({ onRestablecerApp }: Props): React.JSX.Element {
   const { t } = useTranslation('tecnico');
   const db = useDb();
+  const navegar = useNavigate();
   const [dialogo, setDialogo] = useState<DialogoAbierto>(null);
   const cerrar = (): void => setDialogo(null);
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'peligro'; texto: string } | null>(null);
@@ -89,6 +91,13 @@ export function MenuTecnicoPage({ onRestablecerApp }: Props): React.JSX.Element 
           </SecondaryButton>
           <SecondaryButton onPress={() => setDialogo('liberar')}>
             {t('liberar_espacio')}
+          </SecondaryButton>
+        </Card>
+
+        <Card>
+          <h2>{t('clientes.titulo')}</h2>
+          <SecondaryButton onPress={() => navegar('/tecnico/clientes')}>
+            {t('clientes.titulo')}
           </SecondaryButton>
         </Card>
 

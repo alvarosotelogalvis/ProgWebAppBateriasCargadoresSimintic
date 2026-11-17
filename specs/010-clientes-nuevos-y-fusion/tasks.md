@@ -60,16 +60,16 @@
 
 ### Pruebas
 
-- [ ] T027 [P] [HU-010-2] `fusionarClientes`: reasigna todo y conserva el origen inactivo con `FusionadoConId` (ES-010-06); un corte a mitad se repite y termina sin duplicar (ES-010-07); rechaza origen = destino, destino ya fusionado (sigue la cadena) y sin rol Administrador; con sesión sin red no hace nada (ES-010-10); registra el detalle en la bitácora — `src/application/clientes/fusionarClientes.int.test.ts`
-- [ ] T028 [P] [HU-010-2] `remapearFusionados`: cambia al vigente los servicios pendientes sin `sp` y con `clienteId` sucio sin perder ningún dato (ES-010-08); no toca los sincronizados — `src/application/clientes/remapearFusionados.test.ts`
-- [ ] T029 [P] [HU-010-2] `ClientesPage`: solo la ve el Administrador (ES-010-09), elige origen y destino, confirma en un diálogo accesible, muestra avance y resumen y errores — `src/features/tecnico/ClientesPage.test.tsx`
+- [x] T027 [P] [HU-010-2] `fusionarClientes`: reasigna todo y conserva el origen inactivo con `FusionadoConId` (ES-010-06); un corte a mitad se repite y termina sin duplicar (ES-010-07); rechaza origen = destino, destino ya fusionado (sigue la cadena) y sin rol Administrador; con sesión sin red no hace nada (ES-010-10); registra el detalle en la bitácora — `src/application/clientes/fusionarClientes.int.test.ts`
+- [x] T028 [P] [HU-010-2] `remapearFusionados`: cambia al vigente los servicios pendientes sin `sp` y con `clienteId` sucio sin perder ningún dato (ES-010-08); no toca los sincronizados — `src/application/clientes/remapearFusionados.test.ts`
+- [x] T029 [P] [HU-010-2] `ClientesPage`: solo la ve el Administrador (ES-010-09), elige origen y destino, confirma en un diálogo accesible, muestra avance y resumen y errores — `src/features/tecnico/ClientesPage.test.tsx`
 
 ### Implementación
 
-- [ ] T030 [HU-010-2] Gateway: `listarServiciosDeCliente`, `reasignarServicio`, `desactivarFusionado`, `registrarDetalleLog` (con la columna `Detalle`) — `sharepointGateway.ts`
-- [ ] T031 [HU-010-2] `fusionarClientes` (reanudable, concurrencia 3) hasta pasar T027 — `src/application/clientes/fusionarClientes.ts`
-- [ ] T032 [HU-010-2] `remapearFusionados` y su llamada antes de subir y tras cada refresco hasta pasar T028 — `remapearFusionados.ts`, `SyncEngine.ts`
-- [ ] T033 [HU-010-2] Página y diálogo de fusión, entrada en el menú técnico y ruta restringida hasta pasar T029 — `ClientesPage.tsx`, `FusionarClientesDialog.tsx`, `MenuTecnicoPage.tsx`, `src/app/routes`
+- [x] T030 [HU-010-2] Gateway: `listarServiciosDeCliente`, `reasignarServicio`, `desactivarFusionado`, `registrarDetalleLog` (con la columna `Detalle`) — `sharepointGateway.ts`
+- [x] T031 [HU-010-2] `fusionarClientes` (reanudable, concurrencia 3) hasta pasar T027 — `src/application/clientes/fusionarClientes.ts`
+- [x] T032 [HU-010-2] `remapearFusionados` y su llamada antes de subir y tras cada refresco hasta pasar T028 — `remapearFusionados.ts`, `SyncEngine.ts`
+- [x] T033 [HU-010-2] Página y diálogo de fusión, entrada en el menú técnico y ruta restringida hasta pasar T029 — `ClientesPage.tsx`, `FusionarClientesDialog.tsx`, `MenuTecnicoPage.tsx`, `src/app/routes`
 
 **Punto de control**: ES-010-06 a ES-010-10 en verde con el emulador.
 

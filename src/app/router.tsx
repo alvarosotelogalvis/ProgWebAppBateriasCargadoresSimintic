@@ -217,6 +217,12 @@ export const router = createBrowserRouter([
                           Component: (await import('@/features/tecnico/TecnicoPage')).TecnicoPage,
                         }),
                       },
+                      {
+                        path: 'clientes',
+                        lazy: async () => ({
+                          Component: (await import('@/features/tecnico/ClientesPage')).ClientesPage,
+                        }),
+                      },
                     ],
                   },
                   // El catalogo de componentes solo existe en DEV (import dinamico fuera del build de PRD).
