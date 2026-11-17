@@ -23,8 +23,6 @@ interface BorradorForm {
   marca: string;
   referencia: string;
   serie: string;
-  numeroSolicitud: number;
-  numeroSolicitudTexto: string;
 }
 
 interface Props {
@@ -45,8 +43,6 @@ const desdeServicio = (servicio: Servicio): BorradorForm => ({
   marca: servicio.marca,
   referencia: servicio.referencia,
   serie: servicio.serie,
-  numeroSolicitud: servicio.numeroSolicitud,
-  numeroSolicitudTexto: servicio.numeroSolicitud > 0 ? String(servicio.numeroSolicitud) : '',
 });
 
 const aCambios = (datos: BorradorForm): Partial<CamposServicio> => ({
@@ -57,7 +53,6 @@ const aCambios = (datos: BorradorForm): Partial<CamposServicio> => ({
   marca: datos.marca,
   referencia: datos.referencia,
   serie: datos.serie,
-  numeroSolicitud: datos.numeroSolicitud,
 });
 
 export function FormRecepcion({
@@ -150,20 +145,7 @@ export function FormRecepcion({
             onCambio={(id, nombre) => actualizar({ clienteId: id, clienteNombre: nombre })}
             error={intento ? errores.get('clienteId') : undefined}
           />
-          <TextField
-            id="solicitud"
-            etiqueta={t('servicios:recepcion.numeroSolicitud')}
-            value={datos.numeroSolicitudTexto}
-            inputMode="numeric"
-            error={intento ? errores.get('numeroSolicitud') : undefined}
-            onChange={(texto) => {
-              const soloDigitos = texto.replace(/\D/g, '');
-              actualizar({
-                numeroSolicitudTexto: soloDigitos,
-                numeroSolicitud: soloDigitos ? Number(soloDigitos) : 0,
-              });
-            }}
-          />
+          <p className={styles.nota!}>{t('servicios:recepcion.numeroPendienteAyuda')}</p>
         </Card>
 
         <Card fill>

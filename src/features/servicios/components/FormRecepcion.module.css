@@ -18,6 +18,11 @@
   }
 }
 
+.nota {
+  font-size: var(--texto-sm);
+  color: var(--text-muted);
+}
+
 .faltantes {
   margin-top: var(--espacio-1);
   padding-left: var(--espacio-4);

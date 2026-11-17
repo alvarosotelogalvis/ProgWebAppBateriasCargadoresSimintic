@@ -34,7 +34,6 @@ export const SECCIONES_CORREGIBLES: readonly SeccionCampos[] = [
       { campo: 'tipoEquipo', tipo: 'tipoEquipo', etiqueta: 'servicios:recepcion.tipoEquipo' },
       { campo: 'fechaRecepcion', tipo: 'fecha', etiqueta: 'servicios:recepcion.fechaRecepcion' },
       { campo: 'clienteId', tipo: 'cliente', etiqueta: 'servicios:recepcion.cliente' },
-      { campo: 'numeroSolicitud', tipo: 'numero', etiqueta: 'servicios:recepcion.numeroSolicitud' },
       { campo: 'marca', tipo: 'texto', etiqueta: 'servicios:recepcion.marca' },
       { campo: 'referencia', tipo: 'texto', etiqueta: 'servicios:recepcion.referencia' },
       { campo: 'serie', tipo: 'texto', etiqueta: 'servicios:recepcion.serie' },

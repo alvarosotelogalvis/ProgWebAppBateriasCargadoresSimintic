@@ -1,3 +1,4 @@
+import { esPendiente } from '@/domain/sync/numeroSolicitud';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -95,7 +96,11 @@ export function DetalleServicioPage(): React.JSX.Element {
           </div>
           <div>
             <dt>{t('recepcion.numeroSolicitud')}</dt>
-            <dd>{servicio.numeroSolicitud || '—'}</dd>
+            <dd>
+              {esPendiente(servicio.numeroSolicitud)
+                ? t('recepcion.numeroPendiente')
+                : servicio.numeroSolicitud}
+            </dd>
           </div>
           <div>
             <dt>{t('recepcion.marca')}</dt>
