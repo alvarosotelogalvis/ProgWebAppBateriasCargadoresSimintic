@@ -5,6 +5,8 @@
 - **Fase**: F3 (`docs/07`) · **Depende de**: 002 (dominio y persistencia), 001 (shell de UI)
 - **Fuentes**: PRD [HU-03, HU-10 parcial; RF-03, RF-04, RF-05, RF-06, RF-13; RNF-01, RNF-05, RNF-07, RNF-08] · ADR [0008, 0011, 0012, 0022] · Modelo de datos [§2.1, §2.2, §3, §5] · Sistema de diseño [`docs/10` §6: referencias 03, 07, 08]
 
+> **Nota (2026-11-16)**: el cliente ya no se elige solo del catálogo (ES-003-05, FR-003-04): la spec 010 / ADR-0023 permite escribir y agregar un cliente nuevo ahí mismo, también sin conexión, y fusionar clientes después. El catálogo de SharePoint sigue siendo la fuente de los clientes ya existentes.
+
 > **Nota (2026-11-16)**: el número de solicitud (FR-003-03, ES-003-06, FR-003-12, aclaración PA-07) ya no se captura: la spec 011 / ADR-0024 lo reemplaza por un consecutivo automático asignado al sincronizar. Esta spec conserva su historia.
 
 ## 1. Resumen

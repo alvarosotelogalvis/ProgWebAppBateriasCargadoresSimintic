@@ -922,3 +922,11 @@ Detalle en [09-Despliegue-Operacion-y-Soporte.md](09-Despliegue-Operacion-y-Sopo
 | RF-27               | §6.2             | `application/sync/purgas.ts`                                   |
 | RF-28               | §9.2, §10.3      | `application/sync`, `infrastructure/graph`                     |
 | RF-29               | §8.4             | `features/sincronizacion`, `infrastructure/auth`               |
+
+## Anexo — Clientes nuevos y fusión (spec 010, ADR-0023)
+
+- **Catálogo local** (`catalogos`): `clientes` (de SharePoint, se sobrescribe en cada sincronización), `clientesNuevos` (creados en el dispositivo, **nunca se sobrescribe**) y `clientesFusionados` (origen → destino). `useClientes()` une los dos primeros.
+- **Paso previo a la subida** (`antesDelPush` del motor): releer el catálogo, pasar al cliente vigente los servicios pendientes que apuntaban a uno fusionado y crear en SharePoint los clientes nuevos que algún servicio usa. Un servicio con cliente aún temporal (id ≤ 0) no se sube.
+- **Mapeador**: nunca escribe un `ClienteLookupId` ≤ 0.
+- **Respaldo**: incluye `clientesNuevos.json` (opcional al restaurar).
+- **Fusión**: `fusionarClientes` (solo Administrador, con conexión), reanudable; el origen se desactiva al final.
