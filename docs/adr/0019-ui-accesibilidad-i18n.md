@@ -7,9 +7,11 @@
 - **Origen en la guía**: `02-App-Web.md` §2.1 (i18n y SEO), §3.7, §3.8, §3.9; doc. base §2 (menús: tamaño de fuente, ayuda, versión)
 
 ## Contexto
+
 Los usuarios trabajan en campo con celular (una mano, sol, guantes) y en oficina con PC. La guía pide menús de versión, ayuda, configuración y técnico, además del tamaño de fuente.
 
 ## Decisión
+
 - **Fluent UI React v9**, tema de marca `#0f6cbd`, claro, oscuro o según el sistema.
 - **Mobile-first**: barra inferior en celular, lateral en tablet y PC; objetivos táctiles ≥ 44 px.
 - **Tamaño de fuente** configurable (1,0 / 1,15 / 1,3) escalando los tokens tipográficos del tema.
@@ -19,8 +21,10 @@ Los usuarios trabajan en campo con celular (una mano, sol, guantes) y en oficina
 - **SEO: no aplica** (app interna). `robots.txt` con `Disallow: /` y `<meta name="robots" content="noindex">`.
 
 ## Consecuencias
+
 - **Positivas**: coherencia con M365 y accesibilidad desde el inicio.
 - **Negativas**: externalizar los textos agrega algo de esfuerzo en una app de un solo idioma (justificado por mantenibilidad y por la guía).
 
 ## Referencias
+
 - `docs/04`

@@ -30,6 +30,7 @@
 | [0020](0020-ambientes-y-configuracion.md)                | Ambientes DEV y PRD separados                                                   | Aceptado                               | 2026-10-21 | —                  | —                                      |
 | [0021](0021-spec-driven-development.md)                  | Spec-Driven Development: constitución + spec/plan/tasks                         | Aceptado                               | 2026-10-21 | —                  | —                                      |
 | [0022](0022-sistema-de-diseno-propio.md)                 | Sistema de diseño propio (pantallas de referencia) con React Aria + CSS Modules | Aceptado                               | 2026-10-21 | —                  | Reemplaza ADR-0019 y la UI de ADR-0003 |
+| [0023](0023-clientes-creados-desde-la-app-y-fusion.md)   | Clientes creados desde la app (permanentes) y fusión de clientes                | Aceptado                               | 2026-11-16 | —                  | —                                      |
 
 ## Correspondencia con los ADR mínimos de la guía
 
