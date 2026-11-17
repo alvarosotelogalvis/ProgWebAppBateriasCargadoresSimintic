@@ -9,6 +9,7 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Prueba de rendimiento con el volumen esperado** (`tests/e2e/rendimiento-volumen.spec.ts`): lista, búsqueda y detalle con 50 y 100 servicios, también con la CPU frenada 4×, con presupuestos holgados.
 - **Carpetas de año en `ServiciosAdjuntos`** con `provision-sharepoint-graph.mjs --anios`, y comprobación en una biblioteca real de que la carpeta `/{año}/{ServicioId}` se crea sola al subir el primer archivo.
 - **`scripts/provision-sharepoint-graph.mjs`:** aprovisiona por Microsoft Graph (aplicación + secreto, sin inicio de
   sesión interactivo) las listas, columnas, índices, datos iniciales y claves de configuración. Ensayo por defecto,
