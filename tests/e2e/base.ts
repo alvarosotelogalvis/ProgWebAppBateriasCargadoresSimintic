@@ -150,17 +150,34 @@ const PNG_1X1 =
  * Completa una recepción mínima (1 foto) y devuelve su código. El número de solicitud no se captura: lo asigna
  * la sincronización, así que hasta entonces el código es `BAT-PEND-{serie}` (ADR-0024).
  */
-export const crearRecepcion = async (page: Page, serie: string): Promise<string> => {
+export const crearRecepcion = async (
+  page: Page,
+  serie: string,
+  /**
+   * `buscar`: texto con el que se elige un cliente de la lista (por defecto «navar»).
+   * `nuevo`: nombre de un cliente que no está: se escribe y se agrega ahí mismo (o se usa el existente si ya hay uno igual).
+   */
+  opciones: { buscar?: string; nuevo?: string } = {}
+): Promise<string> => {
   await page.goto('/servicios/nuevo');
   await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+\/etapa\/recepcion$/, {
     timeout: 15_000,
   });
 
   const cliente = page.getByRole('combobox', { name: 'Cliente' });
-  await cliente.fill('navar');
-  await page.waitForTimeout(300);
-  await cliente.press('ArrowDown');
-  await cliente.press('Enter');
+  if (opciones.nuevo !== undefined) {
+    await cliente.fill(opciones.nuevo);
+    const usarExistente = page.getByRole('button', { name: /Ya existe «.+»\. Usar ese cliente/ });
+    const agregar = page.getByRole('button', { name: /Agregar «.+» como cliente nuevo/ });
+    await expect(usarExistente.or(agregar)).toBeVisible();
+    if (await usarExistente.isVisible()) await usarExistente.click();
+    else await agregar.click();
+  } else {
+    await cliente.fill(opciones.buscar ?? 'navar');
+    await page.waitForTimeout(300);
+    await cliente.press('ArrowDown');
+    await cliente.press('Enter');
+  }
 
   await page.getByRole('combobox', { name: 'Marca' }).fill('ROQUET');
   await page.getByLabel('Referencia').fill('REF-SYNC');
@@ -178,6 +195,18 @@ export const crearRecepcion = async (page: Page, serie: string): Promise<string>
   const codigo = `BAT-PEND-${serie}`;
   await expect(page.getByText(codigo)).toBeVisible();
   return codigo;
+};
+
+/** Sincroniza lo pendiente: confirma la identidad y cierra el resumen (modo simulado). */
+export const sincronizar = async (page: Page): Promise<void> => {
+  await page.goto('/sincronizacion');
+  const confirmar = page.getByRole('button', { name: /Confirmar como tecnico\.demo@empresa\.com/ });
+  await expect(confirmar).toBeEnabled({ timeout: 15_000 });
+  await confirmar.click();
+  const dialogo = page.getByRole('dialog', { name: 'Resumen de la sincronización' });
+  await expect(dialogo).toBeVisible({ timeout: 30_000 });
+  await dialogo.getByRole('button', { name: 'CERRAR', exact: true }).click();
+  await expect(dialogo).toBeHidden();
 };
 
 export { expect };

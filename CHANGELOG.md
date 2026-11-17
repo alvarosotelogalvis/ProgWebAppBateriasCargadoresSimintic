@@ -7,6 +7,18 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added (spec 010 — clientes nuevos y fusión, ADR-0023)
+
+- **Agregar un cliente nuevo desde el formulario**, también sin conexión: se escribe y queda como un cliente más (sin «provisional»). Si el nombre ya existe —ignorando tildes, mayúsculas y espacios— la app propone usar ese. Los clientes nuevos se crean en SharePoint **antes** de subir los servicios que los usan, de forma idempotente (`ClienteGuid` y `NombreNormalizado` únicos); dos dispositivos que crean el mismo cliente terminan con uno solo. Solo se suben los clientes que algún servicio usa.
+- **Fusión de clientes** (menú técnico → Clientes, solo Administrador y con conexión): reasigna los servicios del cliente que se fusiona al que se conserva; el origen queda `Activo = No` con `FusionadoConId` y no se borra. Es reanudable, queda en `LogSincronizacion.Detalle` y los dispositivos pasan al cliente vigente los servicios pendientes que apuntaban al fusionado.
+- Los clientes pendientes viven en una clave propia que el refresco del catálogo no toca, y entran en el respaldo (`clientesNuevos.json`).
+- Columnas nuevas en SharePoint: `Clientes` (`ClienteGuid`, `NombreNormalizado`, `FusionadoConId`, `CreadoDesdeApp`), `LogSincronizacion.Detalle` y `Servicios.Cliente` indexada. El aprovisionamiento las crea/corrige y rellena `NombreNormalizado` de los clientes existentes. El grupo de técnicos pasa a _Colaborar_ en `Clientes`.
+- Spike S10 (`docs/spikes/S10-clientes.md`) y pruebas en vivo con dos dispositivos creando el mismo cliente y fusionando 10 servicios con un corte.
+
+### Fixed
+
+- Un cliente creado sin red (id temporal negativo) hacía fallar «Completar recepción» con «Selecciona el cliente»: la validación solo aceptaba ids positivos.
+
 ### Changed
 
 - **Número de solicitud automático** (spec 011, ADR-0024): el formulario ya no lo pide. Al sincronizar la app lee el mayor número en SharePoint y asigna el siguiente (uno por equipo); mientras tanto el servicio muestra «Pendiente» y su código usa `PEND` (`BAT-PEND-NV4520`). Reemplaza la decisión PA-07 del PRD.

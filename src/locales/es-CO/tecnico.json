@@ -90,5 +90,24 @@
     "titulo": "Catálogo de componentes"
   },
   "restablecer_descripcion": "Borra los servicios, adjuntos y registros de este dispositivo y vuelve a la configuración inicial. Solo es posible si todo está sincronizado; lo que está en SharePoint se vuelve a descargar.",
-  "error_restablecer": "No se pudo restablecer la app. Inténtalo de nuevo."
+  "error_restablecer": "No se pudo restablecer la app. Inténtalo de nuevo.",
+  "clientes": {
+    "titulo": "Clientes",
+    "descripcion": "Fusiona dos clientes cuando son el mismo o se creó uno por error. Los servicios del cliente que se fusiona pasan al otro, que se conserva.",
+    "origen": "Cliente que se fusiona (dejará de ofrecerse)",
+    "destino": "Cliente que se conserva",
+    "fusionar": "Fusionar clientes",
+    "confirmar_titulo": "¿Fusionar estos clientes?",
+    "confirmar_texto": "Los servicios de «{{origen}}» pasarán a «{{destino}}». «{{origen}}» dejará de ofrecerse, pero se conserva como historial.",
+    "confirmar": "Fusionar",
+    "cancelar": "Cancelar",
+    "avance": "Reasignando servicios: {{hechos}} de {{total}}",
+    "resultado_one": "Se reasignó {{count}} servicio. Los clientes quedaron fusionados.",
+    "resultado_other": "Se reasignaron {{count}} servicios. Los clientes quedaron fusionados.",
+    "misma_seleccion": "Elige dos clientes distintos.",
+    "destino_fusionado": "«{{nombre}}» ya fue fusionado; se usará «{{vigente}}».",
+    "sin_conexion": "La fusión necesita conexión. Conéctate e inténtalo de nuevo.",
+    "sin_clientes": "No hay clientes para fusionar.",
+    "error": "No se pudo completar la fusión. Puedes repetirla: continúa donde quedó."
+  }
 }

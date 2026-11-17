@@ -69,7 +69,7 @@ App instalable (PWA) que reemplaza el registro en Excel del ciclo de servicio de
 - Integración con el ERP o el sistema de facturación electrónica.
 - Notificaciones push.
 - Reportes y tableros dentro de la app (se hacen con vistas de SharePoint, exportación a Excel o Power BI).
-- Edición de catálogos (clientes, marcas) desde la app. Se administran en SharePoint.
+- Edición de catálogos (clientes, marcas) desde la app, salvo **agregar un cliente nuevo** al registrar un servicio y **fusionar dos clientes** (solo Administrador), que sí se hacen en la app (ADR-0023). El resto de los datos de los catálogos se administra en SharePoint.
 - Multi-idioma (solo es-CO, aunque los textos quedan externalizados).
 
 ## 6. Flujo de negocio (resumen)
@@ -114,7 +114,7 @@ Como usuario nuevo quiero preparar la app una vez con conexión para luego traba
 **HU-03 — Registrar recepción sin conexión** (Técnico)
 Como técnico quiero registrar la recepción de una batería o un cargador con fotos aunque no tenga internet.
 
-- CA1: Campos obligatorios: tipo de equipo, fecha de recepción (por defecto hoy, no futura), cliente (del catálogo, con autocompletado), marca, referencia (alfanumérica), serie (alfanumérica) y al menos 1 foto de ingreso. El **número de solicitud no se captura**: lo asigna el sistema al sincronizar (PA-07, ADR-0024).
+- CA1: Campos obligatorios: tipo de equipo, fecha de recepción (por defecto hoy, no futura), cliente (del catálogo, con autocompletado; si no existe se escribe y se agrega ahí mismo, ADR-0023), marca, referencia (alfanumérica), serie (alfanumérica) y al menos 1 foto de ingreso. El **número de solicitud no se captura**: lo asigna el sistema al sincronizar (PA-07, ADR-0024).
 - CA2: Las fotos se pueden tomar con la cámara o elegir de la galería o del disco. Se optimizan a JPEG ≤1920 px y quedan visibles como miniaturas al instante.
 - CA3: El borrador se guarda automáticamente. Si se cierra la app, al volver el borrador sigue ahí.
 - CA4: Si existe un servicio abierto con la misma serie, se muestra una advertencia (no bloquea).

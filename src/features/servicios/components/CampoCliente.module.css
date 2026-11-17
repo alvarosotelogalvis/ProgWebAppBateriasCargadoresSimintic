@@ -1,0 +1,10 @@
+.accion {
+  margin-top: var(--espacio-2);
+}
+
+.error {
+  margin-top: var(--espacio-1);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  color: var(--peligro);
+}

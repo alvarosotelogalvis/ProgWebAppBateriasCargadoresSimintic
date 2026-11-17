@@ -172,7 +172,7 @@ _Configuración de la lista_:
 - _Avanzada_: datos adjuntos = **Deshabilitado**.
 - _Columnas indizadas_: `Estado`, `SerieEquipo`, `NumeroSolicitud`, `ProyeccionVidaUtil`, `Modified` (`ServicioId` ya queda indexada por ser única). `NumeroSolicitud` debe estar indexada: la app lee el mayor con `$orderby` y cuenta por número. **No hace falta (ni sirve) marcarla como única**: SharePoint no lo garantiza con fiabilidad en esta columna (spike S9); la unicidad la asegura la app.
 
-**Lista `Clientes`**: `Title` (Nombre), `NIT` (texto), `Activo` (Sí/No, predeterminado Sí), `CorreoContacto` (texto). Datos: NAVAR ASOCIADOS, ARIS MINING SEGOVIA, ARIS MINING MARMATO.
+**Lista `Clientes`**: `Title` (Nombre), `NIT` (texto), `Activo` (Sí/No, predeterminado Sí), `CorreoContacto` (texto), `ClienteGuid` (texto, **único e indexado**, no obligatorio), `NombreNormalizado` (texto, **único e indexado**, no obligatorio), `FusionadoConId` (número) y `CreadoDesdeApp` (Sí/No, predeterminado No). En `Servicios`, la columna `Cliente` debe estar **indexada** (permite filtrar por cliente al fusionar) y `LogSincronizacion` lleva la columna `Detalle` (texto largo). El script `provision-sharepoint-graph.mjs` crea y corrige todo esto y rellena `NombreNormalizado` de los clientes que ya existían. Datos: NAVAR ASOCIADOS, ARIS MINING SEGOVIA, ARIS MINING MARMATO.
 
 **Lista `Marcas`**: `Title`, `Activo` (Sí/No). Dato: ROQUET.
 
@@ -188,10 +188,10 @@ En `Servicios`: _Abiertos por estado_ (agrupar por Estado; filtro Estado ≠ Fac
 
 ### 2.5 Permisos
 
-| Grupo de SharePoint  | Miembros                              | `Servicios`, `ServiciosAdjuntos`, `LogSincronizacion` | `Clientes`, `Marcas`, `ConfiguracionApp`     |
-| -------------------- | ------------------------------------- | ----------------------------------------------------- | -------------------------------------------- |
-| Propietarios         | Administradores del servicio          | Control total                                         | Control total                                |
-| Usuarios ServicioTec | Todos los usuarios asignados a la app | **Colaborar**                                         | **Leer** (romper herencia en estas 3 listas) |
+| Grupo de SharePoint  | Miembros                              | `Servicios`, `ServiciosAdjuntos`, `LogSincronizacion`, `Clientes`                   | `Marcas`, `ConfiguracionApp`                 |
+| -------------------- | ------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------- |
+| Propietarios         | Administradores del servicio          | Control total                                                                       | Control total                                |
+| Usuarios ServicioTec | Todos los usuarios asignados a la app | **Colaborar** (también en `Clientes`: crean clientes nuevos desde la app, ADR-0023) | **Leer** (romper herencia en estas 2 listas) |
 
 > Mantener los miembros de "Usuarios ServicioTec" alineados con las asignaciones de la Enterprise App. Lo ideal es un mismo grupo de seguridad de Entra usado en los dos lugares.
 

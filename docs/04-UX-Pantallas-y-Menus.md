@@ -143,7 +143,7 @@ Si algún paso falla: mensaje del error y botón Reintentar. No se puede avanzar
 - Un formulario por etapa con los campos del modelo de datos. En celular, por secciones con scroll.
 - Indicador de autoguardado: "Guardado en el dispositivo ✓ 10:42".
 - Botón primario fijo abajo: **"Completar recepción" / "Completar diagnóstico" / …**. Deshabilitado con la lista de lo que falta ("Falta: 1 foto de ingreso, serie").
-- **Campo cliente**: `ComboboxField` con autocompletado desde el catálogo local, sin texto libre. Si el cliente no existe: texto de ayuda "¿No está el cliente? Pide a un administrador que lo agregue en SharePoint y sincroniza".
+- **Campo cliente**: `ComboboxField` con autocompletado desde el catálogo local (clientes de SharePoint y los creados en el dispositivo, todos iguales). Si el cliente no existe, se escribe y aparece **«Agregar «X» como cliente nuevo»**, que lo crea ahí mismo, también sin conexión. Si el nombre ya existe (otras tildes, mayúsculas o espacios) aparece **«Ya existe «Y». Usar ese cliente»** en vez de crear un duplicado. Sin estado «provisional».
 - **Campo marca**: `ComboboxField` con texto libre que se normaliza a MAYÚSCULAS.
 - **Referencia y serie**: se normalizan mientras se escribe. Teclado `inputMode="text"` con `autoCapitalize="characters"`.
 - **Número de solicitud**: no es un campo. El formulario muestra el aviso «El número de solicitud se asigna solo cuando el servicio se sincroniza» y el detalle muestra «Pendiente» hasta entonces (ADR-0024).
@@ -251,3 +251,7 @@ Pestañas generadas desde `UmbralesAlertaDias` (por defecto **Vencidas · ≤30 
 - El escalado de fuente no rompe el diseño hasta 130 % de la escala propia + 200 % del zoom del navegador.
 - `prefers-reduced-motion` respetado.
 - Pruebas automáticas con `@axe-core/playwright` en las pantallas principales.
+
+### Menú técnico → Clientes (solo Administrador, spec 010)
+
+Ruta `/tecnico/clientes`. Dos campos con autocompletado —**Cliente que se fusiona** (dejará de ofrecerse) y **Cliente que se conserva**— y el botón **Fusionar clientes**, deshabilitado hasta elegir dos clientes distintos y mientras no haya conexión. Antes de ejecutar se pide confirmación en un diálogo con los dos nombres; durante la fusión se muestra el avance («Reasignando servicios: N de M») y al terminar el resumen. No se ofrecen los clientes que aún no se subieron a SharePoint. La fusión se puede repetir si se corta.

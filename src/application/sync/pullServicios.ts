@@ -1,3 +1,4 @@
+import { resolverVigente, type ClienteFusionado } from '@/domain/cliente';
 import type { CatalogoRepository } from '@/application/ports/catalogoRepository';
 import type { Clock } from '@/application/ports/clock';
 import type { Logger } from '@/application/ports/loggerPort';
@@ -54,6 +55,17 @@ export function crearPullServicios(deps: DepsPullServicios): PullServicios {
     const clientes =
       (await deps.catalogos.obtener<readonly ClienteCatalogo[]>(CLAVES_CATALOGO.clientes)) ?? [];
     const nombrePorCliente = new Map(clientes.map((cliente) => [cliente.id, cliente.nombre]));
+    // Un servicio que aún apunta a un cliente fusionado muestra el nombre del cliente vigente (spec 010).
+    const fusionados =
+      (await deps.catalogos.obtener<readonly ClienteFusionado[]>(
+        CLAVES_CATALOGO.clientesFusionados
+      )) ?? [];
+    for (const { origenId, destinoId } of fusionados) {
+      const nombreVigente = nombrePorCliente.get(resolverVigente(destinoId, fusionados));
+      if (nombreVigente !== undefined && !nombrePorCliente.has(origenId)) {
+        nombrePorCliente.set(origenId, nombreVigente);
+      }
+    }
     const ctx = {
       ahora: new Date(deps.reloj.ahoraIso()),
       retencionMeses: deps.config().retencionCerradosMeses,

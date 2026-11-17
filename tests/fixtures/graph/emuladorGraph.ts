@@ -260,6 +260,13 @@ export class EmuladorGraph {
     return this.crearItem(lista, fields);
   }
 
+  /** Agrega un cliente directamente (sin validar unicidad), como si ya existiera en SharePoint. */
+  sembrarCliente(fields: Record<string, unknown>): ItemEstado {
+    const lista = this.listas.find((candidata) => candidata.name === 'Clientes');
+    if (!lista) throw new Error('El emulador no tiene la lista Clientes.');
+    return this.crearItem(lista, fields);
+  }
+
   /** Simula que otra persona editó el ítem en SharePoint (cambia eTag y versión). */
   modificarRemoto(
     servicioId: string,
@@ -472,6 +479,26 @@ export class EmuladorGraph {
     return json({ value: pagina, '@odata.deltaLink': `${base}?token=${this.secuencia}` });
   }
 
+  /** `fields/Columna eq 'texto'` o `eq número` para las columnas que usan los clientes y su fusión. */
+  private filtrarPorColumnas(items: ItemEstado[], filtro: string): ItemEstado[] {
+    const filtrables = ['ClienteLookupId', 'NombreNormalizado', 'ClienteGuid', 'Activo'];
+    let resultado = items;
+    for (const coincidencia of filtro.matchAll(/fields\/(\w+) eq ('((?:[^']|'')*)'|-?\d+)/g)) {
+      const columna = coincidencia[1];
+      if (columna === undefined || !filtrables.includes(columna)) continue;
+      const esTexto = coincidencia[2]?.startsWith("'") === true;
+      const texto = (coincidencia[3] ?? '').replace(/''/g, "'");
+      const numero = Number(coincidencia[2]);
+      resultado = resultado.filter((item) => {
+        const valor = item.fields[columna];
+        if (esTexto) return String(valor ?? '') === texto;
+        if (typeof valor === 'boolean') return (valor ? 1 : 0) === numero;
+        return valor !== undefined && valor !== null && Number(valor) === numero;
+      });
+    }
+    return resultado;
+  }
+
   private listarItems(lista: ListaEstado, url: URL): Response {
     const filtro = url.searchParams.get('$filter') ?? '';
     const coincidencia = /fields\/ServicioId eq '((?:[^']|'')*)'/.exec(filtro);
@@ -486,6 +513,8 @@ export class EmuladorGraph {
         items = items.filter((item) => item.fields.ServicioId === servicioId);
       }
     }
+
+    items = this.filtrarPorColumnas(items, filtro);
 
     const porNumero = /fields\/NumeroSolicitud eq (\d+)/.exec(filtro);
     if (porNumero?.[1] !== undefined) {
@@ -547,10 +576,28 @@ export class EmuladorGraph {
       }
     }
 
-    if (this.numeroRepetido(lista, fields.NumeroSolicitud)) return this.errorValorUnico();
+    if (this.valorUnicoRepetido(lista, fields)) return this.errorValorUnico();
 
     const creado = this.crearItem(lista, fields);
     return json(itemJson(creado), 201);
+  }
+
+  /**
+   * Columnas con valor único: `NumeroSolicitud` en `Servicios` (con retraso, spike S9) y `ClienteGuid` y
+   * `NombreNormalizado` en `Clientes` (inmediato, spike S10). Un valor vacío o ausente no cuenta.
+   */
+  private valorUnicoRepetido(
+    lista: ListaEstado,
+    campos: Record<string, unknown>,
+    excluirId?: string
+  ): boolean {
+    if (this.numeroRepetido(lista, campos.NumeroSolicitud, excluirId)) return true;
+    if (lista.name !== 'Clientes') return false;
+    return ['ClienteGuid', 'NombreNormalizado'].some((columna) => {
+      const valor = campos[columna];
+      if (typeof valor !== 'string' || valor === '') return false;
+      return lista.items.some((item) => item.id !== excluirId && item.fields[columna] === valor);
+    });
   }
 
   /** `NumeroSolicitud` es único en `Servicios`; 0 o vacío (pendiente) no cuenta. */
@@ -600,7 +647,7 @@ export class EmuladorGraph {
 
     const campos = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const listaDelItem = this.listas.find((lista) => lista.items.includes(item));
-    if (listaDelItem && this.numeroRepetido(listaDelItem, campos.NumeroSolicitud, item.id)) {
+    if (listaDelItem && this.valorUnicoRepetido(listaDelItem, campos, item.id)) {
       return this.errorValorUnico();
     }
     this.secuencia += 1;

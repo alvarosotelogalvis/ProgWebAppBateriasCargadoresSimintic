@@ -1,4 +1,6 @@
+import type { ClienteRemoto } from '@/application/ports/clientesRemotos';
 import type { ClienteCatalogo } from '@/application/ports/remoteGateway';
+import type { ClienteFusionado } from '@/domain/cliente';
 import { COLUMNAS_CHOICE, type ColumnaChoice } from '@/application/setup/claves';
 
 export interface ItemGraph {
@@ -12,6 +14,45 @@ export interface ColumnaGraph {
 }
 
 const texto = (valor: unknown): string => (typeof valor === 'string' ? valor.trim() : '');
+
+const textoOpcional = (valor: unknown): string | undefined => {
+  const limpio = texto(valor);
+  return limpio === '' ? undefined : limpio;
+};
+
+const numeroOpcional = (valor: unknown): number | undefined => {
+  if (valor === undefined || valor === null || valor === '') return undefined;
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : undefined;
+};
+
+/** Un ítem de `Clientes` como cliente remoto, con sus datos de alta y de fusión (ADR-0023). */
+export function itemACliente(item: ItemGraph): ClienteRemoto {
+  const campos = item.fields ?? {};
+  const guid = textoOpcional(campos.ClienteGuid);
+  const normalizado = textoOpcional(campos.NombreNormalizado);
+  const fusionadoCon = numeroOpcional(campos.FusionadoConId);
+  return {
+    id: Number(item.id ?? campos.ID),
+    nombre: texto(campos.Title),
+    activo: campos.Activo !== false,
+    ...(guid === undefined ? {} : { guid }),
+    ...(normalizado === undefined ? {} : { normalizado }),
+    ...(fusionadoCon === undefined ? {} : { fusionadoCon }),
+  };
+}
+
+/** Clientes inactivos que se fusionaron en otro (origen → destino). */
+export function mapearFusionados(items: readonly ItemGraph[]): ClienteFusionado[] {
+  const fusionados: ClienteFusionado[] = [];
+  for (const item of items) {
+    const cliente = itemACliente(item);
+    if (cliente.activo || cliente.fusionadoCon === undefined) continue;
+    if (!Number.isFinite(cliente.id) || cliente.fusionadoCon === cliente.id) continue;
+    fusionados.push({ origenId: cliente.id, destinoId: cliente.fusionadoCon });
+  }
+  return fusionados;
+}
 
 export function mapearClientes(items: readonly ItemGraph[]): ClienteCatalogo[] {
   const clientes: ClienteCatalogo[] = [];

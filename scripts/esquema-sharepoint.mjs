@@ -21,6 +21,19 @@ export const CAMPOS = {
     { n: 'NIT', d: 'NIT', t: 'texto' },
     { n: 'Activo', d: 'Activo', t: 'si_no', defecto: true },
     { n: 'CorreoContacto', d: 'Correo de contacto', t: 'texto' },
+    // Clientes creados desde la app y fusión (ADR-0023). Son únicas e indexadas, pero NO obligatorias: los
+    // clientes anteriores pueden no tener guid. En columnas de texto la unicidad de SharePoint es inmediata (S10).
+    { n: 'ClienteGuid', d: 'ID de cliente', t: 'texto', max: 40, indice: true, unico: true },
+    {
+      n: 'NombreNormalizado',
+      d: 'Nombre normalizado',
+      t: 'texto',
+      max: 120,
+      indice: true,
+      unico: true,
+    },
+    { n: 'FusionadoConId', d: 'Fusionado con (ID)', t: 'numero' },
+    { n: 'CreadoDesdeApp', d: 'Creado desde la app', t: 'si_no', defecto: false },
   ],
   Marcas: [{ n: 'Activo', d: 'Activo', t: 'si_no', defecto: true }],
   Servicios: [
@@ -28,7 +41,8 @@ export const CAMPOS = {
     { n: 'Estado', d: 'Estado', t: 'eleccion', opciones: ESTADOS_SERVICIO, indice: true },
     { n: 'TipoEquipo', d: 'Tipo de equipo', t: 'eleccion', opciones: ['Batería', 'Cargador'] },
     { n: 'FechaRecepcion', d: 'Fecha de recepción', t: 'fecha' },
-    { n: 'Cliente', d: 'Cliente', t: 'busqueda', lista: 'Clientes', campo: 'Title' },
+    // Indexada: la fusión lista los servicios de un cliente con $filter (spike S10).
+    { n: 'Cliente', d: 'Cliente', t: 'busqueda', lista: 'Clientes', campo: 'Title', indice: true },
     // Indexada para leer el mayor y contar por número. La unicidad NO la garantiza SharePoint (spike S9):
     // la garantiza la verificación posterior de la app (ADR-0024).
     { n: 'NumeroSolicitud', d: 'Número de solicitud', t: 'numero', indice: true },
@@ -91,6 +105,8 @@ export const CAMPOS = {
     { n: 'ServiciosDescargados', d: 'Servicios descargados', t: 'numero' },
     { n: 'Conflictos', d: 'Conflictos', t: 'numero' },
     { n: 'Errores', d: 'Errores', t: 'nota' },
+    // Detalle de las fusiones de clientes y otras operaciones (spec 010).
+    { n: 'Detalle', d: 'Detalle', t: 'nota' },
   ],
   ServiciosAdjuntos: [
     { n: 'ServicioId', d: 'ServicioId', t: 'texto', max: 40, indice: true },

@@ -51,6 +51,16 @@ describe('esquemaRecepcion', () => {
     expect(esquemaRecepcion(HOY).safeParse(sinNumero).success).toBe(true);
   });
 
+  it('acepta un cliente creado sin red (id temporal negativo) y sigue exigiendo uno elegido (spec 010)', () => {
+    const temporal = { ...recepcionValida(), clienteId: -123456789, clienteNombre: 'MINERA NUEVA' };
+    const sinCliente = { ...recepcionValida(), clienteId: 0 };
+
+    expect(esquemaRecepcion(HOY).safeParse(temporal).success).toBe(true);
+    expect(claves(esquemaRecepcion(HOY).safeParse(sinCliente))).toContain(
+      'errores.servicio.clienteRequerido'
+    );
+  });
+
   it('rechaza serie con espacios internos o símbolos no permitidos', () => {
     const espacios = { ...recepcionValida(), serie: 'NV 4520' };
     const simbolos = { ...recepcionValida(), serie: 'NV#4520' };

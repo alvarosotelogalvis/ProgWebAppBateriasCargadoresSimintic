@@ -1,4 +1,5 @@
 import type { ColumnaChoice } from '@/application/setup/claves';
+import type { ClienteFusionado } from '@/domain/cliente';
 
 export interface SitioResuelto {
   readonly siteId: string;
@@ -15,6 +16,8 @@ export interface ClienteCatalogo {
 
 export interface Catalogos {
   readonly clientes: readonly ClienteCatalogo[];
+  /** Clientes fusionados en otro (inactivos con destino). Ausente = ninguno (ADR-0023). */
+  readonly fusionados?: readonly ClienteFusionado[];
   readonly marcas: readonly string[];
   readonly choices: Readonly<Record<ColumnaChoice, readonly string[]>>;
 }

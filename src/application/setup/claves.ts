@@ -17,6 +17,10 @@ export const CLAVES_META = {
 
 export const CLAVES_CATALOGO = {
   clientes: 'clientes',
+  /** Clientes creados en el dispositivo aún sin id de SharePoint: el refresco del catálogo NO los toca. */
+  clientesNuevos: 'clientesNuevos',
+  /** Clientes fusionados en otro (origen → destino), de la última lectura del catálogo. */
+  clientesFusionados: 'clientesFusionados',
   marcas: 'marcas',
   config: 'config',
 } as const;

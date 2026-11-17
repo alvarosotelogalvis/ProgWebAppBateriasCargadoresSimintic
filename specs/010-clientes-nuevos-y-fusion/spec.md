@@ -1,6 +1,6 @@
 # Spec 010 — Clientes nuevos desde el formulario y fusión de clientes
 
-- **Estado**: Aprobada
+- **Estado**: Implementada
 - **Fecha**: 2026-11-16 · **Rama**: `feature/010-clientes-nuevos-y-fusion`
 - **Fase**: posterior a F10 (cambio solicitado por el dueño del producto) · **Depende de**: 003, 006, 009
 - **Fuentes**: PRD [RF-06] · ADR [0023, 0009, 0010] · Modelo de datos [§6.1] · Spec 003 [ES-003-05, FR-003-04]

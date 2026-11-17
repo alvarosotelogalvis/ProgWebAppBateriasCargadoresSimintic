@@ -7,7 +7,11 @@ import { servicioBuilder } from '../../../../tests/builders/servicioBuilder';
 import { FormRecepcion } from './FormRecepcion';
 
 vi.mock('@/shared/ui/Icon', () => ({ Icon: () => null }));
+vi.mock('@/app/containerContext', () => ({
+  useContainer: () => ({ casosClientes: { agregarCliente: vi.fn() } }),
+}));
 vi.mock('@/infrastructure/db/hooks', () => ({
+  useClientes: () => [{ id: 1, nombre: 'Navar Asociados', activo: true }],
   useCatalogo: (clave: string) =>
     clave === 'clientes'
       ? [{ id: 1, nombre: 'Navar Asociados', activo: true }]

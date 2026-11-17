@@ -1,4 +1,5 @@
-﻿import { generarCodigo } from '@/domain/codigo';
+﻿import { esClienteTemporal } from '@/domain/cliente';
+import { generarCodigo } from '@/domain/codigo';
 import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
 import type { Clock } from '@/application/ports/clock';
 import type { Logger } from '@/application/ports/loggerPort';
@@ -32,6 +33,12 @@ export interface ContextoFinSync {
   readonly signal: AbortSignal;
 }
 
+/** Lo que recibe el paso previo a la subida de servicios (p. ej. subir los clientes nuevos). */
+export interface ContextoInicioSync {
+  readonly correlationId: string;
+  readonly signal: AbortSignal;
+}
+
 export interface DepsSyncEngine {
   readonly servicios: ServicioRepository;
   readonly adjuntos: AdjuntoRepository;
@@ -49,6 +56,8 @@ export interface DepsSyncEngine {
   readonly resolutorConflictos?: ResolutorConflictos;
   readonly bus?: EventBusSync;
   readonly usuario?: () => string | undefined;
+  /** Se ejecuta antes de subir los servicios (spec 010: sube los clientes nuevos). Un fallo no detiene la subida. */
+  readonly antesDelPush?: (contexto: ContextoInicioSync) => Promise<void> | void;
   readonly despuesDelPush?: (contexto: ContextoFinSync) => Promise<void> | void;
   readonly alFinalizar?: (contexto: ContextoFinSync) => Promise<void> | void;
 }
@@ -211,6 +220,7 @@ export class MotorSync implements SyncEngine {
   private async ejecutar(correlationId: string, signal: AbortSignal): Promise<ResumenSync> {
     const ahora = this.deps.clock.ahoraIso();
     const inicio = ahora;
+    await this.ejecutarExtension(this.deps.antesDelPush, { correlationId, signal });
     const pendientes = await this.listarParaProcesar(ahora);
 
     this.bus.emitir({ tipo: 'inicio', correlationId, total: pendientes.length });
@@ -368,15 +378,19 @@ export class MotorSync implements SyncEngine {
     const pendientes = await this.deps.servicios.listarPendientes();
     const limite = Date.parse(ahora);
 
-    return pendientes
-      .filter((servicio) => servicio.estado !== 'BORRADOR')
-      .filter((servicio) => servicio.syncState !== 'conflict')
-      .filter((servicio) => {
-        if (!servicio.proximoIntentoEn) return true;
-        const proximo = Date.parse(servicio.proximoIntentoEn);
-        return !Number.isFinite(proximo) || proximo <= limite;
-      })
-      .sort((a, b) => a.actualizadoEn.localeCompare(b.actualizadoEn));
+    return (
+      pendientes
+        .filter((servicio) => servicio.estado !== 'BORRADOR')
+        .filter((servicio) => servicio.syncState !== 'conflict')
+        // Un cliente aún temporal (creado sin red) no existe en SharePoint: el servicio espera a que se suba (spec 010).
+        .filter((servicio) => !esClienteTemporal(servicio.clienteId))
+        .filter((servicio) => {
+          if (!servicio.proximoIntentoEn) return true;
+          const proximo = Date.parse(servicio.proximoIntentoEn);
+          return !Number.isFinite(proximo) || proximo <= limite;
+        })
+        .sort((a, b) => a.actualizadoEn.localeCompare(b.actualizadoEn))
+    );
   }
 
   private async fusionarConLaBase(
@@ -553,9 +567,9 @@ export class MotorSync implements SyncEngine {
     }
   }
 
-  private async ejecutarExtension(
-    extension: ((contexto: ContextoFinSync) => Promise<void> | void) | undefined,
-    contexto: ContextoFinSync
+  private async ejecutarExtension<C extends { readonly correlationId: string }>(
+    extension: ((contexto: C) => Promise<void> | void) | undefined,
+    contexto: C
   ): Promise<void> {
     if (!extension) return;
     try {

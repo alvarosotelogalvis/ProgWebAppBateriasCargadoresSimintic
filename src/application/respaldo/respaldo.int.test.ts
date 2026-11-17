@@ -4,7 +4,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 // Debe cargarse primero: instala fake-indexeddb antes de que se cree la base global de la app.
 import { crearDbPrueba } from '../../../tests/fakes/crearDbPrueba';
 
+import { crearClientesLocales } from '@/application/clientes/clientesLocales';
+import { idTemporalDeGuid } from '@/domain/cliente';
 import type { Servicio } from '@/domain/servicio';
+import { CatalogoRepositoryDexie } from '@/infrastructure/db/catalogoRepository';
 import { AdjuntoRepositoryDexie } from '@/infrastructure/db/adjuntoRepository';
 import type { AppDB } from '@/infrastructure/db/dexie';
 import { ServicioRepositoryDexie } from '@/infrastructure/db/servicioRepository';
@@ -245,5 +248,105 @@ describe('respaldo: exportar e importar (HU-009-1)', () => {
       expect(await intentar(blob)).toBeInstanceOf(RespaldoInvalidoError);
       expect(await b.servicios.obtener('nuevo')).toBeUndefined();
     });
+  });
+});
+
+describe('respaldo · clientes nuevos pendientes (T017, ADR-0023)', () => {
+  const cliente = {
+    id: idTemporalDeGuid('guid-minera'),
+    guid: 'guid-minera',
+    nombre: 'MINERA NUEVA',
+    normalizado: 'MINERA NUEVA',
+    creadoEn: '2026-11-16T10:00:00.000Z',
+  };
+
+  const dispositivoConClientes = async (id: string) => {
+    const base = await crearDispositivo(id);
+    const clientes = crearClientesLocales(new CatalogoRepositoryDexie(base.db));
+    return {
+      ...base,
+      clientes,
+      exportar: { ...base.exportar, clientesNuevos: () => clientes.listar() },
+      importar: { ...base.importar, clientesNuevos: clientes },
+    };
+  };
+
+  const servicioConCliente = (id: string): Servicio => ({
+    ...servicioBuilder().conId(id).recibido().pendiente().construir(),
+    clienteId: cliente.id,
+    clienteNombre: cliente.nombre,
+    camposSucios: [],
+  });
+
+  it('un servicio con cliente temporal sobrevive a la restauración en otro dispositivo con su cliente', async () => {
+    const origen = await dispositivoConClientes('origen');
+    const destino = await dispositivoConClientes('destino');
+    await origen.clientes.agregar(cliente);
+    await origen.servicios.guardar(servicioConCliente('s1'));
+
+    const exportado = await exportarRespaldo(origen.exportar, 'solo-pendientes');
+    const resultado = await importarRespaldo(destino.importar, exportado.blob);
+
+    expect(resultado.importados).toBe(1);
+    expect(await destino.clientes.listar()).toEqual([cliente]);
+    expect((await destino.servicios.obtener('s1'))?.clienteId).toBe(cliente.id);
+    await Promise.all([origen.db.delete(), destino.db.delete()]);
+  });
+
+  it('restaurar dos veces no duplica el cliente', async () => {
+    const origen = await dispositivoConClientes('origen');
+    const destino = await dispositivoConClientes('destino');
+    await origen.clientes.agregar(cliente);
+    await origen.servicios.guardar(servicioConCliente('s1'));
+    const exportado = await exportarRespaldo(origen.exportar, 'todos');
+
+    await importarRespaldo(destino.importar, exportado.blob);
+    await importarRespaldo(destino.importar, exportado.blob);
+
+    expect(await destino.clientes.listar()).toEqual([cliente]);
+    await Promise.all([origen.db.delete(), destino.db.delete()]);
+  });
+
+  it('un respaldo anterior, sin clientes nuevos, se restaura igual', async () => {
+    const origen = await crearDispositivo('viejo'); // exporta sin clientesNuevos
+    const destino = await dispositivoConClientes('nuevo');
+    await origen.servicios.guardar(pendiente('s1'));
+    const exportado = await exportarRespaldo(origen.exportar, 'solo-pendientes');
+
+    const resultado = await importarRespaldo(destino.importar, exportado.blob);
+
+    expect(resultado.importados).toBe(1);
+    expect(await destino.clientes.listar()).toEqual([]);
+    await Promise.all([origen.db.delete(), destino.db.delete()]);
+  });
+
+  it('un dispositivo sin soporte de clientes ignora el archivo y restaura los servicios', async () => {
+    const origen = await dispositivoConClientes('origen');
+    await origen.clientes.agregar(cliente);
+    await origen.servicios.guardar(servicioConCliente('s1'));
+    const exportado = await exportarRespaldo(origen.exportar, 'solo-pendientes');
+
+    const resultado = await importarRespaldo(b.importar, exportado.blob);
+
+    expect(resultado.importados).toBe(1);
+    await origen.db.delete();
+  });
+
+  it('un clientesNuevos.json con formato inválido rechaza todo el respaldo sin escribir nada', async () => {
+    const origen = await dispositivoConClientes('origen');
+    const destino = await dispositivoConClientes('destino');
+    await origen.servicios.guardar(pendiente('s1'));
+    const exportado = await exportarRespaldo(origen.exportar, 'solo-pendientes');
+    const archivos = await zipFflate.desempaquetar(exportado.blob);
+    const roto = await zipFflate.empaquetar([
+      ...archivos.filter((f) => f.ruta !== 'clientesNuevos.json'),
+      { ruta: 'clientesNuevos.json', contenido: JSON.stringify([{ nada: true }]) },
+    ]);
+
+    await expect(importarRespaldo(destino.importar, roto)).rejects.toBeInstanceOf(
+      RespaldoInvalidoError
+    );
+    expect(await destino.servicios.obtener('s1')).toBeUndefined();
+    await Promise.all([origen.db.delete(), destino.db.delete()]);
   });
 });

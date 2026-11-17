@@ -16,6 +16,8 @@ export async function refrescarCatalogosRemotos(deps: {
   try {
     const remotos = await deps.gateway.leerCatalogos();
     await deps.catalogos.guardar(CLAVES_CATALOGO.clientes, remotos.clientes);
+    // Los clientes nuevos pendientes (`clientesNuevos`) NO se tocan: aún no existen en SharePoint.
+    await deps.catalogos.guardar(CLAVES_CATALOGO.clientesFusionados, remotos.fusionados ?? []);
     await deps.catalogos.guardar(CLAVES_CATALOGO.marcas, remotos.marcas);
     for (const columna of COLUMNAS_CHOICE) {
       await deps.catalogos.guardar(claveChoice(columna), remotos.choices[columna]);

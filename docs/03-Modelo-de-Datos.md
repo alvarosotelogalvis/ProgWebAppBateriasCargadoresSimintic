@@ -197,14 +197,20 @@ Los mapeos código ↔ valor visible viven en `src/infrastructure/graph/mappers/
 
 ### 6.1 Lista `Clientes`
 
-| Columna SP       | Tipo       | Nota                                           |
-| ---------------- | ---------- | ---------------------------------------------- |
-| `Title`          | Texto      | Nombre en MAYÚSCULAS. Ej.: `NAVAR ASOCIADOS`   |
-| `NIT`            | Texto (20) | Opcional                                       |
-| `Activo`         | Sí/No (Sí) | Solo los activos aparecen en el autocompletado |
-| `CorreoContacto` | Texto      | Opcional                                       |
+| Columna SP          | Tipo        | Nota                                                                                                                              |
+| ------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `Title`             | Texto       | Nombre en MAYÚSCULAS. Ej.: `NAVAR ASOCIADOS`                                                                                      |
+| `NIT`               | Texto (20)  | Opcional                                                                                                                          |
+| `Activo`            | Sí/No (Sí)  | Solo los activos aparecen en el autocompletado. Un cliente fusionado queda en No                                                  |
+| `CorreoContacto`    | Texto       | Opcional                                                                                                                          |
+| `ClienteGuid`       | Texto (40)  | UUID generado en el dispositivo que creó el cliente. **Único e indexado**, no obligatorio (los clientes anteriores no lo tienen)  |
+| `NombreNormalizado` | Texto (120) | Nombre en mayúsculas, sin tildes y con espacios colapsados. **Único e indexado**: evita duplicados creados desde dos dispositivos |
+| `FusionadoConId`    | Número      | Si el cliente se fusionó en otro, el ID del destino (el origen se conserva como historial, con `Activo = No`)                     |
+| `CreadoDesdeApp`    | Sí/No (No)  | Sí si lo creó un usuario desde el formulario                                                                                      |
 
 Datos iniciales: `NAVAR ASOCIADOS`, `ARIS MINING SEGOVIA`, `ARIS MINING MARMATO`.
+
+**Clientes creados desde la app y fusión (ADR-0023, spec 010).** El técnico puede escribir un cliente nuevo al registrar un servicio, también sin conexión: queda en el dispositivo con un id temporal negativo derivado de su `ClienteGuid` y se crea en SharePoint **antes** de subir los servicios que lo usan. Si el `ClienteGuid` o el `NombreNormalizado` ya existen, SharePoint los rechaza (valor único; en columnas de texto es inmediato, spike S10) y la app adopta el cliente existente. Solo se suben los clientes que algún servicio usa. Un Administrador puede **fusionar** dos clientes: se reasignan los servicios del origen al destino y el origen se deja `Activo = No` con `FusionadoConId` (nunca se borra). La fusión se registra en `LogSincronizacion.Detalle`. Para poder filtrar `Servicios` por cliente, la columna `Servicios.Cliente` está **indexada**.
 
 ### 6.2 Lista `Marcas`
 

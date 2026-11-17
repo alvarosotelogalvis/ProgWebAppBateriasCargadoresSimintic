@@ -12,8 +12,11 @@ import { CorregirServicioPage } from './CorregirServicioPage';
 const casosDeUso = { corregirCampos: vi.fn(async () => undefined) };
 let servicio: Servicio | undefined;
 
-vi.mock('@/app/containerContext', () => ({ useContainer: () => ({ casosDeUso }) }));
+vi.mock('@/app/containerContext', () => ({
+  useContainer: () => ({ casosDeUso, casosClientes: { agregarCliente: vi.fn() } }),
+}));
 vi.mock('@/infrastructure/db/hooks', () => ({
+  useClientes: () => [],
   useServicio: () => servicio,
   useCatalogo: () => undefined,
 }));

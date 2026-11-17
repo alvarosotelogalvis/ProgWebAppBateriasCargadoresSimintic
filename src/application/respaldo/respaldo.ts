@@ -2,7 +2,9 @@ import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
 import type { ServicioRepository } from '@/application/ports/servicioRepository';
 import type { UnidadDeTrabajo } from '@/application/ports/unidadDeTrabajo';
 import type { ArchivoEnZip, ZipPort } from '@/application/ports/zipPort';
+import type { ClientesLocales } from '@/application/clientes/clientesLocales';
 import type { Adjunto } from '@/domain/adjunto';
+import type { ClienteNuevo } from '@/domain/cliente';
 import { crearManifiesto, validarManifiesto } from '@/domain/respaldo';
 import type { Servicio } from '@/domain/servicio';
 
@@ -38,6 +40,8 @@ type AdjuntoRespaldado = Omit<Adjunto, 'blob' | 'miniatura'> & {
 const RUTA_MANIFIESTO = 'manifiesto.json';
 const RUTA_SERVICIOS = 'servicios.json';
 const RUTA_ADJUNTOS = 'adjuntos.json';
+/** Clientes creados sin red que aún no están en SharePoint; opcional (los respaldos anteriores no lo traen). */
+const RUTA_CLIENTES_NUEVOS = 'clientesNuevos.json';
 const rutaArchivo = (id: string): string => `archivos/${id}`;
 const rutaMiniatura = (id: string): string => `miniaturas/${id}`;
 
@@ -55,6 +59,8 @@ export interface DepsExportar {
   readonly appVersion: string;
   readonly dispositivoId: () => Promise<string>;
   readonly ahora?: () => Date;
+  /** Clientes pendientes de subir: un servicio con cliente temporal no se restaura sin ellos (spec 010). */
+  readonly clientesNuevos?: () => Promise<readonly ClienteNuevo[]>;
 }
 
 /** Empaqueta los servicios (completos), sus metadatos de adjuntos y los archivos en un ZIP. */
@@ -98,6 +104,9 @@ export async function exportarRespaldo(
     { ruta: RUTA_MANIFIESTO, contenido: JSON.stringify(manifiesto, null, 2) },
     { ruta: RUTA_SERVICIOS, contenido: JSON.stringify(aExportar) },
     { ruta: RUTA_ADJUNTOS, contenido: JSON.stringify(metadatos) },
+    ...(deps.clientesNuevos
+      ? [{ ruta: RUTA_CLIENTES_NUEVOS, contenido: JSON.stringify(await deps.clientesNuevos()) }]
+      : []),
     ...archivos,
   ];
 
@@ -114,6 +123,8 @@ export interface DepsImportar {
   readonly servicios: ServicioRepository;
   readonly uow: UnidadDeTrabajo;
   readonly zip: ZipPort;
+  /** Dónde guardar los clientes pendientes del respaldo (spec 010). Sin esto se ignoran. */
+  readonly clientesNuevos?: Pick<ClientesLocales, 'agregarVarios'>;
 }
 
 const leerJson = async (
@@ -140,6 +151,14 @@ const esServicio = (valor: unknown): valor is Servicio =>
   typeof (valor as Servicio).id === 'string' &&
   typeof (valor as Servicio).estado === 'string' &&
   Array.isArray((valor as Servicio).camposSucios);
+
+const esClienteNuevo = (valor: unknown): valor is ClienteNuevo =>
+  typeof valor === 'object' &&
+  valor !== null &&
+  typeof (valor as ClienteNuevo).id === 'number' &&
+  typeof (valor as ClienteNuevo).guid === 'string' &&
+  typeof (valor as ClienteNuevo).nombre === 'string' &&
+  typeof (valor as ClienteNuevo).normalizado === 'string';
 
 const esAdjunto = (valor: unknown): valor is AdjuntoRespaldado =>
   typeof valor === 'object' &&
@@ -170,6 +189,15 @@ export async function importarRespaldo(deps: DepsImportar, blob: Blob): Promise<
     throw new RespaldoInvalidoError('adjuntos.json no tiene el formato esperado');
   }
 
+  // Opcional: los respaldos anteriores a la spec 010 no lo traen. Si está, debe ser válido (todo o nada).
+  const hayClientes = archivos.some((archivo) => archivo.ruta === RUTA_CLIENTES_NUEVOS);
+  const clientesNuevos = hayClientes
+    ? await leerJson(deps.zip, archivos, RUTA_CLIENTES_NUEVOS)
+    : [];
+  if (!Array.isArray(clientesNuevos) || !clientesNuevos.every(esClienteNuevo)) {
+    throw new RespaldoInvalidoError('clientesNuevos.json no tiene el formato esperado');
+  }
+
   const contenidoDe = (ruta: string): Blob | null => {
     const archivo = archivos.find((candidato) => candidato.ruta === ruta);
     return archivo && typeof archivo.contenido !== 'string' ? archivo.contenido : null;
@@ -197,6 +225,11 @@ export async function importarRespaldo(deps: DepsImportar, blob: Blob): Promise<
         miniatura,
       });
     });
+
+  // Primero los clientes: así ningún servicio restaurado apunta a un cliente que no existe en el dispositivo.
+  // Si la transacción de abajo falla quedan clientes sin uso, que nunca se suben a SharePoint (no se crean si nadie los usa).
+  if (deps.clientesNuevos && nuevos.length > 0)
+    await deps.clientesNuevos.agregarVarios(clientesNuevos);
 
   await deps.uow.ejecutar(async (repos) => {
     for (const servicio of nuevos) await repos.servicios.guardar(servicio);

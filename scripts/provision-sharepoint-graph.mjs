@@ -26,6 +26,19 @@ import {
   MARCAS_INICIALES,
 } from './esquema-sharepoint.mjs';
 
+/**
+ * Clave de comparación de un cliente (misma regla que `normalizarNombre` de `src/domain/cliente.ts`; una prueba
+ * comprueba que no se desincronizan): mayúsculas, sin tildes y con los espacios colapsados.
+ */
+export function normalizarNombreCliente(nombre) {
+  return String(nombre ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toUpperCase();
+}
+
 // ----------------------------------------------------------------------------------------------------
 // Columnas
 // ----------------------------------------------------------------------------------------------------
@@ -65,6 +78,8 @@ export function columnaGraph(campo, ids = {}) {
     case 'busqueda': {
       if (!ids[campo.lista])
         throw new Error(`Falta el id de la lista ${campo.lista} para la búsqueda ${campo.n}`);
+      // No se pide el índice al crear la columna de búsqueda: se aplica después con PATCH (spike S10).
+      delete base.indexed;
       return {
         ...base,
         lookup: {
@@ -259,6 +274,93 @@ export async function asegurarCarpetasAnio({
   }
 }
 
+/**
+ * Concilia las columnas de una lista con el esquema: crea las que faltan (solo en una lista que ya existía) y
+ * corrige con PATCH las que existen sin índice o sin valor único (spikes S9 y S10). Nunca recrea ni borra.
+ */
+async function conciliarColumnas({
+  graph,
+  siteId,
+  lista,
+  nombre,
+  campos,
+  ids,
+  aplicar,
+  resumen,
+  log,
+  crearFaltantes,
+}) {
+  const columnas = new Map(
+    (
+      await graph.getTodos(
+        `/sites/${siteId}/lists/${lista.id}/columns?$select=id,name,indexed,enforceUniqueValues`
+      )
+    ).map((c) => [c.name, c])
+  );
+  for (const campo of campos) {
+    const actual = columnas.get(campo.n);
+    if (actual) {
+      if (crearFaltantes) resumen.existentes++;
+      const sinUnico = campo.unico === true && actual.enforceUniqueValues !== true;
+      const sinIndice = (campo.indice === true || campo.unico === true) && actual.indexed !== true;
+      if (sinUnico || sinIndice) {
+        if (!aplicar) {
+          log(`  [simulación] corregiría ${nombre}.${campo.n} (índice y/o valor único)`);
+        } else {
+          await graph.patch(`/sites/${siteId}/lists/${lista.id}/columns/${actual.id}`, {
+            indexed: true,
+            ...(campo.unico ? { enforceUniqueValues: true } : {}),
+          });
+          resumen.corregidos++;
+          log(`  [corregido]  columna ${nombre}.${campo.n} (índice y valor único)`);
+        }
+      }
+    } else if (!crearFaltantes) {
+      continue;
+    } else if (!aplicar) {
+      log(`  [simulación] agregaría la columna ${nombre}.${campo.n}`);
+    } else {
+      await graph.post(`/sites/${siteId}/lists/${lista.id}/columns`, columnaGraph(campo, ids));
+      resumen.creados++;
+      log(`  [creado]     columna ${nombre}.${campo.n}`);
+    }
+  }
+}
+
+/**
+ * Rellena `NombreNormalizado` en los clientes que ya existían (ADR-0023). Solo escribe esa columna y solo en
+ * los que no la tienen. Si dos clientes comparten el nombre normalizado, SharePoint rechaza el segundo: se avisa
+ * (se corrige fusionándolos) y se sigue con los demás.
+ */
+async function rellenarNombreNormalizado({ graph, siteId, lista, aplicar, resumen, log }) {
+  const items = await graph.getTodos(
+    `/sites/${siteId}/lists/${lista.id}/items?$expand=fields($select=Title,NombreNormalizado)&$top=999`
+  );
+  for (const item of items) {
+    const titulo = item.fields?.Title;
+    if (!titulo || item.fields?.NombreNormalizado) continue;
+    if (!aplicar) {
+      log(`  [simulación] rellenaría NombreNormalizado de ${titulo}`);
+      continue;
+    }
+    try {
+      await graph.patch(`/sites/${siteId}/lists/${lista.id}/items/${item.id}/fields`, {
+        NombreNormalizado: normalizarNombreCliente(titulo),
+      });
+      resumen.corregidos++;
+      log(`  [corregido]  Clientes: NombreNormalizado de ${titulo}`);
+    } catch (error) {
+      if (error instanceof ErrorGraph && error.estado === 400 && /unique/i.test(error.message)) {
+        resumen.avisos.push(
+          `El cliente «${titulo}» comparte el nombre normalizado con otro: fusiónalos desde la app (Técnico → Clientes).`
+        );
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
 export async function aprovisionar({
   graph,
   siteId,
@@ -298,46 +400,34 @@ export async function aprovisionar({
         log(
           `  [creado]     ${plantilla === 'documentLibrary' ? 'biblioteca' : 'lista'} ${nombre} con ${campos.length} columnas`
         );
+        await conciliarColumnas({
+          graph,
+          siteId,
+          lista,
+          nombre,
+          campos,
+          ids,
+          aplicar,
+          resumen,
+          log,
+          crearFaltantes: false,
+        });
       }
     } else {
       resumen.existentes++;
       log(`  [ya existe]  ${nombre}`);
-      const columnas = new Map(
-        (
-          await graph.getTodos(
-            `/sites/${siteId}/lists/${lista.id}/columns?$select=id,name,indexed,enforceUniqueValues`
-          )
-        ).map((c) => [c.name, c])
-      );
-      for (const campo of campos) {
-        const actual = columnas.get(campo.n);
-        if (actual) {
-          resumen.existentes++;
-          // Una columna que ya existía puede haberse creado sin índice o sin valor único (spike S9):
-          // se corrige con PATCH, nunca se recrea ni se borra.
-          const sinUnico = campo.unico === true && actual.enforceUniqueValues !== true;
-          const sinIndice =
-            (campo.indice === true || campo.unico === true) && actual.indexed !== true;
-          if (sinUnico || sinIndice) {
-            if (!aplicar) {
-              log(`  [simulación] corregiría ${nombre}.${campo.n} (índice y/o valor único)`);
-            } else {
-              await graph.patch(`/sites/${siteId}/lists/${lista.id}/columns/${actual.id}`, {
-                indexed: true,
-                ...(campo.unico ? { enforceUniqueValues: true } : {}),
-              });
-              resumen.corregidos++;
-              log(`  [corregido]  columna ${nombre}.${campo.n} (índice y valor único)`);
-            }
-          }
-        } else if (!aplicar) {
-          log(`  [simulación] agregaría la columna ${nombre}.${campo.n}`);
-        } else {
-          await graph.post(`/sites/${siteId}/lists/${lista.id}/columns`, columnaGraph(campo, ids));
-          resumen.creados++;
-          log(`  [creado]     columna ${nombre}.${campo.n}`);
-        }
-      }
+      await conciliarColumnas({
+        graph,
+        siteId,
+        lista,
+        nombre,
+        campos,
+        ids,
+        aplicar,
+        resumen,
+        log,
+        crearFaltantes: true,
+      });
     }
     if (lista.id) ids[nombre] = lista.id;
 
@@ -363,8 +453,14 @@ export async function aprovisionar({
         resumen,
         log,
         etiqueta: 'Clientes',
-        elementos: CLIENTES_INICIALES.map((titulo) => ({ titulo, campos: { Activo: true } })),
+        elementos: CLIENTES_INICIALES.map((titulo) => ({
+          titulo,
+          campos: { Activo: true, NombreNormalizado: normalizarNombreCliente(titulo) },
+        })),
       });
+      if (lista.id) {
+        await rellenarNombreNormalizado({ graph, siteId, lista, aplicar, resumen, log });
+      }
     } else if (nombre === 'Marcas') {
       await agregarElementosPorTitulo({
         graph,
