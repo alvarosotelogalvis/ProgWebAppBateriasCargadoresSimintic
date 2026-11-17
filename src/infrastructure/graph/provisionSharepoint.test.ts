@@ -120,11 +120,28 @@ describe('provision-sharepoint.ps1 coincide con la app', () => {
         'ServiciosDescargados',
         'Conflictos',
         'Errores',
+        'Detalle',
       ])
     );
     expect(ordenados(nombresDe(bloque('CamposAdjuntos')))).toEqual(
       ordenados(['ServicioId', 'AdjuntoId', 'TipoAdjunto', 'FechaCaptura', 'CapturadoPor'])
     );
+  });
+
+  it('Clientes tiene las columnas de la spec 010 y el grupo de usuarios puede escribir en ella (ADR-0023)', () => {
+    expect(ordenados(nombresDe(bloque('CamposClientes')))).toEqual(
+      ordenados([
+        'NIT',
+        'Activo',
+        'CorreoContacto',
+        'ClienteGuid',
+        'NombreNormalizado',
+        'FusionadoConId',
+        'CreadoDesdeApp',
+      ])
+    );
+    expect(script).toMatch(/Clientes\s*=\s*'Contribute'/);
+    expect(script).toMatch(/Marcas\s*=\s*'Read'/);
   });
 
   it('los valores de los Choice son exactamente los que la app traduce', () => {

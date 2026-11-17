@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { normalizarNombre } from '@/domain/cliente';
 import { CONFIG_DEFECTO, combinarConfig } from '@/domain/config';
 
 import {
@@ -45,6 +46,7 @@ interface Resumen {
 }
 interface Modulo {
   columnaGraph(campo: Campo, ids?: Record<string, string>): Record<string, unknown>;
+  normalizarNombreCliente(nombre: string): string;
   aprovisionar(o: {
     graph: Graph;
     siteId: string;
@@ -178,14 +180,22 @@ class GraphSimulado implements Graph {
     }
     const items = /\/lists\/([^/]+)\/items$/.exec(ruta);
     if (items) {
-      this.porId(items[1]!).items.push(c);
-      return { id: String(++this.contador) };
+      const id = String(++this.contador);
+      this.porId(items[1]!).items.push({ ...c, id });
+      return { id };
     }
     throw new Error(`POST no simulado: ${ruta}`);
   }
 
   async patch(ruta: string, cuerpo: unknown): Promise<Record<string, unknown>> {
     this.escrituras++;
+    const item = /\/lists\/([^/]+)\/items\/([^/?]+)\/fields$/.exec(ruta);
+    if (item) {
+      const encontrado = this.porId(item[1]!).items.find((i) => i.id === item[2]);
+      if (!encontrado) throw new Error(`ítem inexistente ${item[2]}`);
+      encontrado.fields = { ...(encontrado.fields as object), ...(cuerpo as object) };
+      return {};
+    }
     const columna = /\/lists\/([^/]+)\/columns\/([^/?]+)$/.exec(ruta);
     if (!columna) throw new Error(`PATCH no simulado: ${ruta}`);
     const lista = this.porId(columna[1]!);
@@ -259,6 +269,7 @@ describe('esquema de SharePoint frente a la app', () => {
         'ServiciosDescargados',
         'Conflictos',
         'Errores',
+        'Detalle',
       ])
     );
     expect(ordenados(nombres('ServiciosAdjuntos'))).toEqual(
@@ -291,7 +302,7 @@ describe('esquema de SharePoint frente a la app', () => {
     expect(servicioId).toMatchObject({ obligatorio: true, unico: true });
     const indexadas = esquema.CAMPOS.Servicios!.filter((c) => c.indice).map((c) => c.n);
     expect(ordenados(indexadas)).toEqual(
-      ordenados(['Estado', 'NumeroSolicitud', 'SerieEquipo', 'ProyeccionVidaUtil'])
+      ordenados(['Estado', 'Cliente', 'NumeroSolicitud', 'SerieEquipo', 'ProyeccionVidaUtil'])
     );
   });
 
@@ -299,6 +310,43 @@ describe('esquema de SharePoint frente a la app', () => {
     const numero = esquema.CAMPOS.Servicios!.find((c) => c.n === 'NumeroSolicitud')!;
     expect(numero).toMatchObject({ t: 'numero', indice: true });
     expect(numero.unico).not.toBe(true);
+  });
+
+  it('Clientes gana las columnas de la spec 010: guid y nombre normalizado únicos e indexados (ADR-0023)', () => {
+    const c = (n: string) => esquema.CAMPOS.Clientes!.find((campo) => campo.n === n)!;
+
+    expect(c('ClienteGuid')).toMatchObject({ t: 'texto', unico: true, indice: true, max: 40 });
+    expect(c('NombreNormalizado')).toMatchObject({
+      t: 'texto',
+      unico: true,
+      indice: true,
+      max: 120,
+    });
+    expect(c('FusionadoConId')).toMatchObject({ t: 'numero' });
+    expect(c('CreadoDesdeApp')).toMatchObject({ t: 'si_no', defecto: false });
+    // Las columnas de texto no son obligatorias: los clientes anteriores pueden no tener guid (spike S10).
+    expect(c('ClienteGuid').obligatorio).not.toBe(true);
+    expect(c('NombreNormalizado').obligatorio).not.toBe(true);
+  });
+
+  it('Servicios.Cliente está indexada: la fusión lista los servicios de un cliente (spike S10)', () => {
+    const cliente = esquema.CAMPOS.Servicios!.find((c) => c.n === 'Cliente')!;
+    expect(cliente).toMatchObject({ t: 'busqueda', indice: true });
+  });
+
+  it('el script y el dominio normalizan los nombres igual (no se pueden desincronizar)', () => {
+    const muestras = [
+      'aris  mining segovía',
+      '  Navar   Asociados ',
+      'Minería Ñandú S.A.S.',
+      'MINERA LOS ANDES',
+      'Mina-2 S.A.S. 100%',
+      '',
+      '   ',
+    ];
+    for (const muestra of muestras) {
+      expect(m.normalizarNombreCliente(muestra)).toBe(normalizarNombre(muestra));
+    }
   });
 
   it('las claves de configuración por defecto son válidas para la app y producen su configuración por defecto', () => {
@@ -517,6 +565,80 @@ describe('aprovisionar', () => {
 
     expect(columna).toMatchObject({ indexed: true });
     expect(columna.enforceUniqueValues).not.toBe(true);
+  });
+
+  it('indexa Servicios.Cliente al aprovisionar (la columna de búsqueda se corrige tras crearla)', async () => {
+    const graph = new GraphSimulado();
+
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+
+    expect(graph.listas.get('Servicios')!.columnas.get('Cliente')).toMatchObject({ indexed: true });
+  });
+
+  it('los clientes iniciales nacen con su nombre normalizado', async () => {
+    const graph = new GraphSimulado();
+
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+
+    const campos = graph.listas
+      .get('Clientes')!
+      .items.map((i) => i.fields as { Title: string; NombreNormalizado?: string });
+    expect(campos.map((c) => c.NombreNormalizado)).toEqual(
+      campos.map((c) => normalizarNombre(c.Title))
+    );
+  });
+
+  it('rellena NombreNormalizado en los clientes que ya existían, sin tocar sus demás datos', async () => {
+    const graph = new GraphSimulado();
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+    const clientes = graph.listas.get('Clientes')!;
+    clientes.items[0]!.fields = { Title: 'Minería Ñandú', Activo: true, NIT: '900' };
+    clientes.items[1]!.fields = { Title: 'ARIS MINING SEGOVIA', Activo: false };
+    graph.escrituras = 0;
+
+    const resumen = await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+
+    expect(clientes.items[0]!.fields).toEqual({
+      Title: 'Minería Ñandú',
+      Activo: true,
+      NIT: '900',
+      NombreNormalizado: 'MINERIA NANDU',
+    });
+    expect(clientes.items[1]!.fields).toMatchObject({
+      Activo: false,
+      NombreNormalizado: 'ARIS MINING SEGOVIA',
+    });
+    expect(resumen.corregidos).toBeGreaterThanOrEqual(2);
+    // Una segunda pasada ya no escribe nada.
+    graph.escrituras = 0;
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+    expect(graph.escrituras).toBe(0);
+  });
+
+  it('el ensayo avisa de los clientes por rellenar pero no los toca', async () => {
+    const graph = new GraphSimulado();
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+    const clientes = graph.listas.get('Clientes')!;
+    clientes.items[0]!.fields = { Title: 'Cliente Viejo', Activo: true };
+    graph.escrituras = 0;
+    const lineas: string[] = [];
+
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: false, log: (t) => lineas.push(t) });
+
+    expect(graph.escrituras).toBe(0);
+    expect(clientes.items[0]!.fields).toEqual({ Title: 'Cliente Viejo', Activo: true });
+    expect(lineas.join('\n')).toContain('Cliente Viejo');
+  });
+
+  it('con sinDatos no rellena NombreNormalizado de los clientes', async () => {
+    const graph = new GraphSimulado();
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+    graph.listas.get('Clientes')!.items[0]!.fields = { Title: 'Cliente Viejo', Activo: true };
+    graph.escrituras = 0;
+
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, sinDatos: true, log: sinLog });
+
+    expect(graph.escrituras).toBe(0);
   });
 
   it('nunca pisa una clave de configuración que ya existe', async () => {

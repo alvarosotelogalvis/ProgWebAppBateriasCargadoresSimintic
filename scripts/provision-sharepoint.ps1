@@ -106,7 +106,7 @@ $CamposServicios = @(
     @{ N = 'Estado';                   D = 'Estado';                       T = 'Choice';   Opciones = $EstadosServicio; Indice = $true }
     @{ N = 'TipoEquipo';               D = 'Tipo de equipo';               T = 'Choice';   Opciones = @('Batería', 'Cargador') }
     @{ N = 'FechaRecepcion';           D = 'Fecha de recepción';           T = 'Date' }
-    @{ N = 'Cliente';                  D = 'Cliente';                      T = 'Lookup';   Lista = 'Clientes'; MostrarCampo = 'Title' }
+    @{ N = 'Cliente';                  D = 'Cliente';                      T = 'Lookup';   Lista = 'Clientes'; MostrarCampo = 'Title'; Indice = $true }
     @{ N = 'NumeroSolicitud';          D = 'Número de solicitud';          T = 'Number';   Indice = $true }
     @{ N = 'Marca';                    D = 'Marca';                        T = 'Text';     Max = 60 }
     @{ N = 'Referencia';               D = 'Referencia';                   T = 'Text';     Max = 50 }
@@ -140,6 +140,11 @@ $CamposClientes = @(
     @{ N = 'NIT';            D = 'NIT';                 T = 'Text' }
     @{ N = 'Activo';         D = 'Activo';              T = 'Boolean'; Defecto = '1' }
     @{ N = 'CorreoContacto'; D = 'Correo de contacto';  T = 'Text' }
+    # Clientes creados desde la app y fusión (ADR-0023): únicas e indexadas, no obligatorias.
+    @{ N = 'ClienteGuid';       D = 'ID de cliente';        T = 'Text';    Max = 40;  Indice = $true; Unico = $true }
+    @{ N = 'NombreNormalizado'; D = 'Nombre normalizado';   T = 'Text';    Max = 120; Indice = $true; Unico = $true }
+    @{ N = 'FusionadoConId';    D = 'Fusionado con (ID)';   T = 'Number' }
+    @{ N = 'CreadoDesdeApp';    D = 'Creado desde la app';  T = 'Boolean'; Defecto = '0' }
 )
 
 $CamposMarcas = @(
@@ -163,6 +168,7 @@ $CamposLog = @(
     @{ N = 'ServiciosDescargados'; D = 'Servicios descargados';  T = 'Number' }
     @{ N = 'Conflictos';           D = 'Conflictos';             T = 'Number' }
     @{ N = 'Errores';              D = 'Errores';                T = 'Note' }
+    @{ N = 'Detalle';              D = 'Detalle';                T = 'Note' }
 )
 
 $CamposAdjuntos = @(
@@ -202,7 +208,7 @@ $PermisosPorLista = [ordered]@{
     Servicios         = 'Contribute'
     ServiciosAdjuntos = 'Contribute'
     LogSincronizacion = 'Contribute'
-    Clientes          = 'Read'
+    Clientes          = 'Contribute'
     Marcas            = 'Read'
     ConfiguracionApp  = 'Read'
 }

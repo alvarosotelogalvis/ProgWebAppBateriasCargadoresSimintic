@@ -89,7 +89,7 @@ Afirmar (($s.Listas['ConfiguracionApp'].Items | Where-Object { $_['Title'] -eq '
 Afirmar (($s.Listas['ConfiguracionApp'].Items | Where-Object { $_['Title'] -eq 'DiagnosticoValorDisposicionFinal' })['Valor'] -eq 'D. FINAL') 'DiagnosticoValorDisposicionFinal = D. FINAL'
 Afirmar ($s.Grupos.ContainsKey('ServicioTecnico-Usuarios')) 'se crea el grupo de usuarios'
 Afirmar ($s.Permisos.Count -eq 6) "6 asignaciones de permiso (hay $($s.Permisos.Count))"
-Afirmar ($s.Permisos -contains 'ServicioTecnico-Usuarios|Servicios|Colaborar' -and $s.Permisos -contains 'ServicioTecnico-Usuarios|Clientes|Leer') 'Colaborar en Servicios y Leer en Clientes (nombres localizados)'
+Afirmar ($s.Permisos -contains 'ServicioTecnico-Usuarios|Servicios|Colaborar' -and $s.Permisos -contains 'ServicioTecnico-Usuarios|Clientes|Colaborar' -and $s.Permisos -contains 'ServicioTecnico-Usuarios|Marcas|Leer') 'Colaborar en Servicios y Clientes (spec 010) y Leer en Marcas (nombres localizados)'
 Afirmar (@($s.Listas.Values | Where-Object { -not $_.HasUniqueRoleAssignments }).Count -eq 0) 'se rompe la herencia en las 6 listas'
 $xmls = @($s.Listas.Values | ForEach-Object { $_.Campos.Values } | Where-Object { $_.Xml })
 $mal = @($xmls | Where-Object { $_.StaticName -ne ([xml]$_.Xml).Field.Name })
