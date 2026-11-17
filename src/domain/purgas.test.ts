@@ -94,6 +94,19 @@ describe('purgas', () => {
       expect(resultado.servicios[0]?.id).toBe('facturado-1');
     });
 
+    it('nunca purga un servicio ENTREGADO sin facturar, por antiguo que sea (sigue pendiente de factura)', () => {
+      const servicios: Servicio[] = [
+        {
+          id: 'entregado-1',
+          estado: 'ENTREGADO',
+          syncState: 'synced',
+          actualizadoEn: new Date(hoy.getTime() - 800 * 24 * 60 * 60 * 1000).toISOString(),
+        } as unknown as Servicio,
+      ];
+
+      expect(seleccionarPurgables(servicios, new Map(), 7, 3).servicios).toHaveLength(0);
+    });
+
     it('no selecciona servicios cerrados que no superan el período de retención', () => {
       const servicios: Servicio[] = [
         {

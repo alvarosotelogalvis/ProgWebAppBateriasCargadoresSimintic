@@ -15,9 +15,6 @@ export interface ItemListaServicio {
   readonly eTag?: string;
   readonly webUrl?: string;
   readonly lastModifiedDateTime?: string;
-  readonly lastModifiedBy?: {
-    readonly user?: { readonly email?: string; readonly displayName?: string };
-  };
 }
 
 const texto = (valor: unknown): string | undefined =>
@@ -79,8 +76,6 @@ export function itemACambio(item: ItemListaServicio): RemotoCambio {
   const eTagCrudo = item['@odata.etag'] ?? item.eTag;
   const eTag = eTagCrudo ? normalizarETag(eTagCrudo) : undefined;
   const modificado = item.lastModifiedDateTime ?? texto(campos.Modified);
-  const editor = item.lastModifiedBy?.user?.email;
-  const editorNombre = item.lastModifiedBy?.user?.displayName;
   return {
     id: String(item.id),
     servicioId: texto(campos.ServicioId) ?? '',
@@ -91,8 +86,6 @@ export function itemACambio(item: ItemListaServicio): RemotoCambio {
     ...(item.webUrl ? { webUrl: item.webUrl } : {}),
     ...(eliminado ? { deleted: true } : {}),
     ...(modificado ? { modified: modificado } : {}),
-    ...(editor ? { editor } : {}),
-    ...(editorNombre ? { editorNombre } : {}),
     meta: metaDe(campos),
   };
 }

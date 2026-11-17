@@ -49,9 +49,6 @@ interface ListaGraph {
 
 interface ItemPushGraph extends ItemGraph {
   readonly '@removed'?: unknown;
-  readonly lastModifiedBy?: {
-    readonly user?: { readonly email?: string; readonly displayName?: string };
-  };
   readonly '@odata.etag'?: string;
   readonly eTag?: string;
   readonly webUrl?: string;

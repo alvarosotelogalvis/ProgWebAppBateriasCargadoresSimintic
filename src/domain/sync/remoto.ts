@@ -34,10 +34,6 @@ export interface RemotoCambio {
   readonly deleted?: boolean;
   /** Fecha de modificación en SharePoint. */
   readonly modified?: string;
-  /** Correo de quien lo modificó (si se conoce). */
-  readonly editor?: string;
-  /** Nombre de quien lo modificó (si se conoce). */
-  readonly editorNombre?: string;
   /** Datos de captura (solo necesarios para insertar). */
   readonly meta?: MetaRemotaServicio;
 }

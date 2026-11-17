@@ -7,8 +7,13 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Removed
+
+- Textos i18n sin uso (`config.json`, «proximamente») y los campos `editor`/`editorNombre` del cambio remoto: el delta de SharePoint no trae `lastModifiedBy`, así que nunca se llenaban ni se mostraban.
+
 ### Added
 
+- Prueba que fija que un servicio `ENTREGADO` sin facturar nunca se purga (es estado abierto: el pull lo volvería a descargar y sigue pendiente de factura; PA-03).
 - **Prueba en vivo de sincronización** (`npm run test:live`, `tests/live/`): ejecuta el motor, los mapeadores, el cargador y el gateway reales contra un SharePoint real con 3 «dispositivos» (subida con 2 fotos y 1 PDF, descarga con miniaturas, edición con `If-Match`, campo vaciado, conflicto 412 resuelto, idempotencia, eliminación remota) y borra todo lo que crea. Es opcional: exige `LIVE_CONFIRMAR=SI`, `LIVE_SITE_URL` y `LIVE_ENV_FILE`, y nunca corre con `npm test`.
 - **Prueba de rendimiento con el volumen esperado** (`tests/e2e/rendimiento-volumen.spec.ts`): lista, búsqueda y detalle con 50 y 100 servicios, también con la CPU frenada 4×, con presupuestos holgados.
 - **Carpetas de año en `ServiciosAdjuntos`** con `provision-sharepoint-graph.mjs --anios`, y comprobación en una biblioteca real de que la carpeta `/{año}/{ServicioId}` se crea sola al subir el primer archivo.
