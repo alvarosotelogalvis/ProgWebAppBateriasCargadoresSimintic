@@ -31,26 +31,26 @@
 
 ### Pruebas
 
-- [ ] T010 [P] [HU-010-1] `agregarCliente`: sugiere el existente aunque cambien tildes, mayúsculas o espacios (ES-010-02); crea el pendiente con id negativo y guid (ES-010-01); no duplica entre pendientes; rechaza vacío y > 100 — `src/application/clientes/agregarCliente.int.test.ts`
-- [ ] T011 [P] [HU-010-1] El refresco del catálogo **conserva** `clientesNuevos` y guarda `clientesFusionados` (ES-010-05, regla 1 de CLAUDE.md) — `src/application/setup/refrescarCatalogosSync.test.ts`
-- [ ] T012 [P] [HU-010-1] `subirClientesNuevos`: crea el cliente (ES-010-03), es idempotente al reintentar, adopta el existente por nombre normalizado, sigue una fusión hasta el vigente, un choque de valor único (400) adopta el cliente existente buscándolo por guid y por nombre normalizado (ES-010-04), remapea los servicios (también los que ya tenían `sp` y `clienteId` sucio) y limpia el pendiente — `src/application/clientes/subirClientesNuevos.int.test.ts`
-- [ ] T013 [P] [HU-010-1] Motor con emulador: crea el cliente **antes** de los servicios; un servicio cuyo cliente sigue temporal no se sube y queda pendiente; dos dispositivos con el mismo cliente nuevo terminan con un solo cliente — `src/application/sync/SyncEngine.clientes.int.test.ts`
-- [ ] T014 [P] [HU-010-1] Gateway + emulador: `buscarPorGuid`, `buscarPorNormalizado` (ordenado por id), `crearCliente` y su choque de valor único — `src/infrastructure/graph/sharepointGateway.clientes.int.test.ts`
-- [ ] T015 [P] [HU-010-1] El mapeador nunca escribe un `clienteId` ≤ 0 (ni en la creación ni como campo sucio) — `src/infrastructure/graph/mappers/servicioMapper.test.ts`
-- [ ] T016 [P] [HU-010-1] `CampoCliente`: ofrece «Agregar», sugiere el existente, el cliente pendiente aparece como uno más y se puede elegir en otro servicio; `useClientes` une remotos y pendientes — `CampoCliente.test.tsx`, `src/infrastructure/db/hooks.test.ts`
-- [ ] T017 [P] [HU-010-1] El respaldo exporta e importa `clientesNuevos` (un servicio con cliente temporal sobrevive a la restauración en otro dispositivo) — `src/application/respaldo/…test.ts`
+- [x] T010 [P] [HU-010-1] `agregarCliente`: sugiere el existente aunque cambien tildes, mayúsculas o espacios (ES-010-02); crea el pendiente con id negativo y guid (ES-010-01); no duplica entre pendientes; rechaza vacío y > 100 — `src/application/clientes/agregarCliente.int.test.ts`
+- [x] T011 [P] [HU-010-1] El refresco del catálogo **conserva** `clientesNuevos` y guarda `clientesFusionados` (ES-010-05, regla 1 de CLAUDE.md) — `src/application/setup/refrescarCatalogosSync.test.ts`
+- [x] T012 [P] [HU-010-1] `subirClientesNuevos`: crea el cliente (ES-010-03), es idempotente al reintentar, adopta el existente por nombre normalizado, sigue una fusión hasta el vigente, un choque de valor único (400) adopta el cliente existente buscándolo por guid y por nombre normalizado (ES-010-04), remapea los servicios (también los que ya tenían `sp` y `clienteId` sucio) y limpia el pendiente — `src/application/clientes/subirClientesNuevos.int.test.ts`
+- [x] T013 [P] [HU-010-1] Motor con emulador: crea el cliente **antes** de los servicios; un servicio cuyo cliente sigue temporal no se sube y queda pendiente; dos dispositivos con el mismo cliente nuevo terminan con un solo cliente — `src/application/sync/SyncEngine.clientes.int.test.ts`
+- [x] T014 [P] [HU-010-1] Gateway + emulador: `buscarPorGuid`, `buscarPorNormalizado` (ordenado por id), `crearCliente` y su choque de valor único — `src/infrastructure/graph/sharepointGateway.clientes.int.test.ts`
+- [x] T015 [P] [HU-010-1] El mapeador nunca escribe un `clienteId` ≤ 0 (ni en la creación ni como campo sucio) — `src/infrastructure/graph/mappers/servicioMapper.test.ts`
+- [x] T016 [P] [HU-010-1] `CampoCliente`: ofrece «Agregar», sugiere el existente, el cliente pendiente aparece como uno más y se puede elegir en otro servicio; `useClientes` une remotos y pendientes — `CampoCliente.test.tsx`, `src/infrastructure/db/hooks.test.ts`
+- [x] T017 [P] [HU-010-1] El respaldo exporta e importa `clientesNuevos` (un servicio con cliente temporal sobrevive a la restauración en otro dispositivo) — `src/application/respaldo/…test.ts`
 
 ### Implementación
 
-- [ ] T018 [HU-010-1] `clientesLocales` (clave `clientesNuevos`, secuencia negativa en `meta`) y `agregarCliente` hasta pasar T010 — `src/application/clientes/`
-- [ ] T019 [HU-010-1] Refresco del catálogo y mapeador de clientes (guid, fusionados, activos) hasta pasar T011 — `refrescarCatalogosSync.ts`, `mappers/catalogos.ts`
-- [ ] T020 [HU-010-1] Gateway: implementar el puerto de clientes hasta pasar T014 — `sharepointGateway.ts`
-- [ ] T021 [HU-010-1] `subirClientesNuevos` hasta pasar T012 — `src/application/clientes/subirClientesNuevos.ts`
-- [ ] T022 [HU-010-1] Motor: paso `antesDelPush` y guarda de servicios con cliente temporal hasta pasar T013; conectarlo en el contenedor — `SyncEngine.ts`, `src/app/container.ts`
-- [ ] T023 [P] [HU-010-1] Mapeador: ignorar `clienteId` ≤ 0 hasta pasar T015 — `servicioMapper.ts`
-- [ ] T024 [HU-010-1] `useClientes()` y su uso en `CampoCliente`, `FiltrosServicios` y `AlertasPage`; `nombrePorCliente` del pull incluye pendientes y fusionados — `hooks.ts`, `pullServicios.ts`
-- [ ] T025 [HU-010-1] UI de «Agregar cliente nuevo» (accesible, textos en i18n) hasta pasar T016 — `CampoCliente.tsx`
-- [ ] T026 [HU-010-1] Respaldo con `clientesNuevos` hasta pasar T017 — `src/application/respaldo/`
+- [x] T018 [HU-010-1] `clientesLocales` (clave `clientesNuevos`, id temporal derivado del guid) y `agregarCliente` hasta pasar T010 — `src/application/clientes/`
+- [x] T019 [HU-010-1] Refresco del catálogo y mapeador de clientes (guid, fusionados, activos) hasta pasar T011 — `refrescarCatalogosSync.ts`, `mappers/catalogos.ts`
+- [x] T020 [HU-010-1] Gateway: implementar el puerto de clientes hasta pasar T014 — `sharepointGateway.ts`
+- [x] T021 [HU-010-1] `subirClientesNuevos` hasta pasar T012 — `src/application/clientes/subirClientesNuevos.ts`
+- [x] T022 [HU-010-1] Motor: paso `antesDelPush` y guarda de servicios con cliente temporal hasta pasar T013; conectarlo en el contenedor — `SyncEngine.ts`, `src/app/container.ts`
+- [x] T023 [P] [HU-010-1] Mapeador: ignorar `clienteId` ≤ 0 hasta pasar T015 — `servicioMapper.ts`
+- [x] T024 [HU-010-1] `useClientes()` y su uso en `CampoCliente`, `FiltrosServicios` y `AlertasPage`; `nombrePorCliente` del pull incluye pendientes y fusionados — `hooks.ts`, `pullServicios.ts`
+- [x] T025 [HU-010-1] UI de «Agregar cliente nuevo» (accesible, textos en i18n) hasta pasar T016 — `CampoCliente.tsx`
+- [x] T026 [HU-010-1] Respaldo con `clientesNuevos` hasta pasar T017 — `src/application/respaldo/`
 
 **Punto de control**: ES-010-01 a ES-010-05 en verde con el emulador.
 

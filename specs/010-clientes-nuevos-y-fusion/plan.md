@@ -100,7 +100,7 @@ export interface ClientesRemotos {
 
 1. `validarNombre`; calcula `normalizado`.
 2. Si coincide con un cliente del catálogo (activo) o con otro pendiente → devuelve ese (no crea).
-3. Si no, crea `ClienteNuevo` con `id = -secuencia` (contador persistido en `meta`), `guid` (UUID v4), lo guarda en la clave `clientesNuevos` y lo devuelve. El servicio queda con `clienteId = id` temporal y `clienteNombre`.
+3. Si no, crea `ClienteNuevo` con `id = idTemporalDeGuid(guid)` (negativo, derivado del guid), `guid` (UUID v4), lo guarda en la clave `clientesNuevos` y lo devuelve. El servicio queda con `clienteId = id` temporal y `clienteNombre`.
 
 **Push (en la sincronización, antes de los servicios).** `subirClientesNuevos`:
 
@@ -132,7 +132,9 @@ Si se corta, repetir: lo ya reasignado ya no aparece al consultar y se completa 
 ### 3.4 Decisiones locales
 
 - **Claves de catálogo separadas**: `clientes` (remoto, se sobrescribe), `clientesNuevos` (pendientes, nunca se sobrescribe) y `clientesFusionados`. Así un refresco no pierde clientes creados sin red. `useClientes()` une las dos primeras.
-- **Id temporal negativo**: `clienteId` ya es un número; un valor ≤ 0 significa «aún sin id de SharePoint». El mapeador nunca lo escribe y el motor no sube el servicio hasta resolverlo.
+- **Id temporal negativo derivado del guid** (FNV-1a de 32 bits): `clienteId` ya es un número; un valor ≤ 0 significa «aún sin id de SharePoint». Al no depender de un contador por dispositivo, dos dispositivos —o un respaldo restaurado en otro— no repiten el id de un cliente distinto. El mapeador nunca lo escribe y el motor no sube el servicio hasta resolverlo.
+- **Solo se suben los clientes que algún servicio usa**: un cliente tipeado y no usado no ensucia la lista de SharePoint y se conserva en el dispositivo para usarlo después.
+- **Los pendientes entran en el respaldo** (`clientesNuevos.json`, opcional para leer respaldos anteriores) y las altas se serializan en una cola para que dos altas simultáneas del mismo nombre dejen un solo cliente.
 - **Sin estado provisional visible**: el cliente pendiente se muestra igual que cualquier otro.
 - **Fusionar no borra**: el origen queda `Activo = No` + `FusionadoConId`, y el catálogo remoto deja de ofrecerlo.
 - **Valor único de texto**: el spike S10 mostró que, a diferencia de la columna Número (S9), la unicidad de `ClienteGuid` y `NombreNormalizado` es inmediata; por eso no hace falta una verificación posterior: ante un 400 se adopta el cliente existente.
