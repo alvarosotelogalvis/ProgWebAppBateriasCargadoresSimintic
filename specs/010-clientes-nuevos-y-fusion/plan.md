@@ -82,8 +82,10 @@ export const resolverVigente = (id: number, fusionados: readonly ClienteFusionad
 // application/ports/clientesRemotos.ts
 export interface ClienteRemoto { id: number; nombre: string; activo: boolean; guid?: string; normalizado?: string; fusionadoCon?: number }
 export interface ClientesRemotos {
+  listarClientes(): Promise<readonly ClienteRemoto[]>; // todos, incluidos los inactivos (para seguir las fusiones)
   buscarPorGuid(guid: string): Promise<ClienteRemoto | null>;
   buscarPorNormalizado(normalizado: string): Promise<readonly ClienteRemoto[]>; // todos los que lo comparten (id ascendente)
+  // Idempotente: ante un valor único repetido (guid o nombre) devuelve ese cliente, aunque sea un inactivo ya fusionado
   crearCliente(c: { guid: string; titulo: string; normalizado: string }): Promise<ClienteRemoto>;
   desactivarFusionado(origenId: number, destinoId: number): Promise<void>;
   listarServiciosDeCliente(clienteId: number): Promise<readonly { itemId: string }[]>;

@@ -15,15 +15,15 @@
 
 ### Pruebas
 
-- [ ] T004 [P] `normalizarNombre` («aris mining segovía» → `ARIS MINING SEGOVIA`), `tituloDeNombre` (conserva tildes), `validarNombre` (vacío, 101 caracteres), `resolverVigente` (cadena A→B→C, sin cambios, ciclo A→B→A se corta) — `src/domain/cliente.test.ts`
-- [ ] T005 [P] Esquema: `Clientes` con las 4 columnas nuevas (únicas e indexadas las dos de texto), `Servicios.Cliente` **indexada** y `LogSincronizacion.Detalle`; el aprovisionamiento corrige columnas existentes y **rellena `NombreNormalizado`** de los clientes que ya existen sin pisar los demás datos — `src/infrastructure/graph/provisionSharepointGraph.test.ts`
+- [x] T004 [P] `normalizarNombre` («aris mining segovía» → `ARIS MINING SEGOVIA`), `tituloDeNombre` (conserva tildes), `validarNombre` (vacío, 101 caracteres), `resolverVigente` (cadena A→B→C, sin cambios, ciclo A→B→A se corta) — `src/domain/cliente.test.ts`
+- [x] T005 [P] Esquema: `Clientes` con las 4 columnas nuevas (únicas e indexadas las dos de texto), `Servicios.Cliente` **indexada** y `LogSincronizacion.Detalle`; el aprovisionamiento corrige columnas existentes y **rellena `NombreNormalizado`** de los clientes que ya existen sin pisar los demás datos — `src/infrastructure/graph/provisionSharepointGraph.test.ts`
 
 ### Implementación
 
-- [ ] T006 Implementar `domain/cliente.ts` hasta pasar T004 — `src/domain/cliente.ts`
-- [ ] T007 Esquema y aprovisionamiento hasta pasar T005; permiso _Colaborar_ del grupo de técnicos sobre `Clientes` en el script PowerShell — `scripts/esquema-sharepoint.mjs`, `provision-sharepoint-graph.mjs`, `provision-sharepoint.ps1`
-- [ ] T008 [P] Emulador de Graph: lista `Clientes` con valor único inmediato (400 como el real), filtro de `Servicios` por `ClienteLookupId`, PATCH del lookup, ítems inactivos; con sus pruebas — `tests/fixtures/graph/emuladorGraph.ts`, `src/infrastructure/graph/emuladorGraph.clientes.int.test.ts`
-- [ ] T009 [P] Puertos: `ClientesRemotos`, `Catalogos.fusionados` y `ClienteCatalogo.fusionadoCon`; el adaptador simulado — `src/application/ports/clientesRemotos.ts`, `remoteGateway.ts`, `src/infrastructure/graph/mockRemoteGateway.ts`
+- [x] T006 Implementar `domain/cliente.ts` hasta pasar T004 — `src/domain/cliente.ts`
+- [x] T007 Esquema y aprovisionamiento hasta pasar T005; permiso _Colaborar_ del grupo de técnicos sobre `Clientes` en el script PowerShell — `scripts/esquema-sharepoint.mjs`, `provision-sharepoint-graph.mjs`, `provision-sharepoint.ps1`
+- [x] T008 [P] Emulador de Graph: lista `Clientes` con valor único inmediato (400 como el real), filtro de `Servicios` por `ClienteLookupId`, PATCH del lookup, ítems inactivos; con sus pruebas — `tests/fixtures/graph/emuladorGraph.ts`, `src/infrastructure/graph/emuladorGraph.clientes.int.test.ts`
+- [x] T009 [P] Puertos: `ClientesRemotos`, `Catalogos.fusionados` y `ClienteCatalogo.fusionadoCon`; el adaptador simulado — `src/application/ports/clientesRemotos.ts`, `remoteGateway.ts`, `src/infrastructure/graph/mockRemoteGateway.ts`
 
 ## Fase 3 — HU-010-1 Agregar un cliente nuevo al registrar un servicio (P1) 🎯 MVP
 

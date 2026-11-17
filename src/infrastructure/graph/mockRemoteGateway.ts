@@ -5,6 +5,13 @@ import type {
   ResultadoActualizacion,
   ServicioRemotoPush,
 } from '@/application/ports/RemoteGatewayPush';
+import type {
+  ClienteRemoto,
+  ClientesRemotos,
+  DetalleLogRemoto,
+  NuevoClienteRemoto,
+  ServicioDeCliente,
+} from '@/application/ports/clientesRemotos';
 import type { Catalogos, SitioResuelto } from '@/application/ports/remoteGateway';
 import type {
   ArchivoRemotoServicio,
@@ -13,6 +20,7 @@ import type {
 } from '@/application/ports/RemoteGatewayPull';
 import type { ItemSubido, Uploader } from '@/application/ports/UploaderPort';
 import { ConflictoError } from '@/application/sync/ConflictoError';
+import { normalizarNombre, type ClienteFusionado } from '@/domain/cliente';
 import type { RemotoCambio } from '@/domain/sync/remoto';
 import { AppError } from '@/shared/errors';
 
@@ -41,6 +49,15 @@ const CONFIG_DEMO: Record<string, string> = {
   VersionMinimaApp: '0.1.0',
 };
 
+interface ClienteMock {
+  readonly id: number;
+  readonly nombre: string;
+  activo: boolean;
+  readonly guid?: string;
+  readonly normalizado?: string;
+  fusionadoCon?: number;
+}
+
 interface ItemMock {
   readonly id: string;
   fields: Record<string, unknown>;
@@ -64,7 +81,8 @@ interface ArchivoMock {
  * Permite recorrer el asistente y la app en DEV sin tenant (SDD 8.6).
  * En pruebas de integracion se usa el emulador de MSW, no este adaptador.
  */
-export class MockRemoteGateway implements RemoteGatewayPush, RemoteGatewayPull {
+export class MockRemoteGateway implements RemoteGatewayPush, RemoteGatewayPull, ClientesRemotos {
+  private readonly clientesMock: ClienteMock[] = CLIENTES_DEMO.map((cliente) => ({ ...cliente }));
   private readonly serviciosMock = new Map<string, ItemMock>();
   private readonly archivosMock = new Map<string, ArchivoMock>();
   private readonly logs: EntradaLogSync[] = [];
@@ -87,11 +105,92 @@ export class MockRemoteGateway implements RemoteGatewayPush, RemoteGatewayPull {
   }
 
   async leerCatalogos(): Promise<Catalogos> {
+    const fusionados: ClienteFusionado[] = this.clientesMock.flatMap((cliente) =>
+      !cliente.activo && cliente.fusionadoCon !== undefined
+        ? [{ origenId: cliente.id, destinoId: cliente.fusionadoCon }]
+        : []
+    );
     return {
-      clientes: CLIENTES_DEMO,
+      clientes: this.clientesMock
+        .filter((cliente) => cliente.activo)
+        .map(({ id, nombre }) => ({ id, nombre, activo: true })),
+      fusionados,
       marcas: MARCAS_DEMO,
       choices: CHOICES_DEMO,
     };
+  }
+
+  // Clientes y fusión (spec 010)
+  private aClienteRemoto(cliente: ClienteMock): ClienteRemoto {
+    return {
+      id: cliente.id,
+      nombre: cliente.nombre,
+      activo: cliente.activo,
+      normalizado: cliente.normalizado ?? normalizarNombre(cliente.nombre),
+      ...(cliente.guid === undefined ? {} : { guid: cliente.guid }),
+      ...(cliente.fusionadoCon === undefined ? {} : { fusionadoCon: cliente.fusionadoCon }),
+    };
+  }
+
+  async listarClientes(): Promise<readonly ClienteRemoto[]> {
+    return this.clientesMock.map((cliente) => this.aClienteRemoto(cliente));
+  }
+
+  async buscarPorGuid(guid: string): Promise<ClienteRemoto | null> {
+    const encontrado = this.clientesMock.find((cliente) => cliente.guid === guid);
+    return encontrado ? this.aClienteRemoto(encontrado) : null;
+  }
+
+  async buscarPorNormalizado(normalizado: string): Promise<readonly ClienteRemoto[]> {
+    return this.clientesMock
+      .map((cliente) => this.aClienteRemoto(cliente))
+      .filter((cliente) => cliente.normalizado === normalizado)
+      .sort((a, b) => a.id - b.id);
+  }
+
+  async crearCliente(cliente: NuevoClienteRemoto): Promise<ClienteRemoto> {
+    const porGuid = await this.buscarPorGuid(cliente.guid);
+    if (porGuid) return porGuid;
+    const [porNombre] = await this.buscarPorNormalizado(cliente.normalizado);
+    if (porNombre) return porNombre;
+
+    const id = Math.max(0, ...this.clientesMock.map((existente) => existente.id)) + 1;
+    const creado: ClienteMock = {
+      id,
+      nombre: cliente.titulo,
+      activo: true,
+      guid: cliente.guid,
+      normalizado: cliente.normalizado,
+    };
+    this.clientesMock.push(creado);
+    return this.aClienteRemoto(creado);
+  }
+
+  async desactivarFusionado(origenId: number, destinoId: number): Promise<void> {
+    const origen = this.clientesMock.find((cliente) => cliente.id === origenId);
+    if (!origen) return;
+    origen.activo = false;
+    origen.fusionadoCon = destinoId;
+  }
+
+  async listarServiciosDeCliente(clienteId: number): Promise<readonly ServicioDeCliente[]> {
+    return [...this.serviciosMock.values()]
+      .filter((item) => Number(item.fields.ClienteLookupId) === clienteId)
+      .map((item) => ({ itemId: item.id }));
+  }
+
+  async reasignarServicio(itemId: string, clienteId: number): Promise<void> {
+    const item = this.serviciosMock.get(itemId);
+    if (!item) return;
+    this.secuencia += 1;
+    item.fields = { ...item.fields, ClienteLookupId: clienteId };
+    item.eTag = `"mock-${this.secuencia}"`;
+    item.modificadoEn = new Date().toISOString();
+    item.version = this.secuencia;
+  }
+
+  async registrarDetalleLog(entrada: DetalleLogRemoto): Promise<void> {
+    void entrada; // el modo demo no conserva la bitácora de detalles
   }
 
   async leerConfiguracion(): Promise<Record<string, string>> {
