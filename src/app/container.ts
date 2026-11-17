@@ -1,3 +1,4 @@
+import { refrescarCatalogosRemotos } from '@/application/setup/refrescarCatalogosSync';
 import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
 import type { AuthPort } from '@/application/ports/authPort';
 import type { CatalogoRepository } from '@/application/ports/catalogoRepository';
@@ -13,6 +14,13 @@ import type { Uploader } from '@/application/ports/UploaderPort';
 import type { CasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearCasosDeUsoAdjuntos } from '@/application/adjuntos/casosDeUso';
 import { crearAgregarCliente } from '@/application/clientes/agregarCliente';
+import {
+  crearFusionarClientes,
+  type OpcionesFusion,
+  type ResultadoFusion,
+} from '@/application/clientes/fusionarClientes';
+import { crearPrepararClientes } from '@/application/clientes/prepararClientes';
+import { crearRemapearFusionados } from '@/application/clientes/remapearFusionados';
 import { crearClientesLocales, type ClientesLocales } from '@/application/clientes/clientesLocales';
 import { crearSubirClientesNuevos } from '@/application/clientes/subirClientesNuevos';
 import type { ClientesRemotos } from '@/application/ports/clientesRemotos';
@@ -119,7 +127,10 @@ export interface Container {
   casosDeUso: ReturnType<typeof crearCasosDeUso>;
   /** Clientes creados sin red que aún no están en SharePoint (spec 010). */
   clientesLocales: ClientesLocales;
-  casosClientes: { agregarCliente: ReturnType<typeof crearAgregarCliente> };
+  casosClientes: {
+    agregarCliente: ReturnType<typeof crearAgregarCliente>;
+    fusionarClientes: (opciones: OpcionesFusion) => Promise<ResultadoFusion>;
+  };
   casosAdjuntos: CasosDeUsoAdjuntos;
   listarAdjuntosRemotos: ListarAdjuntosRemotos;
 }
@@ -200,8 +211,24 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
 
   const casosDeUso = crearCasosDeUso(depsServicios);
   const clientesLocales = crearClientesLocales(catalogos);
+  const remapearFusionados = crearRemapearFusionados({ catalogos, servicios, logger });
+  const refrescarCatalogos = () => refrescarCatalogosRemotos({ gateway, catalogos, logger });
   const casosClientes = {
     agregarCliente: crearAgregarCliente({ catalogos, clientesLocales, ids, clock, logger }),
+    fusionarClientes: esClientesRemotos(gateway)
+      ? crearFusionarClientes({
+          clientesRemotos: gateway,
+          logger,
+          cuentaActiva: () => auth.cuentaActiva(),
+          // Tras fusionar se releen las fusiones y se pasan al vigente los servicios pendientes de este dispositivo.
+          refrescarCatalogos: async () => {
+            await refrescarCatalogos();
+            await remapearFusionados();
+          },
+        })
+      : async (): Promise<ResultadoFusion> => {
+          throw new Error('La fusión de clientes no está disponible en este modo.');
+        },
   };
   const subirClientesNuevos = esClientesRemotos(gateway)
     ? crearSubirClientesNuevos({
@@ -211,6 +238,9 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
         servicios,
         logger,
       })
+    : undefined;
+  const prepararClientes = subirClientesNuevos
+    ? crearPrepararClientes({ refrescarCatalogos, remapearFusionados, subirClientesNuevos })
     : undefined;
   const casosAdjuntos = crearCasosDeUsoAdjuntos({
     ...depsServicios,
@@ -271,13 +301,7 @@ export const crearContainer = async (deps: DependenciasContainer = {}): Promise<
     appVersion,
     lock: conLockSync,
     bus: eventosSync,
-    ...(subirClientesNuevos
-      ? {
-          antesDelPush: async () => {
-            await subirClientesNuevos();
-          },
-        }
-      : {}),
+    ...(prepararClientes ? { antesDelPush: prepararClientes } : {}),
     despuesDelPush,
     resolutorConflictos,
     ...(deps.config

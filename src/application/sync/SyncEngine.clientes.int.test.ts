@@ -175,3 +175,45 @@ describe('MotorSync · clientes nuevos (spec 010)', () => {
     expect(servicios.map((s) => s.fields.ClienteLookupId)).toEqual([idCliente, idCliente]);
   });
 });
+
+describe('MotorSync · cliente fusionado (ES-010-08)', () => {
+  it('un servicio pendiente cuyo cliente se fusionó mientras tanto se sube con el cliente vigente', async () => {
+    const e = await crear({ conFusion: true });
+    // El administrador fusionó el cliente 77 en el 1 (el origen queda inactivo y apunta al destino).
+    const origen = e.emulador.sembrarCliente({
+      Title: 'CLIENTE VIEJO',
+      Activo: false,
+      FusionadoConId: 1,
+    });
+    const servicio: Servicio = {
+      ...servicioBuilder().conId(ID_A).recibido().pendiente().construir(),
+      numeroSolicitud: 0,
+      clienteId: Number(origen.id),
+      clienteNombre: 'CLIENTE VIEJO',
+      camposSucios: [],
+    };
+    await e.servicios.guardar(servicio);
+
+    const resumen = await e.sincronizar();
+
+    expect(resumen).toMatchObject({ subidos: 1, errores: 0, conflictos: 0 });
+    expect(e.emulador.itemsDe('Servicios')[0]?.fields.ClienteLookupId).toBe(1);
+    expect(await e.servicios.obtener(ID_A)).toMatchObject({ clienteId: 1, syncState: 'synced' });
+  });
+
+  it('un servicio de un cliente que no se fusionó no cambia', async () => {
+    const e = await crear({ conFusion: true });
+    const servicio: Servicio = {
+      ...servicioBuilder().conId(ID_A).recibido().pendiente().construir(),
+      numeroSolicitud: 0,
+      clienteId: 2,
+      clienteNombre: 'Transportes Andinos',
+      camposSucios: [],
+    };
+    await e.servicios.guardar(servicio);
+
+    await e.sincronizar();
+
+    expect(e.emulador.itemsDe('Servicios')[0]?.fields.ClienteLookupId).toBe(2);
+  });
+});
