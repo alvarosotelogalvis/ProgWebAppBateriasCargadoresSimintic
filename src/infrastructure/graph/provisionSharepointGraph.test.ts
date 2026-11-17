@@ -295,9 +295,10 @@ describe('esquema de SharePoint frente a la app', () => {
     );
   });
 
-  it('NumeroSolicitud es única e indexada: el consecutivo automático depende de ello (ADR-0024)', () => {
+  it('NumeroSolicitud está indexada (para leer el mayor) pero no se pide única: SharePoint no la garantiza (spike S9)', () => {
     const numero = esquema.CAMPOS.Servicios!.find((c) => c.n === 'NumeroSolicitud')!;
-    expect(numero).toMatchObject({ t: 'numero', unico: true, indice: true });
+    expect(numero).toMatchObject({ t: 'numero', indice: true });
+    expect(numero.unico).not.toBe(true);
   });
 
   it('las claves de configuración por defecto son válidas para la app y producen su configuración por defecto', () => {
@@ -474,7 +475,7 @@ describe('aprovisionar', () => {
   it('corrige una columna existente que no es única ni está indexada (spike S9)', async () => {
     const graph = new GraphSimulado();
     await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
-    const columna = graph.listas.get('Servicios')!.columnas.get('NumeroSolicitud')!;
+    const columna = graph.listas.get('Servicios')!.columnas.get('ServicioId')!;
     Object.assign(columna, { indexed: false, enforceUniqueValues: false });
     graph.escrituras = 0;
 
@@ -488,7 +489,7 @@ describe('aprovisionar', () => {
   it('el ensayo avisa de la columna por corregir pero no la toca', async () => {
     const graph = new GraphSimulado();
     await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
-    const columna = graph.listas.get('Servicios')!.columnas.get('NumeroSolicitud')!;
+    const columna = graph.listas.get('Servicios')!.columnas.get('ServicioId')!;
     Object.assign(columna, { indexed: false, enforceUniqueValues: false });
     graph.escrituras = 0;
     const lineas: string[] = [];
@@ -503,7 +504,19 @@ describe('aprovisionar', () => {
     expect(graph.escrituras).toBe(0);
     expect(resumen.corregidos).toBe(0);
     expect(columna).toMatchObject({ indexed: false, enforceUniqueValues: false });
-    expect(lineas.join('\n')).toContain('Servicios.NumeroSolicitud');
+    expect(lineas.join('\n')).toContain('Servicios.ServicioId');
+  });
+
+  it('indexa NumeroSolicitud si existía sin índice, sin pedirle valor único', async () => {
+    const graph = new GraphSimulado();
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+    const columna = graph.listas.get('Servicios')!.columnas.get('NumeroSolicitud')!;
+    Object.assign(columna, { indexed: false, enforceUniqueValues: false });
+
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+
+    expect(columna).toMatchObject({ indexed: true });
+    expect(columna.enforceUniqueValues).not.toBe(true);
   });
 
   it('nunca pisa una clave de configuración que ya existe', async () => {

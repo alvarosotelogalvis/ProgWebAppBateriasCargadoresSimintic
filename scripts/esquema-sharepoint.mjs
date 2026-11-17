@@ -29,7 +29,9 @@ export const CAMPOS = {
     { n: 'TipoEquipo', d: 'Tipo de equipo', t: 'eleccion', opciones: ['Batería', 'Cargador'] },
     { n: 'FechaRecepcion', d: 'Fecha de recepción', t: 'fecha' },
     { n: 'Cliente', d: 'Cliente', t: 'busqueda', lista: 'Clientes', campo: 'Title' },
-    { n: 'NumeroSolicitud', d: 'Número de solicitud', t: 'numero', indice: true, unico: true },
+    // Indexada para leer el mayor y contar por número. La unicidad NO la garantiza SharePoint (spike S9):
+    // la garantiza la verificación posterior de la app (ADR-0024).
+    { n: 'NumeroSolicitud', d: 'Número de solicitud', t: 'numero', indice: true },
     { n: 'Marca', d: 'Marca', t: 'texto', max: 60 },
     { n: 'Referencia', d: 'Referencia', t: 'texto', max: 50 },
     { n: 'SerieEquipo', d: 'Serie del equipo', t: 'texto', max: 50, indice: true },
