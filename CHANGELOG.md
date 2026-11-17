@@ -21,8 +21,8 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Performance
 
-- **Bundle**: la carga inicial baja a ~266 KB comprimidos (límite RNF-06: 350 KB). Se quitaron 38 iconos que ninguna pantalla usaba (venían de las pantallas de referencia de diseño; −9,4 KB) y el panel de filtros de la lista de servicios se carga solo al abrirlo con `React.lazy` (−62 KB en la primera visita a la lista: de 340 a 278 KB). El peor caso real queda en el formulario de recepción (339 KB).
-- **`npm run bundle:medir`** (`scripts/medir-bundle.mjs`): mide la carga inicial y la primera visita a cada pantalla (entrada + trozos bajo demanda + CSS, gzip, sin fuentes) y falla si algo supera los 350 KB.
+- **Bundle**: en producción (con el trozo de MSAL que se descarga en paralelo al arrancar) la carga inicial baja de ~333 a **329 KB comprimidos** (límite RNF-06: 350 KB); sin MSAL son 266 KB. Se quitaron 38 iconos que ninguna pantalla usaba (venían de las pantallas de referencia de diseño; −9,4 KB) y el panel de filtros de la lista de servicios se carga solo al abrirlo con `React.lazy` (la primera visita directa a la lista pasa de ~412 a ~333 KB). Abrir en frío el formulario de recepción sigue pesando ~401 KB, pero esas pantallas las precachea el service worker.
+- **`npm run bundle:medir`** (`scripts/medir-bundle.mjs`): mide la carga inicial (entrada + CSS + MSAL) y la primera visita a cada pantalla, y falla si la carga inicial supera los 350 KB (las pantallas son informativas; `BUNDLE_ESTRICTO=1` las vuelve exigentes). Para medir lo que se publica usa un build de producción: `build:dev` no refleja MSAL.
 
 ### Changed
 

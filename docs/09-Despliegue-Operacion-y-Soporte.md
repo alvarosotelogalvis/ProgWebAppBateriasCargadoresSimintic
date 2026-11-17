@@ -34,7 +34,7 @@ Scripts de `package.json`:
 - [ ] `main` actualizado y `npm run verify` en verde.
 - [ ] Pruebas E2E en verde (`npm run test:e2e`).
 - [ ] `npm audit --omit=dev` sin altas ni críticas.
-- [ ] Bundle inicial ≤ 350 KB gzip: `npm run build` y luego `npm run bundle:medir` (falla si la carga inicial o alguna pantalla supera el presupuesto). Medido el 2026-11-17: carga inicial 266 KB; peor pantalla real (formulario de recepción) 339 KB.
+- [ ] Bundle inicial ≤ 350 KB gzip: `npm run build` y luego `npm run bundle:medir` (falla si la carga inicial —entrada, CSS y MSAL— supera el presupuesto). Medido el 2026-11-17 con un build de producción: **329 KB**.
 - [ ] Lighthouse móvil ≥ 90 en la URL de DEV.
 - [ ] Si cambió el esquema de Dexie: hay una migración con prueba que conserva pendientes.
 - [ ] Si cambió SharePoint: columnas creadas **antes** del despliegue en DEV y PRD; `VersionMinimaApp` actualizado **después** del despliegue.

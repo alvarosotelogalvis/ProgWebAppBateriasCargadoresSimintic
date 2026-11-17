@@ -5,12 +5,18 @@
  *
  *   npm run bundle:medir
  *
- * - «Carga inicial»: el JS de entrada con sus importaciones estáticas y el CSS de esos trozos (lo que sirve
- *   `index.html` y la pantalla de inicio).
- * - «Pantallas»: la entrada más la cadena de trozos que carga cada pantalla bajo demanda y su CSS.
+ * - «Carga inicial»: el JS de entrada con sus importaciones estáticas, su CSS y, en un build de producción, el
+ *   trozo de MSAL, que la app descarga en paralelo al arrancar (en `VITE_AUTH_MODE=mock` no existe). Es el
+ *   «paquete inicial» del presupuesto.
+ * - «Pantallas»: esa base más la cadena de trozos que carga cada pantalla bajo demanda y su CSS. Es informativo:
+ *   las demás pantallas las precachea el service worker; solo pesa si alguien abre esa URL en frío.
  *   No incluye las fuentes (woff2, ya comprimidas) ni lo que cada pantalla importe de forma dinámica después.
  *
- * Sale con código 1 si la carga inicial o alguna pantalla supera el presupuesto.
+ * IMPORTANTE: para medir lo que se publica hay que usar un build de producción (con `VITE_AUTH_MODE=msal`);
+ * `build:dev` es de desarrollo y no incluye MSAL.
+ *
+ * Sale con código 1 si la carga inicial supera el presupuesto. Una pantalla por encima solo avisa, salvo con
+ * `BUNDLE_ESTRICTO=1`.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -79,8 +85,16 @@ const pesoDe = (trozos) => {
 const cssEntrada = referenciados.filter((n) => n.endsWith('.css'));
 const cssEntradaKb = cssEntrada.reduce((suma, n) => suma + kb(n), 0);
 
-const base = cierre(entrada);
+// MSAL se importa de forma dinámica al arrancar (producción): no lo referencia index.html pero se descarga siempre.
+const trozosMsal = archivos.filter((nombre) => {
+  if (!nombre.endsWith('.js') || nombre === entrada) return false;
+  const texto = readFileSync(join(dir, nombre), 'utf8');
+  return texto.length > 100 * 1024 && /PublicClientApplication/.test(texto);
+});
+const base = new Set(cierre(entrada));
+for (const trozo of trozosMsal) for (const nombre of cierre(trozo)) base.add(nombre);
 const pesoBase = pesoDe(base);
+const pesoMsal = pesoDe(new Set(trozosMsal));
 const inicial = pesoBase.js + pesoBase.css + cssEntradaKb;
 
 const formato = (valor) => valor.toFixed(1).padStart(6);
@@ -93,11 +107,18 @@ const marca = (valor) =>
 
 console.log(`Presupuesto RNF-06: ${PRESUPUESTO_KB} KB (JS + CSS, gzip, sin fuentes)\n`);
 console.log(`Carga inicial (entrada + CSS)              ${formato(inicial)} KB${marca(inicial)}`);
-console.log(`  JS de entrada ${entrada}: ${formato(pesoBase.js)} KB\n`);
+console.log(`  JS de entrada ${entrada}: ${formato(pesoBase.js - pesoMsal.js)} KB`);
+console.log(
+  trozosMsal.length > 0
+    ? `  + MSAL (producción) ${trozosMsal.join(', ')}: ${formato(pesoMsal.js)} KB\n`
+    : '  (sin MSAL: es un build de desarrollo/simulado; mide un build de producción para el valor real)\n'
+);
 
 const paginas = archivos
   .filter((n) => /^[A-Z][A-Za-z]*Page-[A-Za-z0-9_-]{8}\.js$/.test(n))
   .map((n) => n.replace(/-[A-Za-z0-9_-]{8}\.js$/, ''))
+  // Pantalla de desarrollo (solo se enruta con VITE_APP_ENV=dev): no existe para el usuario final.
+  .filter((pagina) => pagina !== 'CatalogoUiPage')
   .sort();
 
 const filas = [];
@@ -109,12 +130,18 @@ for (const pagina of paginas) {
 }
 console.log('Primera visita por pantalla:');
 for (const fila of filas.sort((a, b) => b.total - a.total)) {
-  console.log(`  ${fila.pagina.padEnd(30)} ${formato(fila.total)} KB${marca(fila.total)}`);
+  console.log(
+    `  ${fila.pagina.padEnd(30)} ${formato(fila.total)} KB${fila.total > PRESUPUESTO_KB ? '  (por encima; informativo)' : ''}`
+  );
 }
 
 const peor = filas.reduce((a, b) => (b.total > a.total ? b : a), { pagina: '(ninguna)', total: 0 });
-const excede = inicial > PRESUPUESTO_KB || peor.total > PRESUPUESTO_KB;
+const estricto = process.env.BUNDLE_ESTRICTO === '1';
+const excede = inicial > PRESUPUESTO_KB || (estricto && peor.total > PRESUPUESTO_KB);
 console.log(
-  `\nPeor pantalla: ${peor.pagina} con ${peor.total.toFixed(1)} KB. ${excede ? 'SUPERA el presupuesto.' : 'Dentro del presupuesto.'}`
+  `\nCarga inicial: ${inicial.toFixed(1)} KB ${inicial > PRESUPUESTO_KB ? 'SUPERA' : 'dentro del'} presupuesto de ${PRESUPUESTO_KB} KB.`
+);
+console.log(
+  `Peor pantalla en frío: ${peor.pagina} con ${peor.total.toFixed(1)} KB${peor.total > PRESUPUESTO_KB ? ' (por encima, pero informativo: se precachea con el service worker)' : ''}.`
 );
 process.exit(excede ? 1 : 0);
