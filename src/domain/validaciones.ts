@@ -57,7 +57,13 @@ export const esquemaRecepcion = (hoy: string = fechaLocalHoy()) =>
         'errores.servicio.fechaRecepcionRequerida',
         'errores.servicio.fechaFormato'
       ).refine((valor) => noPasada(valor, hoy), { message: 'errores.servicio.fechaFutura' }),
-      clienteId: numeroEntero('errores.servicio.clienteRequerido', 1, Number.MAX_SAFE_INTEGER),
+      // Un cliente elegido: el id de SharePoint (positivo) o el temporal de un cliente creado sin red (negativo).
+      // Solo el 0 significa «sin cliente».
+      clienteId: numeroEntero(
+        'errores.servicio.clienteRequerido',
+        Number.MIN_SAFE_INTEGER,
+        Number.MAX_SAFE_INTEGER
+      ).refine((id) => id !== 0, { message: 'errores.servicio.clienteRequerido' }),
       clienteNombre: texto('errores.servicio.clienteRequerido').trim().min(1, {
         message: 'errores.servicio.clienteRequerido',
       }),
