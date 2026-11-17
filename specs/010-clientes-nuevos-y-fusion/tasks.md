@@ -7,9 +7,9 @@
 
 ## Fase 1 — Preparación
 
-- [ ] T001 Marcar la spec 010 como `En implementación` en `specs/README.md`
+- [x] T001 Marcar la spec 010 como `En implementación` en `specs/README.md`
 - [ ] T002 **Spike S10** contra SharePoint real (`MineroIndustrial`): (a) crear en `Clientes` las columnas `ClienteGuid` y `NombreNormalizado` (texto, únicas, indexadas), `FusionadoConId` (número) y `CreadoDesdeApp` (Sí/No); (b) ¿la unicidad de una columna **de texto** es inmediata o llega tarde (como en `NumeroSolicitud`)?; (c) ¿se admiten varios valores vacíos en una columna única?; (d) filtrar `Servicios` por el lookup `Cliente` (`fields/ClienteLookupId eq N`); (e) `PATCH` de `ClienteLookupId` en un servicio; (f) consultar `Clientes` incluidos los `Activo = No`. Documentar en `docs/spikes/S10-clientes.md` y ajustar el plan si algo difiere. _Crea columnas en el sitio real: confirmar con el usuario antes de ejecutarlo_
-- [ ] T003 [P] Textos i18n: agregar cliente, sugerencia del existente, errores de nombre, página y diálogo de fusión, resumen, avisos — `src/locales/es-CO/servicios.json`, `tecnico.json`
+- [x] T003 [P] Textos i18n: agregar cliente, sugerencia del existente, errores de nombre, página y diálogo de fusión, resumen, avisos — `src/locales/es-CO/servicios.json`, `tecnico.json`
 
 ## Fase 2 — Fundamentos (bloquean las historias)
 
