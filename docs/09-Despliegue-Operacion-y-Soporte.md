@@ -4,23 +4,28 @@
 
 ## 1. Ambientes y URLs
 
-| Ambiente | Comando               | URL                                                                | Config                                            |
-| -------- | --------------------- | ------------------------------------------------------------------ | ------------------------------------------------- |
-| DEV      | `npm run deploy:dev`  | `https://dev.servicio-tecnico-pwa.pages.dev`                       | `.env.development` (sitio y App Registration DEV) |
-| PRD      | `npm run deploy:prod` | `https://servicio-tecnico-pwa.pages.dev` (o dominio propio, PA-11) | `.env.production`                                 |
+> **Primer despliegue a producción:** sigue `docs/11-Checklist-Primer-Despliegue-a-Produccion.md` (orden, responsables y comprobaciones).
 
-Scripts de `package.json`:
+| Ambiente                  | Comando                 | Proyecto Cloudflare / rama | URL                                                      | Config                                                             |
+| ------------------------- | ----------------------- | -------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------ |
+| DEV (si existe, ADR-0020) | `npm run deploy:dev`    | `st-bc-dev` / `dev`        | `https://dev.st-bc-dev.pages.dev`                        | `.env.development` (sitio y App Registration DEV)                  |
+| Ensayo en vista previa    | `npm run deploy:prueba` | `st-bc-prod` / `prueba`    | `https://prueba.st-bc-prod.pages.dev`                    | `.env.production` (datos reales de PRD: usar solo datos de prueba) |
+| PRD                       | `npm run deploy:prod`   | `st-bc-prod` / `main`      | `https://st-bc-prod.pages.dev` (o dominio propio, PA-11) | `.env.production`                                                  |
+
+Scripts de `package.json` (los de producción **compilan y miden antes de subir**; nunca suben un `dist/` viejo):
 
 ```json
 {
-  "build": "vite build --mode production",
-  "build:dev": "vite build --mode development",
-  "deploy:dev": "npm run verify && npm run build:dev && wrangler pages deploy dist --project-name servicio-tecnico-pwa --branch dev",
-  "deploy:prod": "npm run verify && npm run build && wrangler pages deploy dist --project-name servicio-tecnico-pwa --branch main"
+  "build": "tsc --noEmit && vite build",
+  "build:dev": "tsc --noEmit && vite build --mode development",
+  "bundle:medir": "node scripts/medir-bundle.mjs",
+  "deploy:dev": "npm run verify && npm run build:dev && wrangler pages deploy dist --project-name st-bc-dev --branch dev",
+  "deploy:prueba": "npm run verify && npm run build && npm run bundle:medir && wrangler pages deploy dist --project-name st-bc-prod --branch prueba",
+  "deploy:prod": "npm run verify && npm run build && npm run bundle:medir && wrangler pages deploy dist --project-name st-bc-prod --branch main"
 }
 ```
 
-> Sin CI/CD (ADR-0015): el despliegue lo ejecuta el desarrollador desde su PC. `deploy:prod` corre `verify` antes de publicar.
+> Sin CI/CD (ADR-0015): el despliegue lo ejecuta el desarrollador desde su PC. `wrangler` se instala con `npm install -D wrangler` (hoy no está en `package.json`) y se autentica con `npx wrangler login`.
 
 ## 2. Versionado
 
