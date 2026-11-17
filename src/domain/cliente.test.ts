@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   esClienteTemporal,
+  idTemporalDeGuid,
   normalizarNombre,
   resolverVigente,
   tituloDeNombre,
@@ -97,5 +98,34 @@ describe('esClienteTemporal', () => {
     expect(esClienteTemporal(-1)).toBe(true);
     expect(esClienteTemporal(0)).toBe(true);
     expect(esClienteTemporal(7)).toBe(false);
+  });
+});
+
+describe('idTemporalDeGuid (ES-010-05)', () => {
+  const guidA = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+  const guidB = '9b2f1c7a-6d3e-4f10-8a55-1c2d3e4f5a6b';
+
+  it('devuelve un id negativo (temporal) y siempre el mismo para el mismo guid', () => {
+    const id = idTemporalDeGuid(guidA);
+
+    expect(id).toBeLessThan(0);
+    expect(Number.isSafeInteger(id)).toBe(true);
+    expect(esClienteTemporal(id)).toBe(true);
+    expect(idTemporalDeGuid(guidA)).toBe(id);
+  });
+
+  it('guids distintos dan ids distintos (no choca entre dispositivos ni al restaurar un respaldo)', () => {
+    expect(idTemporalDeGuid(guidA)).not.toBe(idTemporalDeGuid(guidB));
+    const muchos = new Set(
+      Array.from({ length: 2000 }, (_, i) =>
+        idTemporalDeGuid(`00000000-0000-4000-8000-${String(i).padStart(12, '0')}`)
+      )
+    );
+    expect(muchos.size).toBe(2000);
+  });
+
+  it('funciona con cualquier texto, no solo con guids', () => {
+    expect(idTemporalDeGuid('cliente-1')).toBeLessThan(0);
+    expect(idTemporalDeGuid('')).toBeLessThan(0);
   });
 });

@@ -64,3 +64,17 @@ export const resolverVigente = (id: number, fusionados: readonly ClienteFusionad
     actual = siguiente;
   }
 };
+
+/**
+ * Id temporal (negativo) de un cliente creado en el dispositivo, derivado de su guid (FNV-1a de 32 bits).
+ * Al no depender de un contador por dispositivo, dos dispositivos —o un respaldo restaurado en otro— no
+ * repiten el id de un cliente distinto.
+ */
+export const idTemporalDeGuid = (guid: string): number => {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < guid.length; i += 1) {
+    hash ^= guid.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return -(hash + 1);
+};
