@@ -28,8 +28,7 @@ export function EtapaRecepcionPage(): React.JSX.Element {
     void detectarSerieDuplicada(
       (serie) => container.servicios.buscarPorSerie(serie),
       servicio.id,
-      servicio.serie,
-      servicio.numeroSolicitud
+      servicio.serie
     ).then((encontrado) => {
       if (vigente) setDuplicado(encontrado?.id);
     });
