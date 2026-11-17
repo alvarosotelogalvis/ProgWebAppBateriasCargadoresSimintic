@@ -26,6 +26,8 @@ interface Props {
   readonly ayuda?: string | undefined;
   readonly error?: string | undefined;
   readonly onCambio: (valor: string, opcion?: OpcionCombo) => void;
+  /** Avisa de cada cambio del texto escrito o elegido, aunque no sea una opción válida. */
+  readonly onTexto?: ((texto: string) => void) | undefined;
 }
 
 const sinTildes = (valor: string): string =>
@@ -43,6 +45,7 @@ export function ComboboxField({
   ayuda,
   error,
   onCambio,
+  onTexto,
 }: Props): React.JSX.Element {
   const { t } = useTranslation('common');
   const [texto, setTexto] = useState(valor);
@@ -62,6 +65,7 @@ export function ComboboxField({
       inputValue={texto}
       onInputChange={(nuevo) => {
         setTexto(nuevo);
+        onTexto?.(nuevo);
         if (permiteTextoLibre) onCambio(nuevo);
       }}
       selectedKey={seleccionado}
@@ -70,6 +74,7 @@ export function ComboboxField({
         const opcion = items.find((item) => item.id === String(clave));
         if (opcion) {
           setTexto(opcion.texto);
+          onTexto?.(opcion.texto);
           onCambio(opcion.texto, opcion);
         }
       }}

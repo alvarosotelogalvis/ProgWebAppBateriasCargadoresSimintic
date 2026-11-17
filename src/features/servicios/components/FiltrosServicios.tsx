@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import type { FiltrosServicios as Filtros } from '@/application/servicios/buscarServicios';
-import { useCatalogo } from '@/infrastructure/db/hooks';
+import { useClientes } from '@/infrastructure/db/hooks';
 import { ComboboxField } from '@/shared/ui/ComboboxField';
 import { DateRangeFilter } from '@/shared/ui/DateChip';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
@@ -22,12 +22,6 @@ const ESTADOS = [
   'ANULADO',
 ] as const;
 
-interface ClienteCatalogo {
-  readonly id: number;
-  readonly nombre: string;
-  readonly activo: boolean;
-}
-
 interface Props {
   readonly valor: Filtros;
   readonly hoy: string;
@@ -37,7 +31,7 @@ interface Props {
 
 export function FiltrosServicios({ valor, hoy, onCambio, onAplicar }: Props): React.JSX.Element {
   const { t } = useTranslation(['servicios', 'common']);
-  const clientes = useCatalogo<ClienteCatalogo[]>('clientes') ?? [];
+  const clientes = useClientes();
   const estado = valor.estados?.[0] ?? '';
   const clienteNombre = clientes.find((cliente) => cliente.id === valor.clienteId)?.nombre ?? '';
 

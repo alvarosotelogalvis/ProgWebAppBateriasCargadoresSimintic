@@ -1,6 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 
+import type { ClienteCatalogo } from '@/application/ports/remoteGateway';
+import { CLAVES_CATALOGO } from '@/application/setup/claves';
+import type { ClienteNuevo } from '@/domain/cliente';
 import type { Servicio } from '@/domain/servicio';
 
 import { AppDB } from './dexie';
@@ -110,6 +113,23 @@ export const useAdjuntos = (servicioId: string, db: AppDB = dbApp) =>
 export const useCatalogo = <T>(clave: string, db: AppDB = dbApp): T | undefined => {
   const registro = useLiveQuery(() => db.catalogos.get(clave), [db, clave]);
   return registro?.valor as T | undefined;
+};
+
+/**
+ * Clientes que se pueden elegir: los del catálogo de SharePoint más los creados en este dispositivo que aún
+ * no están en SharePoint (spec 010). Se muestran igual: el usuario no distingue los pendientes.
+ */
+export const useClientes = (db: AppDB = dbApp): ClienteCatalogo[] => {
+  const remotos = useLiveQuery(() => db.catalogos.get(CLAVES_CATALOGO.clientes), [db]);
+  const nuevos = useLiveQuery(() => db.catalogos.get(CLAVES_CATALOGO.clientesNuevos), [db]);
+
+  return useMemo(() => {
+    const delCatalogo = (remotos?.valor as ClienteCatalogo[] | undefined) ?? [];
+    const pendientes = ((nuevos?.valor as ClienteNuevo[] | undefined) ?? [])
+      .filter((cliente) => !delCatalogo.some((existente) => existente.id === cliente.id))
+      .map((cliente) => ({ id: cliente.id, nombre: cliente.nombre, activo: true }));
+    return [...delCatalogo, ...pendientes].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  }, [remotos, nuevos]);
 };
 
 export const usePendientes = (db: AppDB = dbApp): number => {
