@@ -40,7 +40,7 @@ src/domain/validaciones.ts                    # M  esquemaRecepcion sin numeroSo
 src/domain/estados.ts                         # M  numeroSolicitud fuera de los campos editables de recepción
 src/domain/merge.ts                           # M  numeroSolicitud fuera de los mínimos de RECIBIDO
 src/domain/sync/numeroSolicitud.ts            # C  siguienteNumero(maximo), esPendiente(n), constantes de reintento
-src/application/ports/RemoteGatewayPush.ts    # M  ultimoNumeroSolicitud(); ServicioRemotoPush.fields trae NumeroSolicitud
+src/application/ports/RemoteGatewayPush.ts    # M  ultimoNumeroSolicitud(), contarPorNumeroSolicitud(n), renumerarServicio(itemId, n)
 src/application/sync/pushServicio.ts          # M  asigna número antes de crear; reintenta ante choque; adopta el del ítem existente
 src/application/sync/SyncEngine.ts            # M  fusionarConLaBase conserva numeroSolicitud/codigo/base asignados
 src/application/servicios/buscarServicios.ts  # M  no indexa «0»; duplicados por serie en servicios no finales
@@ -69,6 +69,8 @@ export const siguienteNumero = (maximo: number | null | undefined): number => (m
 
 // application/ports/RemoteGatewayPush.ts
 ultimoNumeroSolicitud(): Promise<number>; // 0 si la lista está vacía
+contarPorNumeroSolicitud(numero: number): Promise<readonly { itemId: string }[]>; // ids ordenables
+renumerarServicio(itemId: string, numero: number): Promise<void>;
 
 // application/sync/pushServicio.ts
 export interface ResultadoPushServicio { /* … */ readonly numeroSolicitud?: number; }
@@ -87,6 +89,8 @@ pushServicio(servicio):
         n = siguienteNumero(await ultimoNumeroSolicitud())
         intentar crearServicio({ …campos, NumeroSolicitud: n, Title: generarCodigo(n) })
         si choca por NumeroSolicitud → registrar, esperar un tiempo aleatorio y repetir
+        tras crear: contarPorNumeroSolicitud(n); si hay otro ítem con n y su id es menor
+          → este perdió: renumerarServicio(máximo+1) y repetir la verificación (acotado)
       si se agotan los intentos → error reintentable (el servicio sigue «Pendiente»)
     resultado.numeroSolicitud = n
   engine.fusionarConLaBase: numeroSolicitud = n, codigo = generarCodigo, base.numeroSolicitud = n
@@ -101,7 +105,7 @@ El gateway distingue los dos choques de valor único: si `buscarItemServicio(Ser
 - **Detección de duplicados**: sin número no se puede comparar «serie + solicitud». Se advierte cuando existe otro servicio **no final** con la misma serie (la advertencia sigue siendo informativa, no bloquea).
 - **Pausa entre reintentos**: valor aleatorio de 50 a 350 ms, inyectable (`pausa`) para que las pruebas no esperen.
 - **Orden de subida**: el motor ya ordena por `actualizadoEn`, así que ES-011-04 (consecutivos en el orden registrado) se cumple sin cambios.
-- **Unicidad en SharePoint**: se establece con la API de columnas. La lista `Servicios` está vacía, así que aplicarla ahora no tiene riesgo; la verificación real va en el spike S8 (T002).
+- **Unicidad en SharePoint**: se establece con la API de columnas (verificado en el spike S9, `docs/spikes/S9-numero-solicitud.md`). **La restricción llega 1–4 s tarde**, por eso el valor único no basta: se añade la verificación posterior (el ítem de menor id conserva el número; el otro se renumera).
 
 ## 4. Estrategia de pruebas
 
@@ -118,16 +122,17 @@ El gateway distingue los dos choques de valor único: si `buscarItemServicio(Ser
 
 ## 5. Riesgos
 
-| Riesgo                                                                      | Mitigación                                                                                        |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| SharePoint no ordena por una columna indizada de tipo Número como se espera | Spike S8 (T002) antes de implementar; alternativa: filtrar `NumeroSolicitud gt N` o leer la vista |
-| Carrera entre dispositivos produce muchos reintentos                        | Pausa aleatoria + 5 intentos; con el volumen esperado (decenas de servicios) el choque es raro    |
-| Etiquetas impresas antes de sincronizar muestran «PEND»                     | Documentado en ADR-0024; la ayuda in-app lo explica                                               |
-| Hacer única una columna ya con datos duplicados en PRD                      | La lista está vacía hoy; el script verifica y avisa antes de aplicar si hubiera repetidos         |
-| Cambio de `Title` (código) en un ítem ya creado por otra versión de la app  | Solo se recalcula en servicios nuevos; los existentes conservan su código                         |
+| Riesgo                                                                                                   | Mitigación                                                                                     |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| SharePoint no ordena por una columna indizada de tipo Número como se espera                              | Verificado en el spike S9: el orden descendente funciona                                       |
+| La unicidad de SharePoint se aplica con 1–4 s de retraso (dos dispositivos pueden crear el mismo número) | Verificación posterior a la creación con desempate por id de ítem (§3.3)                       |
+| Carrera entre dispositivos produce muchos reintentos                                                     | Pausa aleatoria + 5 intentos; con el volumen esperado (decenas de servicios) el choque es raro |
+| Etiquetas impresas antes de sincronizar muestran «PEND»                                                  | Documentado en ADR-0024; la ayuda in-app lo explica                                            |
+| Hacer única una columna ya con datos duplicados en PRD                                                   | La lista está vacía hoy; el script verifica y avisa antes de aplicar si hubiera repetidos      |
+| Cambio de `Title` (código) en un ítem ya creado por otra versión de la app                               | Solo se recalcula en servicios nuevos; los existentes conservan su código                      |
 
 ## 6. Seguimiento de complejidad
 
-| Desviación                                      | Por qué es necesaria                             | Alternativa simple rechazada                           |
-| ----------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------ |
-| Reintento con valor único en vez de un contador | Es la única forma de ser consecutivo sin backend | Contador en `ConfiguracionApp`: carrera sin atomicidad |
+| Desviación                                                                | Por qué es necesaria                                                                      | Alternativa simple rechazada                           |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Reintento con valor único + verificación posterior, en vez de un contador | Es la única forma de ser consecutivo sin backend, y la unicidad de SharePoint es eventual | Contador en `ConfiguracionApp`: carrera sin atomicidad |
