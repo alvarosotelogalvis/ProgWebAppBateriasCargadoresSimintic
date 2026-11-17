@@ -1,6 +1,6 @@
 # Spec 010 — Clientes nuevos desde el formulario y fusión de clientes
 
-- **Estado**: Borrador
+- **Estado**: Aprobada
 - **Fecha**: 2026-11-16 · **Rama**: `feature/010-clientes-nuevos-y-fusion`
 - **Fase**: posterior a F10 (cambio solicitado por el dueño del producto) · **Depende de**: 003, 006, 009
 - **Fuentes**: PRD [RF-06] · ADR [0023, 0009, 0010] · Modelo de datos [§6.1] · Spec 003 [ES-003-05, FR-003-04]
@@ -82,12 +82,12 @@ Como **administrador** quiero fusionar dos clientes, para corregir duplicados o 
 
 - Edición del nombre, NIT o correo de un cliente existente desde la app (se hace en SharePoint).
 - Deshacer una fusión desde la app (se corrige en SharePoint, el origen se conserva por eso).
-- Número de solicitud automático (es otra decisión, aún por aclarar).
+- Número de solicitud automático (spec 011, ADR-0024).
 
 ## 8. Aclaraciones
 
-| Fecha      | Pregunta                                                                                                            | Respuesta                                                                 |
-| ---------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| 2026-11-16 | ¿El cliente nuevo es provisional o permanente?                                                                      | Permanente. Si luego se quieren unir dos clientes, debe poderse (fusión). |
-| 2026-11-16 | [NECESITA ACLARACIÓN: ¿qué roles pueden agregar clientes nuevos? — por defecto: Técnico, Comercial y Administrador] | _pendiente_                                                               |
-| 2026-11-16 | [NECESITA ACLARACIÓN: ¿la fusión es solo del Administrador? — por defecto: sí]                                      | _pendiente_                                                               |
+| Fecha      | Pregunta                                       | Respuesta                                                                                                                |
+| ---------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 2026-11-16 | ¿El cliente nuevo es provisional o permanente? | Permanente. Si luego se quieren unir dos clientes, debe poderse (fusión).                                                |
+| 2026-11-16 | ¿Qué roles pueden agregar clientes nuevos?     | Cualquier usuario que cree un servicio: se le muestran los clientes existentes y, si no está, puede escribirlo él mismo. |
+| 2026-11-16 | ¿La fusión es solo del Administrador?          | Se mantiene el valor por defecto (solo Administrador); el usuario no lo objetó.                                          |
