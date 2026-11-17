@@ -27,15 +27,7 @@ const mismoValor = (a: unknown, b: unknown): boolean => {
 const CAMPOS_MINIMOS_POR_ESTADO: Partial<
   Record<CamposServicio['estado'], (keyof CamposServicio)[]>
 > = {
-  RECIBIDO: [
-    'tipoEquipo',
-    'fechaRecepcion',
-    'clienteId',
-    'numeroSolicitud',
-    'marca',
-    'referencia',
-    'serie',
-  ],
+  RECIBIDO: ['tipoEquipo', 'fechaRecepcion', 'clienteId', 'marca', 'referencia', 'serie'],
   DIAGNOSTICADO: ['diagnostico', 'observacionTecnica'],
   COTIZADO: ['cotizacionFechaEnvio'],
   EN_REPARACION: ['otDetalle', 'otCostoReparacion'],

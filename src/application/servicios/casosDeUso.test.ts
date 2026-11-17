@@ -104,7 +104,7 @@ describe('crearBorrador', () => {
 
     expect(servicio).toMatchObject({
       id: 'serv-1',
-      codigo: 'BAT-0-',
+      codigo: 'BAT-PEND-',
       estado: 'BORRADOR',
       tipoEquipo: 'BATERIA',
       fechaRecepcion: '2026-10-21',
@@ -129,6 +129,17 @@ describe('crearBorrador', () => {
   });
 });
 
+describe('actualizarCampos · número de solicitud (ES-011-08)', () => {
+  it('el número de solicitud no se puede editar desde la app', async () => {
+    const borrador = servicioBuilder().borrador().construir();
+    await entorno.servicios.guardar(borrador);
+
+    await expect(
+      entorno.casos.actualizarCampos(borrador.id, { numeroSolicitud: 5 }, ['Administrador'])
+    ).rejects.toThrow();
+  });
+});
+
 describe('actualizarCampos', () => {
   it('edita el borrador, normaliza y recalcula el código sin marcarlo sucio', async () => {
     const borrador = servicioBuilder().borrador().construir();
@@ -138,7 +149,6 @@ describe('actualizarCampos', () => {
       borrador.id,
       {
         tipoEquipo: 'CARGADOR',
-        numeroSolicitud: 5,
         serie: ' nv 1 ',
         marca: ' roquet ',
         referencia: ' ref/9 ',
@@ -148,11 +158,11 @@ describe('actualizarCampos', () => {
 
     expect(actualizado).toMatchObject({
       tipoEquipo: 'CARGADOR',
-      numeroSolicitud: 5,
+      numeroSolicitud: 0,
       serie: 'NV1',
       marca: 'ROQUET',
       referencia: 'REF/9',
-      codigo: 'CAR-5-NV1',
+      codigo: 'CAR-PEND-NV1',
       syncState: 'local',
       camposSucios: [],
     });
