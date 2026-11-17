@@ -5,6 +5,8 @@
 - **Fase**: F3 (`docs/07`) · **Depende de**: 002 (dominio y persistencia), 001 (shell de UI)
 - **Fuentes**: PRD [HU-03, HU-10 parcial; RF-03, RF-04, RF-05, RF-06, RF-13; RNF-01, RNF-05, RNF-07, RNF-08] · ADR [0008, 0011, 0012, 0022] · Modelo de datos [§2.1, §2.2, §3, §5] · Sistema de diseño [`docs/10` §6: referencias 03, 07, 08]
 
+> **Nota (2026-11-16)**: el número de solicitud (FR-003-03, ES-003-06, FR-003-12, aclaración PA-07) ya no se captura: la spec 011 / ADR-0024 lo reemplaza por un consecutivo automático asignado al sincronizar. Esta spec conserva su historia.
+
 ## 1. Resumen
 
 Un técnico registra la llegada de una batería o un cargador con sus datos de identificación y fotos de ingreso, **sin necesitar conexión**. El registro queda guardado en el dispositivo, listo para sincronizarse después. Reemplaza las columnas C–K del Excel ("tipo", "fecha recepción", "foto ingreso", "empresa-cliente", "# solicitud", "marca", "referencia", "# serie").

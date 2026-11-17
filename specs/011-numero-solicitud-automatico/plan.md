@@ -105,7 +105,7 @@ El gateway distingue los dos choques de valor único: si `buscarItemServicio(Ser
 - **Detección de duplicados**: sin número no se puede comparar «serie + solicitud». Se advierte cuando existe otro servicio **no final** con la misma serie (la advertencia sigue siendo informativa, no bloquea).
 - **Pausa entre reintentos**: valor aleatorio de 50 a 350 ms, inyectable (`pausa`) para que las pruebas no esperen.
 - **Orden de subida**: el motor ya ordena por `actualizadoEn`, así que ES-011-04 (consecutivos en el orden registrado) se cumple sin cambios.
-- **Unicidad en SharePoint**: se establece con la API de columnas (verificado en el spike S9, `docs/spikes/S9-numero-solicitud.md`). **La restricción llega 1–4 s tarde**, por eso el valor único no basta: se añade la verificación posterior (el ítem de menor id conserva el número; el otro se renumera).
+- **Unicidad en SharePoint**: no se confía en ella (spike S9, con la actualización del 2026-11-16: acepta duplicados durante segundos y Graph no refleja el ajuste). La columna solo se indexa. La garantía es la verificación posterior (el ítem de menor id conserva el número; el otro se renumera).
 
 ## 4. Estrategia de pruebas
 

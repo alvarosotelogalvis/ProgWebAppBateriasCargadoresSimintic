@@ -51,11 +51,11 @@
 
 ## Fase 4 — Verificación real y cierre
 
-- [ ] T022 Ampliar la prueba en vivo: dos dispositivos suben 5 servicios cada uno a la vez; los 10 números son únicos y consecutivos (CE-011-01); limpieza completa — `tests/live/sincronizacion-real.live.test.ts`
-- [ ] T023 [P] E2E offline: registrar sin conexión → «Pendiente» → sincronizar → número visible — `tests/e2e/numero-solicitud.spec.ts`
-- [ ] T024 [P] Verificar con el script que `MineroIndustrial` conserva la columna única (ya aplicada en el spike S9) y repetirlo en DEV/PRD nuevos — _requiere el secreto temporal; confirmar con el usuario_
-- [ ] T025 [P] Documentación: `docs/03` §2.2, `docs/04`, `docs/06`, PRD PA-07 (reemplazada por ADR-0024), SDD, nota en spec 003 (ES-003 del número), ayuda in-app, `CHANGELOG.md`
-- [ ] T026 `npm run verify` + DoD (`CLAUDE.md` §9) + spec 011 → `Implementada` y el índice de specs
+- [x] T022 Ampliar la prueba en vivo: dos dispositivos suben 5 servicios cada uno a la vez; los 10 números son únicos y consecutivos (CE-011-01); limpieza completa — `tests/live/sincronizacion-real.live.test.ts`
+- [x] T023 [P] E2E offline: registrar sin conexión → «Pendiente» → sincronizar → número visible — `tests/e2e/numero-solicitud.spec.ts`
+- [x] T024 [P] Verificar con el script que `MineroIndustrial` queda con `NumeroSolicitud` indexada. **Hecho (ensayo sin escribir: 0 correcciones).** La unicidad de SharePoint no se usa (spike S9, actualización): se retiró `unico` del esquema
+- [x] T025 [P] Documentación: `docs/03` §2.2, `docs/04`, `docs/06`, PRD PA-07 (reemplazada por ADR-0024), SDD, nota en spec 003 (ES-003 del número), ayuda in-app, `CHANGELOG.md`
+- [x] T026 `npm run verify` + DoD (`CLAUDE.md` §9) + spec 011 → `Implementada` y el índice de specs
 
 ## Dependencias
 

@@ -1,6 +1,6 @@
 # Spec 011 — Número de solicitud automático
 
-- **Estado**: Aprobada
+- **Estado**: Implementada
 - **Fecha**: 2026-11-16 · **Rama**: `feature/011-numero-solicitud-automatico`
 - **Fase**: posterior a F10 (cambio solicitado por el dueño del producto) · **Depende de**: 003, 005, 006
 - **Fuentes**: PRD [RF-06, RF-12; PA-07] · ADR [0024, 0010] · Modelo de datos [§2.2] · Spec 003 [FR-003-03]
