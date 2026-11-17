@@ -32,6 +32,24 @@ La descarga (spec 006) usa delta. Además, la función «**borrado remoto de cam
 8. **Caducidad.** Guarda un `deltaLink` y vuelve a usarlo **a las 24 h** (y, si puedes, a los 7 días). Anota si responde 200 o **410 (`resyncRequired`)**. La app ya reinicia con una ronda completa si recibe 410 (FR-006-10): si ocurre, el registro `pull.delta.caducado` debe aparecer en el menú técnico.
 9. **Respaldo por `Modified`.** `GET /sites/{siteId}/lists/{listId}/items?$expand=fields&$filter=fields/Modified ge '<fecha ISO>'&$top=200` con la cabecera `Prefer: HonorNonIndexedQueriesWarningMayFailRandomly`. Anota si funciona (¿`Modified` está indexado?) y que **no detecta eliminaciones**.
 
+## Resultados obtenidos (2026-11-16, sitio `MineroIndustrial`, Graph con aplicación)
+
+> Mismas condiciones que en [S3](S3-if-match-fechas.md): lista `Servicios` real, elementos de prueba borrados al terminar.
+
+| Pregunta                                  | Resultado real                                                                                                                                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ¿Vienen los `fields`?                     | Sí: con `$expand=fields` cada ítem trae sus **34 columnas con valor** (incluidas las de sistema).                                                                                               |
+| ¿`deltaLink` estable?                     | Sí: sin cambios devuelve **0 ítems y el mismo token**.                                                                                                                                          |
+| Cambia **una** columna                    | El ítem llega **completo** (34 columnas), no solo la que cambió. ✔                                                                                                                              |
+| Se **vacía** una columna (`null`)         | El ítem llega **sin esa clave** (33 columnas); las demás (`Diagnostico`, `Marca`…) siguen presentes. ✔ → **«ausente = vaciada» es correcto**: la función de borrado remoto de campos es válida. |
+| Se **elimina** un ítem                    | `{"id":"6","parentReference":{…},"deleted":{"state":"deleted"},"fields":{}}` — **no** trae `@removed` y solo el `id`. ⚠                                                                         |
+| Claves de nivel superior                  | `@odata.etag`, `eTag`, `lastModifiedDateTime`, `createdDateTime`, `id`, `webUrl`, `createdBy`, `parentReference`, `contentType`, `fields`. **No** trae `lastModifiedBy`.                        |
+| eTag del delta                            | **Sin comillas** (`guid,1`); leído con GET viene con comillas. Ver defecto 2 de S3.                                                                                                             |
+| Filtro por `Modified` (respaldo)          | Funciona (200) con la cabecera `Prefer: HonorNonIndexedQueriesWarningMayFailRandomly`. `Modified` no se pudo indexar por Graph (columna de sistema).                                            |
+| Caducidad del `deltaLink` (24 h / 7 días) | **Sin probar** (necesita esperar). La app ya reinicia con ronda completa si recibe 410.                                                                                                         |
+
+**Defecto que esto destapó y ya está corregido:** la app reconocía el borrado solo por `@removed`, así que **las eliminaciones hechas en SharePoint nunca llegaban a los dispositivos** (la entrada se ignoraba por no traer `ServicioId`). Ahora `itemACambio` acepta `deleted` además de `@removed`, con pruebas y con el emulador devolviendo la forma real.
+
 ## Resultado
 
 | Pregunta                                                               | Obtenido |
@@ -48,9 +66,9 @@ La descarga (spec 006) usa delta. Además, la función «**borrado remoto de cam
 
 ## Decisión
 
-- [ ] Delta trae `fields` y `deltaLink` estable → **se mantiene delta** (ADR-0010 `Aceptado`).
+- [x] Delta trae `fields` y `deltaLink` estable → **se mantiene delta** (ADR-0010 puede pasar a `Aceptado`).
 - [ ] Delta **no** trae `fields` o no es estable → usar el filtro por `Modified` (SDD §9.4): cambio en `sharepointGateway.ts` y ADR nuevo. Las eliminaciones se detectarían con una pasada de reconciliación.
-- [ ] **El delta trae solo las columnas modificadas** → **cambiar ya** el borrado remoto de campos (`vaciadosDe` en `infrastructure/graph/mappers/cambioRemotoMapper.ts`): dejaría de inferir «vaciado» por ausencia. Avisar antes de usar la app en producción.
+- [x] ~~**El delta trae solo las columnas modificadas**~~ (descartado: trae el ítem completo) → **cambiar ya** el borrado remoto de campos (`vaciadosDe` en `infrastructure/graph/mappers/cambioRemotoMapper.ts`): dejaría de inferir «vaciado» por ausencia. Avisar antes de usar la app en producción.
 - [ ] Hay 410 con `deltaLink` viejo → comprobar que el pull termina bien con una ronda completa (`pull.delta.caducado` en los registros); la lógica ya existe, solo se confirma contra SharePoint real.
 
 Notas / observaciones adicionales:

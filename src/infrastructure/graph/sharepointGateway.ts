@@ -19,6 +19,7 @@ import type { RemotoCambio } from '@/domain/sync/remoto';
 import { AppError } from '@/shared/errors';
 
 import { esValorUnicoDuplicado } from './errores';
+import { normalizarETag } from './etag';
 import type { GraphClient } from './graphClient';
 import {
   mapearChoices,
@@ -59,7 +60,8 @@ interface ItemPushGraph extends ItemGraph {
 
 const leerEtag = (item: ItemPushGraph | undefined): string | undefined => {
   if (!item) return undefined;
-  return item['@odata.etag'] ?? item.eTag;
+  const etag = item['@odata.etag'] ?? item.eTag;
+  return etag === undefined ? undefined : normalizarETag(etag);
 };
 
 const escaparOdata = (valor: string): string => valor.replace(/'/g, "''");

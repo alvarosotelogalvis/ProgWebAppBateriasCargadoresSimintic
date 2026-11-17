@@ -112,6 +112,29 @@ describe('pullServicios', () => {
     expect(local?.sp?.eTag).not.toBe('"viejo"');
   });
 
+  it('un servicio descargado por delta se puede editar y enviar: el eTag del delta (sin comillas) no debe romper el If-Match', async () => {
+    const entorno = await crear();
+    const base = servicioBuilder().conId(ID_A).diagnosticado().sincronizado().construir();
+    entorno.emulador.sembrarServicio(camposRemotos(base));
+    entorno.emulador.modificarRemoto(ID_A, { Marca: 'TROJAN' });
+    await entorno.pull(opciones());
+    const descargado = await entorno.servicios.obtener(ID_A);
+    expect(descargado?.sp?.eTag.startsWith('"')).toBe(true); // normalizado a la forma con comillas
+
+    await entorno.servicios.guardar({
+      ...descargado!,
+      observacionTecnica: 'Editada en el dispositivo tras descargar',
+      camposSucios: ['observacionTecnica'],
+      syncState: 'pending',
+    });
+    const resumen = await entorno.sincronizar();
+
+    expect(resumen).toMatchObject({ subidos: 1, errores: 0, conflictos: 0 });
+    expect(entorno.emulador.itemsDe('Servicios')[0]?.fields.ObservacionTecnica).toBe(
+      'Editada en el dispositivo tras descargar'
+    );
+  });
+
   it.each([
     ['la columna llega en null', null],
     ['la columna se omite', undefined],

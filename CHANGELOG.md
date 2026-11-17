@@ -33,6 +33,12 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- **Las eliminaciones hechas en SharePoint no llegaban a los dispositivos:** el `delta` de listas marca el borrado
+  con `deleted` y no con `@removed`; la entrada se ignoraba. Ahora se reconocen ambas formas.
+- **Un servicio descargado por `delta` no se podía enviar después (409):** el eTag del `delta` llega sin comillas y
+  SharePoint responde 409 a un `If-Match` sin comillas aunque esté vigente. Se normaliza siempre a la forma con comillas.
+  Ambos defectos se encontraron al ejecutar los spikes S3 y S4 contra SharePoint real; el emulador de pruebas
+  ahora se comporta como SharePoint real en estos puntos.
 - **Texto de ayuda de la observación técnica:** decía «Puedes grabar audio», pero la app no graba audio (PA-13: se dicta con el teclado). Ahora indica el dictado por teclado.
 - **El motor no reconocía el duplicado de `ServicioId` en SharePoint real:** SharePoint responde 400
   `invalidRequest` («unique constraints…»), no 409, así que la idempotencia ante una carrera de reintento

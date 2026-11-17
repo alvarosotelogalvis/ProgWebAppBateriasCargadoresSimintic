@@ -87,6 +87,15 @@ const nuevoEtag = (secuencia: number): string => `"etag-${secuencia}"`;
 
 export const URL_MINIATURAS = 'https://miniaturas.sharepoint.test/thumb';
 
+/** SharePoint real: en el `delta` el eTag llega SIN comillas (al leer el ítem llega con comillas). */
+const sinComillas = (etag: string): string => etag.replace(/^"|"$/g, '');
+
+const itemDelta = (item: ItemEstado): Record<string, unknown> => ({
+  ...itemJson(item),
+  eTag: sinComillas(item.eTag),
+  '@odata.etag': sinComillas(item.eTag),
+});
+
 const itemJson = (item: ItemEstado): Record<string, unknown> => ({
   id: item.id,
   eTag: item.eTag,
@@ -426,10 +435,16 @@ export class EmuladorGraph {
   private delta(lista: ListaEstado, url: URL): Response {
     const desdeVersion = Number(url.searchParams.get('token') ?? '0');
     const cambios: Record<string, unknown>[] = [
-      ...lista.items.filter((item) => item.version > desdeVersion).map(itemJson),
+      ...lista.items.filter((item) => item.version > desdeVersion).map(itemDelta),
       ...this.eliminados
         .filter((eliminado) => eliminado.version > desdeVersion)
-        .map((eliminado) => ({ id: eliminado.id, '@removed': { reason: 'deleted' } })),
+        // Forma real (comprobada en SharePoint): `deleted` y `fields` vacío; no existe `@removed`.
+        .map((eliminado) => ({
+          id: eliminado.id,
+          parentReference: { siteId: 'sitio-de-pruebas' },
+          deleted: { state: 'deleted' },
+          fields: {},
+        })),
     ];
     const salto = Number(url.searchParams.get('$skiptoken') ?? '0');
     const hasta = salto + this.tamanoPagina;
@@ -516,8 +531,21 @@ export class EmuladorGraph {
     }
 
     const ifMatch = request.headers.get('if-match');
-    if (ifMatch !== null && ifMatch !== item.eTag) {
-      return errorGraph(412, 'preconditionFailed', 'El ítem cambió en SharePoint');
+    if (ifMatch !== null && ifMatch !== '*' && ifMatch !== item.eTag) {
+      // SharePoint real: un eTag sin comillas (como el del delta) da 409 aunque esté vigente;
+      // uno con comillas pero desactualizado da 412.
+      if (!ifMatch.startsWith('"')) {
+        return errorGraph(
+          409,
+          'resourceModified',
+          'The resource has changed since the caller last read it'
+        );
+      }
+      return errorGraph(
+        412,
+        'resourceModified',
+        'The resource has changed since the caller last read it'
+      );
     }
 
     const campos = (await request.json().catch(() => ({}))) as Record<string, unknown>;

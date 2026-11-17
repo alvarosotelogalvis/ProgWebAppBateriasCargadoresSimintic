@@ -46,9 +46,29 @@ El motor de sincronización usa `If-Match` para no pisar cambios de otra persona
 11. (Opcional) `POST …/items` con `{ "fields": { "Title": "S3-DUP", "ServicioId": "<ServicioId de S-1>" } }`. Si responde que faltan columnas obligatorias, añade las que pida. Anota el error de duplicado, que es el que la app maneja en el caso T-12.
 12. **Restaura** `Referencia`, `FechaEntrega` y `ServicioId` originales de S-1 y S-2.
 
-## Dato ya observado (2026-11-16, sitio `MineroIndustrial`, por Graph)
+## Resultados obtenidos (2026-11-16, sitio `MineroIndustrial`, Graph con aplicación)
 
-Al crear un elemento con un `ServicioId` que ya existía, SharePoint respondió **`400 invalidRequest`** con el mensaje «One or more fields with unique constraints already has the provided value.» (**no un 409**). La app esperaba un 409, así que el reintento tras una carrera no encontraba el ítem ya creado: se corrigió (`esValorUnicoDuplicado`) y el emulador de pruebas responde ahora igual que SharePoint real. En la prueba, `SoloFecha` enviada como `2026-10-01T00:00:00Z` volvió como `2026-10-01T00:00:00Z`. Sigue pendiente confirmar el 412 con `If-Match` y las fechas con otra zona horaria del sitio.
+> Ejecutado con una aplicación (`Sites.Manage.All`) sobre la lista `Servicios` real, con elementos de prueba que se borraron al terminar. El comportamiento de `If-Match`, de las fechas y del valor único es del servicio, no de quién se autentica; **falta repetirlo con un usuario real de la PWA** (S2) y con la zona horaria de Bogotá.
+
+| Caso                                                              | Resultado real                                                                                                  |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `PATCH` con el eTag vigente                                       | **200**; el eTag cambia (`…,1` → `…,2`) y la propia respuesta lo devuelve en `@odata.etag`                      |
+| `PATCH` con eTag **desactualizado** (entre comillas)              | **412** `resourceModified`; **no** pisa el valor                                                                |
+| `PATCH` sin `If-Match`                                            | 200 y **pisa** el valor (por eso la app siempre lo envía)                                                       |
+| `PATCH` con `If-Match: *`                                         | 200                                                                                                             |
+| El eTag que devuelve el `PATCH`, usado en el siguiente `If-Match` | 200 (sirve)                                                                                                     |
+| **eTag sin comillas** (como lo entrega el `delta`) en `If-Match`  | **409** `resourceModified` **aunque esté vigente**; desactualizado también 409. Solo con comillas valida bien.  |
+| Fecha enviada `2026-10-01T00:00:00Z` (lo que envía la app)        | vuelve `2026-10-01T00:00:00Z` ✓ (el día no cambia)                                                              |
+| Fecha enviada `2026-10-01` (sin hora)                             | vuelve `2026-10-01T07:00:00Z` → el sitio interpreta la medianoche en **UTC-7**, no en Bogotá (UTC-5)            |
+| Fecha enviada `2026-10-01T23:30:00-05:00`                         | vuelve `2026-10-02T04:30:00Z` (se normaliza a UTC; ojo con horas tardías)                                       |
+| `ServicioId` duplicado (`POST` y `PATCH`)                         | **400** `invalidRequest`: «One or more fields with unique constraints already has the provided value.» (no 409) |
+
+**Defectos que esto destapó y ya están corregidos** (con pruebas; el emulador ahora se comporta como SharePoint real):
+
+1. El motor solo reconocía el duplicado como 409 → ahora también el 400 «unique constraints».
+2. El eTag que llega por `delta` no tiene comillas y daba 409 al enviar el servicio descargado → `normalizarETag` (`infrastructure/graph/etag.ts`) lo lleva siempre a la forma con comillas.
+
+**Pendiente:** la zona horaria del sitio parece **UTC-7**; debe ser (UTC-05:00) Bogotá. La app no se ve afectada (envía `T00:00:00Z` y lee los 10 primeros caracteres), pero la web de SharePoint y los reportes podrían mostrar la fecha un día antes. Corrígela en _Configuración del sitio → Configuración regional_ (o con `-ConfigurarRegional` del `.ps1`) y repite los casos de fecha.
 
 ## Resultado
 

@@ -1,6 +1,7 @@
 import type { CamposServicio } from '@/domain/servicio';
 import type { RemotoCambio } from '@/domain/sync/remoto';
 
+import { normalizarETag } from '../etag';
 import { CAMPO_SP, deCamposSP } from './servicioMapper';
 
 /** Ítem de la lista Servicios tal como lo devuelve Graph (lectura normal o entrada de delta). */
@@ -8,6 +9,8 @@ export interface ItemListaServicio {
   readonly id?: string | number;
   readonly fields?: Record<string, unknown>;
   readonly '@removed'?: unknown;
+  /** Marca de eliminación del `delta` de listas de SharePoint (`{ state: 'deleted' }`). */
+  readonly deleted?: unknown;
   readonly '@odata.etag'?: string;
   readonly eTag?: string;
   readonly webUrl?: string;
@@ -71,8 +74,10 @@ function metaDe(campos: Record<string, unknown>): NonNullable<RemotoCambio['meta
  */
 export function itemACambio(item: ItemListaServicio): RemotoCambio {
   const campos = item.fields ?? {};
-  const eliminado = item['@removed'] !== undefined;
-  const eTag = item['@odata.etag'] ?? item.eTag;
+  // SharePoint real marca el borrado con `deleted` (no `@removed`, que es el de OneDrive): se aceptan ambos.
+  const eliminado = item['@removed'] !== undefined || item.deleted !== undefined;
+  const eTagCrudo = item['@odata.etag'] ?? item.eTag;
+  const eTag = eTagCrudo ? normalizarETag(eTagCrudo) : undefined;
   const modificado = item.lastModifiedDateTime ?? texto(campos.Modified);
   const editor = item.lastModifiedBy?.user?.email;
   const editorNombre = item.lastModifiedBy?.user?.displayName;
