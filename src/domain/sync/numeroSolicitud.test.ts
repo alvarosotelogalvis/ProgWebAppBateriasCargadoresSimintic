@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  compararIdsItem,
   esPendiente,
   MAX_INTENTOS_NUMERO,
   NUMERO_PENDIENTE,
@@ -38,5 +39,15 @@ describe('esPendiente', () => {
 describe('MAX_INTENTOS_NUMERO', () => {
   it('es un límite finito y pequeño', () => {
     expect(MAX_INTENTOS_NUMERO).toBe(5);
+  });
+});
+
+describe('compararIdsItem', () => {
+  it('ordena ids numéricos como números (el 9 va antes que el 10)', () => {
+    expect(['10', '9', '100'].sort(compararIdsItem)).toEqual(['9', '10', '100']);
+  });
+
+  it('si no son numéricos, ordena como texto', () => {
+    expect(['mock-2', 'mock-1'].sort(compararIdsItem)).toEqual(['mock-1', 'mock-2']);
   });
 });

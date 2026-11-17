@@ -13,3 +13,14 @@ export const esPendiente = (numero: number): boolean => !(numero > NUMERO_PENDIE
 /** Siguiente número a asignar: el mayor existente + 1, o 1 si no hay ninguno. */
 export const siguienteNumero = (maximo: number | null | undefined): number =>
   typeof maximo === 'number' && Number.isFinite(maximo) && maximo > 0 ? Math.floor(maximo) + 1 : 1;
+
+/**
+ * Orden de los ids de ítem de SharePoint (números crecientes): el menor se creó antes y conserva el número.
+ * Si algún id no es numérico (adaptador simulado) se compara como texto.
+ */
+export const compararIdsItem = (a: string, b: string): number => {
+  const numeroA = Number(a);
+  const numeroB = Number(b);
+  if (Number.isFinite(numeroA) && Number.isFinite(numeroB)) return numeroA - numeroB;
+  return a < b ? -1 : a > b ? 1 : 0;
+};

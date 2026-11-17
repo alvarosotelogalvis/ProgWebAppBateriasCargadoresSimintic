@@ -147,6 +147,27 @@ export class MockRemoteGateway implements RemoteGatewayPush, RemoteGatewayPull {
     return { eTag: item.eTag };
   }
 
+  async ultimoNumeroSolicitud(): Promise<number> {
+    const numeros = [...this.serviciosMock.values()].map((item) =>
+      Number(item.fields.NumeroSolicitud ?? 0)
+    );
+    return Math.max(0, ...numeros.filter((numero) => Number.isFinite(numero)));
+  }
+
+  async contarPorNumeroSolicitud(numero: number): Promise<readonly { readonly itemId: string }[]> {
+    return [...this.serviciosMock.values()]
+      .filter((item) => Number(item.fields.NumeroSolicitud) === numero)
+      .map((item) => ({ itemId: item.id }));
+  }
+
+  async renumerarServicio(
+    itemId: string,
+    numero: number,
+    codigo: string
+  ): Promise<ResultadoActualizacion> {
+    return this.actualizarServicio(itemId, { NumeroSolicitud: numero, Title: codigo });
+  }
+
   async listarAdjuntosDeServicio(servicioId: string): Promise<readonly ArchivoRemoto[]> {
     return [...this.archivosMock.values()]
       .filter((archivo) => archivo.fields.ServicioId === servicioId)

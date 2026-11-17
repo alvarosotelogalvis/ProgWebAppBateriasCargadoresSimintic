@@ -51,6 +51,16 @@ export interface RemoteGatewayPush {
     campos: Record<string, unknown>,
     etag?: string
   ): Promise<ResultadoActualizacion>;
+  /** Mayor `NumeroSolicitud` existente (0 si la lista está vacía). ADR-0024. */
+  ultimoNumeroSolicitud(): Promise<number>;
+  /** Ítems de `Servicios` con ese número; el id de ítem de SharePoint desempata (menor = anterior). */
+  contarPorNumeroSolicitud(numero: number): Promise<readonly { readonly itemId: string }[]>;
+  /** Cambia el número y el código (`Title`) de un ítem. Lanza `SP_NUMERO_DUPLICADO` si el número ya existe. */
+  renumerarServicio(
+    itemId: string,
+    numero: number,
+    codigo: string
+  ): Promise<ResultadoActualizacion>;
   listarAdjuntosDeServicio(servicioId: string): Promise<readonly ArchivoRemoto[]>;
   eliminarArchivo(itemId: string): Promise<void>;
   actualizarMetadatosArchivo(itemId: string, metadatos: Record<string, unknown>): Promise<void>;
