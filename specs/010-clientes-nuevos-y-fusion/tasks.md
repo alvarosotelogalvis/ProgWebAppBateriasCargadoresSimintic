@@ -75,11 +75,11 @@
 
 ## Fase 5 — Verificación real y cierre
 
-- [ ] T034 Prueba en vivo: dos dispositivos crean el mismo cliente nuevo a la vez (un solo cliente); fusión de 10 servicios con corte y reanudación; limpieza completa (clientes de prueba, servicios y entradas de bitácora) — `tests/live/sincronizacion-real.live.test.ts`
-- [ ] T035 [P] E2E: sin red agregar un cliente y registrar → sincronizar → un solo cliente; fusión de clientes en modo simulado — `tests/e2e/clientes-nuevos.spec.ts`, `tests/e2e/fusion-clientes.spec.ts`
-- [ ] T036 Aplicar las columnas nuevas y el permiso de escritura sobre `Clientes` en `MineroIndustrial` con el script y verificar — _requiere el secreto temporal; confirmar con el usuario_
-- [ ] T037 [P] Documentación: `docs/03` §6.1, `docs/04`, `docs/06` (permisos y columnas), PRD, SDD, spec 003 (ES-003-05 reemplazada), ayuda in-app y `CHANGELOG.md`
-- [ ] T038 `npm run verify` + DoD (`CLAUDE.md` §9) + spec 010 → `Implementada` y el índice de specs
+- [x] T034 Prueba en vivo: dos dispositivos crean el mismo cliente nuevo a la vez (un solo cliente); fusión de 10 servicios con corte y reanudación; limpieza completa (clientes de prueba, servicios y entradas de bitácora) — `tests/live/sincronizacion-real.live.test.ts`
+- [x] T035 [P] E2E: sin red agregar un cliente y registrar → sincronizar → un solo cliente; fusión de clientes en modo simulado — `tests/e2e/clientes-nuevos.spec.ts`, `tests/e2e/fusion-clientes.spec.ts`
+- [x] T036 Aplicar las columnas nuevas y el permiso de escritura sobre `Clientes` en `MineroIndustrial` con el script y verificar — **Hecho con confirmación del usuario** (2026-11-17): columna `Detalle` y `NombreNormalizado` de los 3 clientes existentes; el permiso de escritura del grupo de técnicos sobre `Clientes` queda pendiente del propietario del sitio (`provision-sharepoint.ps1`)
+- [x] T037 [P] Documentación: `docs/03` §6.1, `docs/04`, `docs/06` (permisos y columnas), PRD, SDD, spec 003 (ES-003-05 reemplazada), ayuda in-app y `CHANGELOG.md`
+- [x] T038 `npm run verify` + DoD (`CLAUDE.md` §9) + spec 010 → `Implementada` y el índice de specs
 
 ## Dependencias
 

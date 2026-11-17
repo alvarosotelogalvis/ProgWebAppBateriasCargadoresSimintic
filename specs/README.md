@@ -43,7 +43,7 @@ specify ─► clarify ─► plan ─► tasks ─► implement ─► verify �
 | 007 | [Etapas del servicio y roles](007-etapas-servicio-roles/spec.md)                         | F7               | 003, 006                                                                               | En implementación |
 | 008 | [Alertas de vida útil y notificaciones](008-alertas-notificaciones/spec.md)              | F8               | 007                                                                                    | Implementada      |
 | 009 | [Soporte técnico, respaldo y purgas](009-soporte-respaldo-purgas/spec.md)                | F9               | 006                                                                                    | Implementada      |
-| 010 | [Clientes nuevos desde el formulario y fusión](010-clientes-nuevos-y-fusion/spec.md)     | posterior a F10  | 003, 006, 009                                                                          | En implementación |
+| 010 | [Clientes nuevos desde el formulario y fusión](010-clientes-nuevos-y-fusion/spec.md)     | posterior a F10  | 003, 006, 009                                                                          | Implementada      |
 | 011 | [Número de solicitud automático](011-numero-solicitud-automatico/spec.md)                | posterior a F10  | 003, 005, 006                                                                          | Implementada      |
 
 La Fase F10 (endurecimiento y release) no es una funcionalidad: se rige por `docs/07` §F10, `docs/08` §6 y `docs/09` §3.
