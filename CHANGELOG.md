@@ -19,6 +19,11 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 - Un cliente creado sin red (id temporal negativo) hacía fallar «Completar recepción» con «Selecciona el cliente»: la validación solo aceptaba ids positivos.
 
+### Performance
+
+- **Bundle**: en producción (con el trozo de MSAL que se descarga en paralelo al arrancar) la carga inicial baja de ~333 a **329 KB comprimidos** (límite RNF-06: 350 KB); sin MSAL son 266 KB. Se quitaron 38 iconos que ninguna pantalla usaba (venían de las pantallas de referencia de diseño; −9,4 KB) y el panel de filtros de la lista de servicios se carga solo al abrirlo con `React.lazy` (la primera visita directa a la lista pasa de ~412 a ~333 KB). Abrir en frío el formulario de recepción sigue pesando ~401 KB, pero esas pantallas las precachea el service worker.
+- **`npm run bundle:medir`** (`scripts/medir-bundle.mjs`): mide la carga inicial (entrada + CSS + MSAL) y la primera visita a cada pantalla, y falla si la carga inicial supera los 350 KB (las pantallas son informativas; `BUNDLE_ESTRICTO=1` las vuelve exigentes). Para medir lo que se publica usa un build de producción: `build:dev` no refleja MSAL.
+
 ### Changed
 
 - **Número de solicitud automático** (spec 011, ADR-0024): el formulario ya no lo pide. Al sincronizar la app lee el mayor número en SharePoint y asigna el siguiente (uno por equipo); mientras tanto el servicio muestra «Pendiente» y su código usa `PEND` (`BAT-PEND-NV4520`). Reemplaza la decisión PA-07 del PRD.

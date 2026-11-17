@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "bundle:medir": "node scripts/medir-bundle.mjs",
     "build:dev": "tsc --noEmit && vite build --mode development",
     "preview": "vite preview",
     "preview:dev": "vite preview --mode development",

@@ -22,11 +22,11 @@
 
 ### Bundle (gzip nivel 9 / brotli)
 
-| Medida                                                                           |       gzip |  brotli | Meta          |        Estado        |
-| -------------------------------------------------------------------------------- | ---------: | ------: | ------------- | :------------------: |
-| Carga inicial referenciada en `index.html` (JS + CSS)                            |     271 KB |  232 KB | ≤ 350 KB gzip |          ✅          |
-| + chunk de MSAL (se descarga en paralelo en PRD)                                 | **333 KB** | ~290 KB | ≤ 350 KB gzip | ✅ (margen de 17 KB) |
-| Todo lo que precachea el service worker (JS 465 KB + CSS 24 KB + fuentes 853 KB) |    ~1,3 MB |       — | —             |     informativo      |
+| Medida                                                                                                                                        |       gzip |  brotli | Meta          |        Estado        |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | ---------: | ------: | ------------- | :------------------: |
+| Carga inicial referenciada en `index.html` (JS + CSS)                                                                                         |     266 KB |  232 KB | ≤ 350 KB gzip |          ✅          |
+| + chunk de MSAL (se descarga en paralelo en PRD) — **actualizado el 2026-11-17** (iconos sin uso quitados; medido con `npm run bundle:medir`) | **329 KB** | ~285 KB | ≤ 350 KB gzip | ✅ (margen de 21 KB) |
+| Todo lo que precachea el service worker (JS 465 KB + CSS 24 KB + fuentes 853 KB)                                                              |    ~1,3 MB |       — | —             |     informativo      |
 
 ### Por qué la carga en frío no llega a 90
 
