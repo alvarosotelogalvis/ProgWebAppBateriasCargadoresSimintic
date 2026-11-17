@@ -15,15 +15,15 @@
 
 ### Pruebas
 
-- [ ] T004 [P] `generarCodigo` con número 0 → `BAT-PEND-NV4520`; con número → `BAT-42-NV4520` — `src/domain/codigo.test.ts`
-- [ ] T005 [P] `siguienteNumero` (null, 0, 41 → 42), `esPendiente` — `src/domain/sync/numeroSolicitud.test.ts`
-- [ ] T006 [P] `esquemaRecepcion` acepta un servicio sin número; `camposEditables` de RECIBIDO ya no incluye `numeroSolicitud`; `estadoCoherente` no lo exige — `src/domain/validaciones.test.ts`, `estados.test.ts`, `merge.test.ts`
+- [x] T004 [P] `generarCodigo` con número 0 → `BAT-PEND-NV4520`; con número → `BAT-42-NV4520` — `src/domain/codigo.test.ts`
+- [x] T005 [P] `siguienteNumero` (null, 0, 41 → 42), `esPendiente` — `src/domain/sync/numeroSolicitud.test.ts`
+- [x] T006 [P] `esquemaRecepcion` acepta un servicio sin número; `camposEditables` de RECIBIDO ya no incluye `numeroSolicitud`; `estadoCoherente` no lo exige — `src/domain/validaciones.test.ts`, `estados.test.ts`, `merge.test.ts`
 
 ### Implementación
 
-- [ ] T007 Implementar `numeroSolicitud.ts` y el código con «PEND» hasta pasar T004–T005 — `src/domain/`
-- [ ] T008 Quitar `numeroSolicitud` de validaciones, campos editables de recepción y mínimos de RECIBIDO hasta pasar T006 — `src/domain/validaciones.ts`, `estados.ts`, `merge.ts`
-- [ ] T009 [P] Emulador de Graph: valor único en `NumeroSolicitud` (400 como el real) y orden descendente por ese campo — `tests/fixtures/graph/emuladorGraph.ts`
+- [x] T007 Implementar `numeroSolicitud.ts` y el código con «PEND» hasta pasar T004–T005 — `src/domain/`
+- [x] T008 Quitar `numeroSolicitud` de validaciones, campos editables de recepción y mínimos de RECIBIDO hasta pasar T006 — `src/domain/validaciones.ts`, `estados.ts`, `merge.ts`
+- [x] T009 [P] Emulador de Graph: valor único en `NumeroSolicitud` (400 como el real) y orden descendente por ese campo — `tests/fixtures/graph/emuladorGraph.ts`
 
 ## Fase 3 — HU-011-1 El número se asigna al sincronizar (P1) 🎯 MVP
 

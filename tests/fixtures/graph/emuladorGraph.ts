@@ -164,6 +164,7 @@ export class EmuladorGraph {
   private forzarEtagMismatch = false;
   private carrera409 = false;
   private duplicadoComo409 = false;
+  private unicidadNumeroDiferida = false;
   private desconectado = false;
   private conMiniaturas = true;
   miniaturasServidas = 0;
@@ -207,6 +208,18 @@ export class EmuladorGraph {
   /** Hace que un `ServicioId` duplicado responda 409 en vez del 400 que devuelve SharePoint real. */
   duplicadoDevuelve409(): void {
     this.duplicadoComo409 = true;
+  }
+
+  /**
+   * SharePoint real aplica el valor único de `NumeroSolicitud` con 1–4 s de retraso (spike S9): durante ese
+   * lapso acepta duplicados. Con esto el emulador los acepta hasta llamar a `aplicarUnicidadNumero()`.
+   */
+  diferirUnicidadNumero(): void {
+    this.unicidadNumeroDiferida = true;
+  }
+
+  aplicarUnicidadNumero(): void {
+    this.unicidadNumeroDiferida = false;
   }
 
   desconectar(): void {
@@ -474,6 +487,24 @@ export class EmuladorGraph {
       }
     }
 
+    const porNumero = /fields\/NumeroSolicitud eq (\d+)/.exec(filtro);
+    if (porNumero?.[1] !== undefined) {
+      const numero = Number(porNumero[1]);
+      items = items.filter((item) => Number(item.fields.NumeroSolicitud) === numero);
+    }
+    const orden = /^fields\/NumeroSolicitud (asc|desc)$/.exec(
+      url.searchParams.get('$orderby') ?? ''
+    );
+    if (orden?.[1] !== undefined) {
+      const signo = orden[1] === 'desc' ? -1 : 1;
+      items = [...items].sort(
+        (a, b) =>
+          signo * (Number(a.fields.NumeroSolicitud ?? 0) - Number(b.fields.NumeroSolicitud ?? 0))
+      );
+    }
+    const top = Number(url.searchParams.get('$top') ?? '0');
+    if (top > 0) items = items.slice(0, top);
+
     const desde = Number(url.searchParams.get('$skiptoken') ?? '0');
     const hasta = desde + this.tamanoPagina;
     const pagina = items.slice(desde, hasta);
@@ -516,8 +547,27 @@ export class EmuladorGraph {
       }
     }
 
+    if (this.numeroRepetido(lista, fields.NumeroSolicitud)) return this.errorValorUnico();
+
     const creado = this.crearItem(lista, fields);
     return json(itemJson(creado), 201);
+  }
+
+  /** `NumeroSolicitud` es único en `Servicios`; 0 o vacío (pendiente) no cuenta. */
+  private numeroRepetido(lista: ListaEstado, valor: unknown, excluirId?: string): boolean {
+    const numero = Number(valor);
+    if (lista.name !== 'Servicios' || !(numero > 0) || this.unicidadNumeroDiferida) return false;
+    return lista.items.some(
+      (item) => item.id !== excluirId && Number(item.fields.NumeroSolicitud) === numero
+    );
+  }
+
+  private errorValorUnico(): HttpResponse<JsonBodyType> {
+    return errorGraph(
+      400,
+      'invalidRequest',
+      'One or more fields with unique constraints already has the provided value.'
+    );
   }
 
   private async actualizarCampos(item: ItemEstado, request: Request): Promise<Response> {
@@ -549,6 +599,10 @@ export class EmuladorGraph {
     }
 
     const campos = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    const listaDelItem = this.listas.find((lista) => lista.items.includes(item));
+    if (listaDelItem && this.numeroRepetido(listaDelItem, campos.NumeroSolicitud, item.id)) {
+      return this.errorValorUnico();
+    }
     this.secuencia += 1;
     item.fields = { ...item.fields, ...campos };
     item.eTag = nuevoEtag(this.secuencia);
