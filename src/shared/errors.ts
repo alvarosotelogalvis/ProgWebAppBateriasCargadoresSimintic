@@ -10,6 +10,7 @@ export type CodigoError =
   | 'SP_CONFLICTO'
   | 'SP_LIMITE'
   | 'SP_SERVIDOR'
+  | 'SP_NUMERO_DUPLICADO'
   | 'VALIDACION'
   | 'VERSION_OBSOLETA'
   | 'NO_AUTORIZADO'

@@ -143,6 +143,7 @@ export function crearGraph({
   return {
     get: (ruta) => llamar('GET', ruta),
     post: (ruta, cuerpo) => llamar('POST', ruta, cuerpo),
+    patch: (ruta, cuerpo) => llamar('PATCH', ruta, cuerpo),
     async getTodos(ruta) {
       const todos = [];
       let siguiente = ruta;
@@ -267,7 +268,7 @@ export async function aprovisionar({
   anios = [],
   log = console.log,
 }) {
-  const resumen = { creados: 0, existentes: 0, avisos: [] };
+  const resumen = { creados: 0, existentes: 0, corregidos: 0, avisos: [] };
   const existentes = new Map(
     (await graph.getTodos(`/sites/${siteId}/lists?$select=id,name,displayName,list&$top=200`)).map(
       (l) => [l.name, l]
@@ -301,14 +302,34 @@ export async function aprovisionar({
     } else {
       resumen.existentes++;
       log(`  [ya existe]  ${nombre}`);
-      const columnas = new Set(
-        (await graph.getTodos(`/sites/${siteId}/lists/${lista.id}/columns?$select=name`)).map(
-          (c) => c.name
-        )
+      const columnas = new Map(
+        (
+          await graph.getTodos(
+            `/sites/${siteId}/lists/${lista.id}/columns?$select=id,name,indexed,enforceUniqueValues`
+          )
+        ).map((c) => [c.name, c])
       );
       for (const campo of campos) {
-        if (columnas.has(campo.n)) {
+        const actual = columnas.get(campo.n);
+        if (actual) {
           resumen.existentes++;
+          // Una columna que ya existía puede haberse creado sin índice o sin valor único (spike S9):
+          // se corrige con PATCH, nunca se recrea ni se borra.
+          const sinUnico = campo.unico === true && actual.enforceUniqueValues !== true;
+          const sinIndice =
+            (campo.indice === true || campo.unico === true) && actual.indexed !== true;
+          if (sinUnico || sinIndice) {
+            if (!aplicar) {
+              log(`  [simulación] corregiría ${nombre}.${campo.n} (índice y/o valor único)`);
+            } else {
+              await graph.patch(`/sites/${siteId}/lists/${lista.id}/columns/${actual.id}`, {
+                indexed: true,
+                ...(campo.unico ? { enforceUniqueValues: true } : {}),
+              });
+              resumen.corregidos++;
+              log(`  [corregido]  columna ${nombre}.${campo.n} (índice y valor único)`);
+            }
+          }
         } else if (!aplicar) {
           log(`  [simulación] agregaría la columna ${nombre}.${campo.n}`);
         } else {

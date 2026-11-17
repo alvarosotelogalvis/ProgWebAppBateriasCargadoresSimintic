@@ -95,6 +95,25 @@ describe('aCamposSP', () => {
   });
 });
 
+describe('aCamposSP · número de solicitud pendiente (ADR-0024)', () => {
+  const pendiente = () => servicioBuilder().conCampos({ numeroSolicitud: 0 }).construir();
+
+  it('la creación no envía NumeroSolicitud si está pendiente (0)', () => {
+    expect(aCamposSP(pendiente())).not.toHaveProperty('NumeroSolicitud');
+  });
+
+  it('nunca escribe un 0 por PATCH, ni siquiera si el campo figura como sucio', () => {
+    expect(aCamposSP(pendiente(), ['numeroSolicitud', 'marca'])).not.toHaveProperty(
+      'NumeroSolicitud'
+    );
+  });
+
+  it('con número asignado sí lo envía', () => {
+    const asignado = servicioBuilder().conCampos({ numeroSolicitud: 42 }).construir();
+    expect(aCamposSP(asignado)).toMatchObject({ NumeroSolicitud: 42 });
+  });
+});
+
 describe('deCamposSP', () => {
   it('hace ida y vuelta de los campos remotos', () => {
     const servicio = servicioCompleto();

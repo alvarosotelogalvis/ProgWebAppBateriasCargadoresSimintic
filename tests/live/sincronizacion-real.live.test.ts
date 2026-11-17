@@ -20,6 +20,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { crearResolverConflictos } from '@/application/servicios/resolverConflictos';
 import { refrescarCatalogosRemotos } from '@/application/setup/refrescarCatalogosSync';
 import type { Adjunto } from '@/domain/adjunto';
+import { generarCodigo } from '@/domain/codigo';
 import type { Servicio } from '@/domain/servicio';
 
 import { adjuntoBuilder } from '../builders/adjuntoBuilder';
@@ -48,6 +49,10 @@ describe.skipIf(!habilitado)('sincronización REAL contra SharePoint real', () =
   let cliente = { id: 0, nombre: '' };
   let anio = '';
   let servicioA: Servicio;
+  /** Número que debe recibir el servicio de A: el siguiente al mayor que había (ADR-0024). */
+  let numeroEsperado = 0;
+  /** ServicioId de los servicios de la prueba de numeración simultánea (se borran al final). */
+  const idsNumeracion: string[] = [];
 
   const obtenerToken = async (): Promise<string> => {
     if (Date.now() < token.expira) return token.valor;
@@ -144,10 +149,12 @@ describe.skipIf(!habilitado)('sincronización REAL contra SharePoint real', () =
     // LIMPIEZA: borra todo lo creado (ítems, carpeta de adjuntos y entradas de bitácora de la prueba).
     const resumen: string[] = [];
     try {
-      for (const item of await itemsRemotos(ID)) {
-        resumen.push(
-          `ítem ${(await crudo('DELETE', `/sites/${sitioId}/lists/${listas.Servicios}/items/${item.id}`)).estado}`
-        );
+      for (const id of [ID, ...idsNumeracion]) {
+        for (const item of await itemsRemotos(id)) {
+          resumen.push(
+            `ítem ${(await crudo('DELETE', `/sites/${sitioId}/lists/${listas.Servicios}/items/${item.id}`)).estado}`
+          );
+        }
       }
       const carpeta = await crudo('GET', `/drives/${driveId}/root:/${anio}/${ID}`);
       if (carpeta.estado === 200)
@@ -197,15 +204,18 @@ describe.skipIf(!habilitado)('sincronización REAL contra SharePoint real', () =
   it('A: sube un servicio con 2 fotos y 1 PDF y SharePoint lo deja como la app espera', async () => {
     servicioA = {
       ...servicioBuilder().conId(ID).recibido().pendiente().construir(),
-      codigo: `BAT-9001-${SERIE}`,
       serie: SERIE,
-      numeroSolicitud: 9001,
+      // Sin número: lo asigna la sincronización (spec 011).
+      numeroSolicitud: 0,
       marca: 'ROQUET',
       referencia: 'REF-VIVA',
       clienteId: cliente.id,
       clienteNombre: cliente.nombre,
       camposSucios: [],
     };
+    servicioA.codigo = generarCodigo(servicioA);
+    expect(servicioA.codigo).toContain('-PEND-');
+    numeroEsperado = (await A.gateway.ultimoNumeroSolicitud()) + 1;
     anio = servicioA.fechaRecepcion.slice(0, 4);
     await A.servicios.guardar(servicioA);
     for (const adjunto of [
@@ -231,7 +241,8 @@ describe.skipIf(!habilitado)('sincronización REAL contra SharePoint real', () =
       ServicioId: ID,
       Estado: 'Recibido',
       SerieEquipo: SERIE,
-      NumeroSolicitud: 9001,
+      NumeroSolicitud: numeroEsperado,
+      Title: generarCodigo({ ...servicioA, numeroSolicitud: numeroEsperado }),
       Marca: 'ROQUET',
       Referencia: 'REF-VIVA',
       ClienteLookupId: String(cliente.id),
@@ -248,6 +259,10 @@ describe.skipIf(!habilitado)('sincronización REAL contra SharePoint real', () =
     expect(archivos.every((a) => a.listItem?.fields.ServicioId === ID && a.size > 0)).toBe(true);
     // El servicio local queda sincronizado y con los datos remotos (eTag, id del ítem).
     const local = await A.servicios.obtener(ID);
+    expect(local).toMatchObject({
+      numeroSolicitud: numeroEsperado,
+      codigo: generarCodigo({ ...servicioA, numeroSolicitud: numeroEsperado }),
+    });
     expect(local).toMatchObject({ syncState: 'synced', camposSucios: [] });
     expect(local?.sp?.itemId).toBe(items[0]!.id);
     expect(local?.sp?.eTag.startsWith('"')).toBe(true);
@@ -265,7 +280,7 @@ describe.skipIf(!habilitado)('sincronización REAL contra SharePoint real', () =
       referencia: 'REF-VIVA',
       clienteId: cliente.id,
       clienteNombre: cliente.nombre,
-      numeroSolicitud: 9001,
+      numeroSolicitud: numeroEsperado,
       syncState: 'synced',
       origen: 'remoto',
     });
@@ -398,5 +413,80 @@ describe.skipIf(!habilitado)('sincronización REAL contra SharePoint real', () =
 
     expect(resultado.eliminados).toBe(1);
     expect(await B.servicios.obtener(ID)).toBeUndefined();
+  });
+
+  it('dos dispositivos suben 5 servicios cada uno a la vez: los 10 números son únicos y consecutivos (CE-011-01)', async () => {
+    const D = await crearDispositivoReal({ nombre: 'D', siteUrl: SITIO!, obtenerToken });
+    const E = await crearDispositivoReal({ nombre: 'E', siteUrl: SITIO!, obtenerToken });
+    dispositivos.push(D, E);
+    const maximoAntes = await D.gateway.ultimoNumeroSolicitud();
+    const crearPendiente = async (dispositivo: DispositivoReal, indice: number) => {
+      const id = crypto.randomUUID();
+      idsNumeracion.push(id);
+      const base = servicioBuilder().conId(id).recibido().pendiente().construir();
+      const servicio: Servicio = {
+        ...base,
+        serie: `NUM${Date.now().toString().slice(-6)}${indice}`,
+        numeroSolicitud: 0,
+        marca: 'ROQUET',
+        referencia: 'REF-NUM',
+        clienteId: cliente.id,
+        clienteNombre: cliente.nombre,
+        camposSucios: [],
+        actualizadoEn: new Date(Date.now() + indice * 1000).toISOString(),
+      };
+      servicio.codigo = generarCodigo(servicio);
+      await dispositivo.servicios.guardar(servicio);
+      return id;
+    };
+    const idsD: string[] = [];
+    const idsE: string[] = [];
+    for (let i = 0; i < 5; i += 1) {
+      idsD.push(await crearPendiente(D, i));
+      idsE.push(await crearPendiente(E, i + 5));
+    }
+
+    const [resD, resE] = await Promise.all([D.sincronizar(), E.sincronizar()]);
+
+    const reintentos = [...D.logger.eventos, ...E.logger.eventos].filter(
+      (evento) => evento.evento === 'sync.numeroSolicitud.reintento'
+    );
+    // eslint-disable-next-line no-console
+    console.log(
+      `NUMERACION: reintentos por choque o verificación = ${reintentos.length} ${JSON.stringify(
+        reintentos.map((r) => r.datos?.motivo)
+      )}`
+    );
+    expect(resD).toMatchObject({ subidos: 5, errores: 0, resultado: 'OK' });
+    expect(resE).toMatchObject({ subidos: 5, errores: 0, resultado: 'OK' });
+    const remotos: { id: string; numero: number; titulo: string }[] = [];
+    for (const id of [...idsD, ...idsE]) {
+      const [item] = await itemsRemotos(id);
+      expect(item, `falta el servicio ${id} en SharePoint`).toBeDefined();
+      remotos.push({
+        id,
+        numero: Number(item!.fields.NumeroSolicitud),
+        titulo: String(item!.fields.Title),
+      });
+    }
+    const numeros = remotos.map((r) => r.numero).sort((a, b) => a - b);
+    // Únicos y consecutivos a partir del mayor que había.
+    expect(numeros).toEqual(Array.from({ length: 10 }, (_, i) => maximoAntes + 1 + i));
+    // Cada servicio local coincide con SharePoint (número y código), en ambos dispositivos.
+    for (const { id, numero, titulo } of remotos) {
+      const dispositivo = idsD.includes(id) ? D : E;
+      const local = await dispositivo.servicios.obtener(id);
+      expect(local?.numeroSolicitud).toBe(numero);
+      expect(local?.codigo).toBe(titulo);
+      expect(titulo).not.toContain('PEND');
+    }
+    // Nadie quedó con un número repetido en toda la lista.
+    for (const numero of numeros) {
+      const r = await crudo(
+        'GET',
+        `/sites/${sitioId}/lists/${listas.Servicios}/items?$filter=fields/NumeroSolicitud eq ${numero}&$select=id`
+      );
+      expect(r.json.value, `número ${numero} repetido`).toHaveLength(1);
+    }
   });
 });

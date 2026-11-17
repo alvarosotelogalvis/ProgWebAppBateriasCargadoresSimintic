@@ -1,4 +1,5 @@
-﻿import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
+﻿import { generarCodigo } from '@/domain/codigo';
+import type { AdjuntoRepository } from '@/application/ports/adjuntoRepository';
 import type { Clock } from '@/application/ports/clock';
 import type { Logger } from '@/application/ports/loggerPort';
 import type { MapeadorServicio } from '@/application/ports/mapeadorServicio';
@@ -257,6 +258,12 @@ export class MotorSync implements SyncEngine {
           },
           onAdjuntoGuardar: (adjunto) => this.deps.adjuntos.guardar(adjunto),
           onAdjuntoEliminar: (adjuntoId) => this.deps.adjuntos.eliminarLocal(adjuntoId),
+          alReintentarNumero: (info) => {
+            this.deps.logger.info('sync.numeroSolicitud.reintento', {
+              servicioId: enCurso.id,
+              ...info,
+            });
+          },
         });
 
         const guardado = await this.fusionarConLaBase(enCurso, resultado);
@@ -392,8 +399,20 @@ export class MotorSync implements SyncEngine {
       }
     }
 
+    // Número de solicitud asignado en esta subida: el servicio local lo adopta junto con su código definitivo.
+    const numero = resultado.numeroSolicitud;
+    const asignado: Partial<Servicio> =
+      numero === undefined
+        ? {}
+        : {
+            numeroSolicitud: numero,
+            codigo: generarCodigo({ ...actual, numeroSolicitud: numero }),
+          };
+    if (numero !== undefined) base.numeroSolicitud = numero;
+
     return {
       ...sinSeguimiento(actual),
+      ...asignado,
       sp: resultado.sp,
       base,
       camposSucios: [...sucios],

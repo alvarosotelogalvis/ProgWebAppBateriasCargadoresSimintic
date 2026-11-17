@@ -16,6 +16,21 @@ const localCon = (
   syncState: 'pending',
 });
 
+describe('mergeTresVias · número de solicitud pendiente (ES-011)', () => {
+  it('un servicio RECIBIDO sin número asignado todavía no se marca como incoherente', () => {
+    const local = { ...localCon({ marca: 'LOCAL' }, ['marca']) } as Record<string, unknown>;
+    delete local.numeroSolicitud;
+
+    const { servicio, conflictos } = mergeTresVias(local as unknown as Servicio, {
+      estado: 'RECIBIDO',
+      marca: baseServicio().marca,
+    });
+
+    expect(conflictos.some((conflicto) => conflicto.campo === 'estado')).toBe(false);
+    expect(servicio.camposSucios).not.toContain('estado');
+  });
+});
+
 describe('mergeTresVias', () => {
   it('adopta el valor remoto cuando el campo local no está sucio', () => {
     const { servicio, conflictos } = mergeTresVias(localCon({}, []), { marca: 'REMOTO' });

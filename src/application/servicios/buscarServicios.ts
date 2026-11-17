@@ -1,5 +1,6 @@
 import { esFinal } from '@/domain/estados';
 import type { Servicio, TipoEquipo } from '@/domain/servicio';
+import { esPendiente } from '@/domain/sync/numeroSolicitud';
 
 export interface FiltrosServicios {
   texto?: string;
@@ -27,7 +28,7 @@ export const filtrarServicios = (
       const campos = [
         servicio.codigo,
         servicio.serie,
-        String(servicio.numeroSolicitud),
+        esPendiente(servicio.numeroSolicitud) ? '' : String(servicio.numeroSolicitud),
         servicio.clienteNombre,
         servicio.referencia,
         servicio.marca,
@@ -49,15 +50,9 @@ export const filtrarServicios = (
 export const detectarSerieDuplicada = async (
   buscarPorSerie: (serie: string) => Promise<Servicio[]>,
   servicioId: string,
-  serie: string,
-  numeroSolicitud: number
+  serie: string
 ): Promise<Servicio | undefined> => {
-  if (!serie.trim() || !numeroSolicitud) return undefined;
+  if (!serie.trim()) return undefined;
   const candidatos = await buscarPorSerie(serie);
-  return candidatos.find(
-    (candidato) =>
-      candidato.id !== servicioId &&
-      candidato.numeroSolicitud === numeroSolicitud &&
-      !esFinal(candidato.estado)
-  );
+  return candidatos.find((candidato) => candidato.id !== servicioId && !esFinal(candidato.estado));
 };

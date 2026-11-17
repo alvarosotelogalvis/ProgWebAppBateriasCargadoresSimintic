@@ -9,7 +9,6 @@ const RECEPCION: (keyof CamposServicio)[] = [
   'fechaRecepcion',
   'clienteId',
   'clienteNombre',
-  'numeroSolicitud',
   'marca',
   'referencia',
   'serie',
@@ -35,6 +34,30 @@ const campos = (...grupos: (keyof CamposServicio)[][]) => grupos.flat().sort();
 const enEstado = (estado: Servicio['estado']): Servicio => ({
   ...servicioBuilder().facturado().construir(),
   estado,
+});
+
+describe('numeroSolicitud (ES-011-08): lo asigna el sistema, nadie lo edita', () => {
+  it('no es editable en ningún estado ni rol y no forma parte de TODOS_LOS_CAMPOS', () => {
+    const estados: Servicio['estado'][] = [
+      'BORRADOR',
+      'RECIBIDO',
+      'DIAGNOSTICADO',
+      'COTIZADO',
+      'EN_REPARACION',
+      'ENTREGADO',
+      'FACTURADO',
+      'DISPOSICION_FINAL',
+      'ANULADO',
+    ];
+    const roles: Rol[] = ['Tecnico', 'Comercial', 'Administrador'];
+
+    expect(TODOS_LOS_CAMPOS).not.toContain('numeroSolicitud');
+    for (const estado of estados) {
+      for (const rol of roles) {
+        expect(camposEditables(enEstado(estado), [rol]).has('numeroSolicitud')).toBe(false);
+      }
+    }
+  });
 });
 
 describe('camposEditables · estado × rol (ES-007-26 a 30)', () => {

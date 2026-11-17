@@ -53,6 +53,41 @@ beforeEach(() => {
   listarAdjuntosRemotos.mockClear();
 });
 
+describe('DetalleServicioPage · número de solicitud (ES-011-01, ES-011-08)', () => {
+  it('muestra «Pendiente» mientras el servicio no tiene número', () => {
+    montar('recibido', ['Tecnico']);
+    servicio = { ...servicio!, numeroSolicitud: 0, codigo: 'CAR-PEND-NV4520' };
+
+    render(
+      <MemoryRouter initialEntries={[`/servicios/${servicio.id}`]}>
+        <Routes>
+          <Route path="/servicios/:id" element={<DetalleServicioPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const termino = screen.getAllByText('Número de solicitud').at(-1)!;
+    expect(termino.nextElementSibling).toHaveTextContent('Pendiente');
+  });
+
+  it('muestra el número una vez asignado y no ofrece editarlo', () => {
+    montar('recibido', ['Administrador']);
+    servicio = { ...servicio!, numeroSolicitud: 42 };
+
+    render(
+      <MemoryRouter initialEntries={[`/servicios/${servicio.id}`]}>
+        <Routes>
+          <Route path="/servicios/:id" element={<DetalleServicioPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const termino = screen.getAllByText('Número de solicitud').at(-1)!;
+    expect(termino.nextElementSibling).toHaveTextContent('42');
+    expect(screen.queryByRole('textbox', { name: /número de solicitud/i })).not.toBeInTheDocument();
+  });
+});
+
 describe('DetalleServicioPage (HU-007)', () => {
   it('ofrece la siguiente etapa del rol y navega a ella', () => {
     montar('recibido', ['Tecnico']);

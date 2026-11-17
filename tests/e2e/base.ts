@@ -146,12 +146,11 @@ export const servicioSembrado = (
 const PNG_1X1 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=';
 
-/** Completa una recepción mínima (1 foto) y devuelve su código. */
-export const crearRecepcion = async (
-  page: Page,
-  solicitud: string,
-  serie: string
-): Promise<string> => {
+/**
+ * Completa una recepción mínima (1 foto) y devuelve su código. El número de solicitud no se captura: lo asigna
+ * la sincronización, así que hasta entonces el código es `BAT-PEND-{serie}` (ADR-0024).
+ */
+export const crearRecepcion = async (page: Page, serie: string): Promise<string> => {
   await page.goto('/servicios/nuevo');
   await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+\/etapa\/recepcion$/, {
     timeout: 15_000,
@@ -166,7 +165,6 @@ export const crearRecepcion = async (
   await page.getByRole('combobox', { name: 'Marca' }).fill('ROQUET');
   await page.getByLabel('Referencia').fill('REF-SYNC');
   await page.getByLabel('Serie').fill(serie);
-  await page.getByLabel('Número de solicitud').fill(solicitud);
 
   await page
     .locator('input[type="file"][multiple]')
@@ -177,7 +175,7 @@ export const crearRecepcion = async (
 
   await page.getByRole('button', { name: 'Completar recepción' }).click();
   await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+$/, { timeout: 15_000 });
-  const codigo = `BAT-${solicitud}-${serie}`;
+  const codigo = `BAT-PEND-${serie}`;
   await expect(page.getByText(codigo)).toBeVisible();
   return codigo;
 };

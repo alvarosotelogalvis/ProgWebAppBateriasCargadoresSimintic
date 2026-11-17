@@ -1,5 +1,12 @@
 ﻿import type { Adjunto } from '@/domain/adjunto';
+import { generarCodigo } from '@/domain/codigo';
 import type { CamposServicio, Servicio } from '@/domain/servicio';
+import {
+  compararIdsItem,
+  esPendiente,
+  MAX_INTENTOS_NUMERO,
+  siguienteNumero,
+} from '@/domain/sync/numeroSolicitud';
 import { rutaCarpeta, nombreArchivo } from '@/domain/sync/rutas';
 import { AppError } from '@/shared/errors';
 
@@ -17,6 +24,16 @@ export interface PushServicioDeps {
   /** Persiste el estado del adjunto (avance, sesión o sincronizado). */
   readonly onAdjuntoGuardar?: (adjunto: Adjunto) => Promise<void>;
   readonly onAdjuntoEliminar?: (adjuntoId: string) => Promise<void>;
+  /** Pausa entre reintentos al asignar el número (inyectable para las pruebas). */
+  readonly pausa?: (ms: number) => Promise<void>;
+  /** Fuente de aleatoriedad de la pausa (0 ≤ x < 1). */
+  readonly aleatorio?: () => number;
+  /** Aviso (para el log) de cada reintento por choque de número de solicitud. */
+  readonly alReintentarNumero?: (info: {
+    readonly motivo: 'choque' | 'verificacion';
+    readonly intento: number;
+    readonly numero: number;
+  }) => void;
 }
 
 export interface ResultadoPushServicio {
@@ -27,6 +44,8 @@ export interface ResultadoPushServicio {
   readonly baseRemota: Partial<CamposServicio>;
   readonly archivosSubidos: number;
   readonly adjuntos: readonly Adjunto[];
+  /** Número de solicitud asignado (o adoptado de SharePoint) en esta subida; ausente si ya lo tenía. */
+  readonly numeroSolicitud?: number;
 }
 
 const CONCURRENCIA_ARCHIVOS = 2;
@@ -60,26 +79,156 @@ function spDesdeRemoto(
   };
 }
 
+interface RemotoAsegurado {
+  readonly remoto: ServicioRemotoPush;
+  /** Servicio con el número y el código definitivos (si se asignó o adoptó uno). */
+  readonly servicio: Servicio;
+  readonly numeroSolicitud?: number;
+}
+
+const conNumero = (servicio: Servicio, numero: number): Servicio => ({
+  ...servicio,
+  numeroSolicitud: numero,
+  codigo: generarCodigo({ ...servicio, numeroSolicitud: numero }),
+});
+
+const esperar = (ms: number): Promise<void> =>
+  new Promise((resolver) => {
+    setTimeout(resolver, ms);
+  });
+
+/** Pausa aleatoria de 50 a 350 ms para que dos dispositivos no choquen siempre a la vez. */
+const pausarAleatoria = (deps: PushServicioDeps): Promise<void> =>
+  (deps.pausa ?? esperar)(50 + Math.floor((deps.aleatorio?.() ?? Math.random()) * 300));
+
+const esChoqueDeNumero = (error: unknown): boolean =>
+  error instanceof AppError && error.codigo === 'SP_NUMERO_DUPLICADO';
+
+const errorSinNumero = (causa: unknown): AppError =>
+  new AppError({
+    codigo: 'SP_SERVIDOR',
+    mensaje: 'No se pudo asignar un número de solicitud único. Se reintentará.',
+    reintentable: true,
+    causa,
+  });
+
+/**
+ * La unicidad de SharePoint llega 1–4 s tarde (spike S9): dos dispositivos pueden crear el mismo número sin
+ * error. Se comprueba después de crear: si hay un ítem anterior (id menor) con el mismo número, este pierde
+ * y toma el siguiente. Devuelve el servicio con su número definitivo y el eTag vigente del ítem.
+ */
+async function verificarNumeroUnico(
+  remoto: ServicioRemotoPush,
+  candidato: Servicio,
+  deps: PushServicioDeps
+): Promise<{ servicio: Servicio; remoto: ServicioRemotoPush }> {
+  let actual = candidato;
+  let vigente = remoto;
+  let ultimo: unknown;
+  for (let intento = 1; intento <= MAX_INTENTOS_NUMERO; intento += 1) {
+    const items = await deps.remoto.contarPorNumeroSolicitud(actual.numeroSolicitud);
+    const hayAnterior = items.some(
+      (item) => item.itemId !== vigente.id && compararIdsItem(item.itemId, vigente.id) < 0
+    );
+    if (!hayAnterior) return { servicio: actual, remoto: vigente };
+
+    deps.alReintentarNumero?.({
+      motivo: 'verificacion',
+      intento,
+      numero: actual.numeroSolicitud,
+    });
+    const nuevo = conNumero(candidato, siguienteNumero(await deps.remoto.ultimoNumeroSolicitud()));
+    try {
+      const resultado = await deps.remoto.renumerarServicio(
+        vigente.id,
+        nuevo.numeroSolicitud,
+        nuevo.codigo
+      );
+      actual = nuevo;
+      if (resultado.eTag) vigente = { ...vigente, eTag: resultado.eTag };
+    } catch (error) {
+      if (!esChoqueDeNumero(error)) throw error;
+      ultimo = error;
+      await pausarAleatoria(deps);
+    }
+  }
+  throw errorSinNumero(ultimo);
+}
+
+/** Crea el ítem con el siguiente número libre; si otro lo tomó antes, relee el máximo y reintenta. */
+async function crearConNumero(
+  servicio: Servicio,
+  deps: PushServicioDeps
+): Promise<RemotoAsegurado> {
+  let ultimo: unknown;
+  for (let intento = 1; intento <= MAX_INTENTOS_NUMERO; intento += 1) {
+    const numero = siguienteNumero(await deps.remoto.ultimoNumeroSolicitud());
+    const candidato = conNumero(servicio, numero);
+    let remoto: ServicioRemotoPush;
+    try {
+      remoto = await deps.remoto.crearServicio(deps.mapeador.aCamposSP(candidato));
+    } catch (error) {
+      if (!esChoqueDeNumero(error)) throw error;
+      ultimo = error;
+      deps.alReintentarNumero?.({ motivo: 'choque', intento, numero });
+      if (intento < MAX_INTENTOS_NUMERO) await pausarAleatoria(deps);
+      continue;
+    }
+
+    // Si el POST recuperó un ítem que ya existía (reintento idempotente), se queda con el número de ese ítem.
+    const delItem = Number(remoto.fields.NumeroSolicitud);
+    if (Number.isFinite(delItem) && delItem > 0 && delItem !== numero) {
+      return { remoto, servicio: conNumero(servicio, delItem), numeroSolicitud: delItem };
+    }
+
+    const verificado = await verificarNumeroUnico(remoto, candidato, deps);
+    return {
+      remoto: verificado.remoto,
+      servicio: verificado.servicio,
+      numeroSolicitud: verificado.servicio.numeroSolicitud,
+    };
+  }
+  throw errorSinNumero(ultimo);
+}
+
 async function asegurarRemoto(
   servicio: Servicio,
   deps: PushServicioDeps
-): Promise<ServicioRemotoPush> {
+): Promise<RemotoAsegurado> {
   if (servicio.sp?.itemId) {
     return {
-      id: servicio.sp.itemId,
-      fields: {},
-      ...(servicio.sp.eTag ? { eTag: servicio.sp.eTag } : {}),
-      ...(servicio.sp.webUrl ? { webUrl: servicio.sp.webUrl } : {}),
-      ...(servicio.sp.modificadoEn ? { modificadoEn: servicio.sp.modificadoEn } : {}),
+      servicio,
+      remoto: {
+        id: servicio.sp.itemId,
+        fields: {},
+        ...(servicio.sp.eTag ? { eTag: servicio.sp.eTag } : {}),
+        ...(servicio.sp.webUrl ? { webUrl: servicio.sp.webUrl } : {}),
+        ...(servicio.sp.modificadoEn ? { modificadoEn: servicio.sp.modificadoEn } : {}),
+      },
     };
   }
 
   const existente = await deps.remoto.buscarServicioPorId(servicio.id);
-  if (existente) return existente;
+  if (existente) {
+    const delItem = Number(existente.fields.NumeroSolicitud);
+    if (esPendiente(servicio.numeroSolicitud) && Number.isFinite(delItem) && delItem > 0) {
+      return {
+        remoto: existente,
+        servicio: conNumero(servicio, delItem),
+        numeroSolicitud: delItem,
+      };
+    }
+    return { remoto: existente, servicio };
+  }
+
+  if (esPendiente(servicio.numeroSolicitud)) return crearConNumero(servicio, deps);
 
   // Si el POST choca con el valor único ServicioId, el gateway recupera el
   // ítem existente; por eso después se aplican igual los campos sucios.
-  return deps.remoto.crearServicio(deps.mapeador.aCamposSP(servicio));
+  return {
+    servicio,
+    remoto: await deps.remoto.crearServicio(deps.mapeador.aCamposSP(servicio)),
+  };
 }
 
 async function eliminarMarcados(adjuntos: Adjunto[], deps: PushServicioDeps): Promise<Adjunto[]> {
@@ -185,11 +334,12 @@ async function conConcurrencia<T>(
  * de los campos sucios con la instantánea tomada al empezar.
  */
 export async function pushServicio(
-  servicio: Servicio,
+  servicioEntrada: Servicio,
   adjuntosEntrada: readonly Adjunto[],
   deps: PushServicioDeps
 ): Promise<ResultadoPushServicio> {
-  const remoto = await asegurarRemoto(servicio, deps);
+  const asegurado = await asegurarRemoto(servicioEntrada, deps);
+  const { remoto, servicio } = asegurado;
   const sp = spDesdeRemoto(remoto, servicio.sp, deps.ahoraIso);
   const camposEnviados = snapshotSucios(servicio);
   const baseRemota: Partial<CamposServicio> =
@@ -216,5 +366,14 @@ export async function pushServicio(
     if (resultado.eTag) sp.eTag = resultado.eTag;
   }
 
-  return { sp, camposEnviados, baseRemota, archivosSubidos, adjuntos };
+  return {
+    sp,
+    camposEnviados,
+    baseRemota,
+    archivosSubidos,
+    adjuntos,
+    ...(asegurado.numeroSolicitud === undefined
+      ? {}
+      : { numeroSolicitud: asegurado.numeroSolicitud }),
+  };
 }

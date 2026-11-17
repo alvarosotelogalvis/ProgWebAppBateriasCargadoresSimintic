@@ -34,11 +34,13 @@ interface Campo {
 interface Graph {
   get(ruta: string): Promise<unknown>;
   post(ruta: string, cuerpo: unknown): Promise<Record<string, unknown>>;
+  patch(ruta: string, cuerpo: unknown): Promise<Record<string, unknown>>;
   getTodos(ruta: string): Promise<Record<string, unknown>[]>;
 }
 interface Resumen {
   creados: number;
   existentes: number;
+  corregidos: number;
   avisos: string[];
 }
 interface Modulo {
@@ -130,7 +132,12 @@ class GraphSimulado implements Graph {
       }));
     }
     const columnas = /\/lists\/([^/]+)\/columns/.exec(ruta);
-    if (columnas) return [...this.porId(columnas[1]!).columnas.values()];
+    if (columnas) {
+      return [...this.porId(columnas[1]!).columnas.values()].map((c) => ({
+        ...c,
+        id: c.id ?? c.name,
+      }));
+    }
     if (/\/drives\/unidad-1\/root\/children/.test(ruta)) {
       return [...this.carpetas].map((name) => ({ name, folder: {} }));
     }
@@ -175,6 +182,17 @@ class GraphSimulado implements Graph {
       return { id: String(++this.contador) };
     }
     throw new Error(`POST no simulado: ${ruta}`);
+  }
+
+  async patch(ruta: string, cuerpo: unknown): Promise<Record<string, unknown>> {
+    this.escrituras++;
+    const columna = /\/lists\/([^/]+)\/columns\/([^/?]+)$/.exec(ruta);
+    if (!columna) throw new Error(`PATCH no simulado: ${ruta}`);
+    const lista = this.porId(columna[1]!);
+    const actual = [...lista.columnas.values()].find((c) => (c.id ?? c.name) === columna[2]);
+    if (!actual) throw new Error(`columna inexistente ${columna[2]}`);
+    Object.assign(actual, cuerpo as Record<string, unknown>);
+    return {};
   }
 
   /** Una búsqueda debe apuntar a una lista que ya exista, como exige Graph. */
@@ -275,6 +293,12 @@ describe('esquema de SharePoint frente a la app', () => {
     expect(ordenados(indexadas)).toEqual(
       ordenados(['Estado', 'NumeroSolicitud', 'SerieEquipo', 'ProyeccionVidaUtil'])
     );
+  });
+
+  it('NumeroSolicitud está indexada (para leer el mayor) pero no se pide única: SharePoint no la garantiza (spike S9)', () => {
+    const numero = esquema.CAMPOS.Servicios!.find((c) => c.n === 'NumeroSolicitud')!;
+    expect(numero).toMatchObject({ t: 'numero', indice: true });
+    expect(numero.unico).not.toBe(true);
   });
 
   it('las claves de configuración por defecto son válidas para la app y producen su configuración por defecto', () => {
@@ -446,6 +470,53 @@ describe('aprovisionar', () => {
     expect(graph.escrituras).toBe(1);
     expect(resumen.creados).toBe(1);
     expect(servicios.columnas.has('FacturaNumero')).toBe(true);
+  });
+
+  it('corrige una columna existente que no es única ni está indexada (spike S9)', async () => {
+    const graph = new GraphSimulado();
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+    const columna = graph.listas.get('Servicios')!.columnas.get('ServicioId')!;
+    Object.assign(columna, { indexed: false, enforceUniqueValues: false });
+    graph.escrituras = 0;
+
+    const resumen = await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+
+    expect(columna).toMatchObject({ indexed: true, enforceUniqueValues: true });
+    expect(resumen.corregidos).toBe(1);
+    expect(graph.escrituras).toBe(1);
+  });
+
+  it('el ensayo avisa de la columna por corregir pero no la toca', async () => {
+    const graph = new GraphSimulado();
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+    const columna = graph.listas.get('Servicios')!.columnas.get('ServicioId')!;
+    Object.assign(columna, { indexed: false, enforceUniqueValues: false });
+    graph.escrituras = 0;
+    const lineas: string[] = [];
+
+    const resumen = await m.aprovisionar({
+      graph,
+      siteId: 'S',
+      aplicar: false,
+      log: (t) => lineas.push(t),
+    });
+
+    expect(graph.escrituras).toBe(0);
+    expect(resumen.corregidos).toBe(0);
+    expect(columna).toMatchObject({ indexed: false, enforceUniqueValues: false });
+    expect(lineas.join('\n')).toContain('Servicios.ServicioId');
+  });
+
+  it('indexa NumeroSolicitud si existía sin índice, sin pedirle valor único', async () => {
+    const graph = new GraphSimulado();
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+    const columna = graph.listas.get('Servicios')!.columnas.get('NumeroSolicitud')!;
+    Object.assign(columna, { indexed: false, enforceUniqueValues: false });
+
+    await m.aprovisionar({ graph, siteId: 'S', aplicar: true, log: sinLog });
+
+    expect(columna).toMatchObject({ indexed: true });
+    expect(columna.enforceUniqueValues).not.toBe(true);
   });
 
   it('nunca pisa una clave de configuración que ya existe', async () => {

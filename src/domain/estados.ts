@@ -57,12 +57,12 @@ export interface Transicion {
   requisitos: (s: Servicio, adj: readonly Adjunto[], cfg: ConfigApp) => ErrorValidacion[];
 }
 
+// El número de solicitud no es un campo de recepción: lo asigna el sistema al sincronizar (ADR-0024).
 const CAMPOS_RECEPCION: readonly (keyof CamposServicio)[] = [
   'tipoEquipo',
   'fechaRecepcion',
   'clienteId',
   'clienteNombre',
-  'numeroSolicitud',
   'marca',
   'referencia',
   'serie',

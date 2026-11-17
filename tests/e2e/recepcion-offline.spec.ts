@@ -33,7 +33,6 @@ test('recepción completa, persistencia y consulta sin conexión', async ({
   await marca.fill('ROQUET');
   await page.getByLabel('Referencia').fill('REF-E2E');
   await page.getByLabel('Serie').fill('SERIE-E2E-1');
-  await page.getByLabel('Número de solicitud').fill('321');
 
   await page.locator('input[type="file"][multiple]').setInputFiles([
     {
@@ -65,7 +64,7 @@ test('recepción completa, persistencia y consulta sin conexión', async ({
 
   await page.getByRole('button', { name: 'Completar recepción' }).click();
   await expect(page).toHaveURL(/\/servicios\/[0-9a-f-]+$/, { timeout: 15_000 });
-  await expect(page.getByText('BAT-321-SERIE-E2E-1')).toBeVisible();
+  await expect(page.getByText('BAT-PEND-SERIE-E2E-1')).toBeVisible();
 
   const accesibilidadDetalle = await new AxeBuilder({ page }).analyze();
   expect(
@@ -75,11 +74,11 @@ test('recepción completa, persistencia y consulta sin conexión', async ({
   ).toEqual([]);
 
   await page.reload();
-  await expect(page.getByText('BAT-321-SERIE-E2E-1')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('BAT-PEND-SERIE-E2E-1')).toBeVisible({ timeout: 15_000 });
 
   await page.evaluate(async () => navigator.serviceWorker.ready);
   await context.setOffline(true);
   await page.goto('/servicios');
-  await expect(page.getByText('BAT-321-SERIE-E2E-1')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('BAT-PEND-SERIE-E2E-1')).toBeVisible({ timeout: 15_000 });
   await context.setOffline(false);
 });

@@ -43,11 +43,12 @@ describe('esquemaRecepcion', () => {
     }
   });
 
-  it('rechaza solicitud 0 y solicitudes no numéricas', () => {
-    const cero = { ...recepcionValida(), numeroSolicitud: 0 };
-    const texto = { ...recepcionValida(), numeroSolicitud: 'ABC' };
-    expect(esquemaRecepcion(HOY).safeParse(cero).success).toBe(false);
-    expect(esquemaRecepcion(HOY).safeParse(texto).success).toBe(false);
+  it('no pide el número de solicitud: lo asigna el sistema al sincronizar (ES-011-01)', () => {
+    const pendiente = { ...recepcionValida(), numeroSolicitud: 0 };
+    const sinNumero: Record<string, unknown> = { ...recepcionValida() };
+    delete sinNumero.numeroSolicitud;
+    expect(esquemaRecepcion(HOY).safeParse(pendiente).success).toBe(true);
+    expect(esquemaRecepcion(HOY).safeParse(sinNumero).success).toBe(true);
   });
 
   it('rechaza serie con espacios internos o símbolos no permitidos', () => {

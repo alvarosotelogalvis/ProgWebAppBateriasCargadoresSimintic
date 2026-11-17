@@ -60,9 +60,9 @@ const fotoDeSalida = async (page: Page) => {
 };
 
 /** Recepción → Diagnóstico → Cotización aprobada → OT → Entrega → Facturación. */
-const cicloHastaFacturado = async (page: Page, solicitud: string, serie: string) => {
+const cicloHastaFacturado = async (page: Page, serie: string) => {
   await prepararApp(page);
-  await crearRecepcion(page, solicitud, serie);
+  await crearRecepcion(page, serie);
 
   await diagnosticar(page, 'REPARAR');
   await page.getByRole('button', { name: 'Completar diagnóstico' }).click();
@@ -101,7 +101,7 @@ test.describe('Ciclo completo de un servicio', () => {
   test('llega de BORRADOR a FACTURADO con la ruta de reparación', async ({ page }) => {
     test.setTimeout(120_000);
 
-    await cicloHastaFacturado(page, '7001', 'CICLO-1');
+    await cicloHastaFacturado(page, 'CICLO-1');
 
     await expect(page.getByText('Facturado', { exact: true })).toBeVisible();
     await expect(page.getByText('Este servicio ya está cerrado.')).toBeVisible();
@@ -114,7 +114,7 @@ test.describe('Ciclo completo de un servicio', () => {
   test('cierra por disposición final sin pasar por cotización, OT ni entrega', async ({ page }) => {
     test.setTimeout(90_000);
     await prepararApp(page);
-    await crearRecepcion(page, '7002', 'CICLO-DF');
+    await crearRecepcion(page, 'CICLO-DF');
 
     await diagnosticar(page, 'D. FINAL');
     await expect(
@@ -133,7 +133,7 @@ test.describe('Ciclo completo de un servicio', () => {
   test('entrega sin reparación cuando la cotización es rechazada', async ({ page }) => {
     test.setTimeout(120_000);
     await prepararApp(page);
-    await crearRecepcion(page, '7003', 'CICLO-SR');
+    await crearRecepcion(page, 'CICLO-SR');
     await diagnosticar(page, 'REPARAR');
     await page.getByRole('button', { name: 'Completar diagnóstico' }).click();
     await aDetalle(page);
@@ -153,7 +153,7 @@ test.describe('Ciclo completo de un servicio', () => {
     page,
   }) => {
     await prepararApp(page);
-    await crearRecepcion(page, '7004', 'CICLO-AN');
+    await crearRecepcion(page, 'CICLO-AN');
 
     await page.getByRole('button', { name: 'Anular servicio' }).click();
     const confirmar = page.getByRole('button', { name: 'Sí, anular' });
@@ -170,7 +170,7 @@ test.describe('Ciclo completo de un servicio', () => {
 test.describe('Validaciones del ciclo', () => {
   test('rechaza un archivo que no es PDF aunque tenga extensión .pdf', async ({ page }) => {
     await prepararApp(page);
-    await crearRecepcion(page, '7005', 'CICLO-PDF');
+    await crearRecepcion(page, 'CICLO-PDF');
     await entrarA(page, 'Registrar diagnóstico', /\/etapa\/diagnostico$/);
 
     await adjuntarPdf(page, 0, PDF_FALSO);
@@ -181,7 +181,7 @@ test.describe('Validaciones del ciclo', () => {
 
   test('no deja completar el diagnóstico sin el PDF y lista lo que falta', async ({ page }) => {
     await prepararApp(page);
-    await crearRecepcion(page, '7006', 'CICLO-FALTA');
+    await crearRecepcion(page, 'CICLO-FALTA');
     await entrarA(page, 'Registrar diagnóstico', /\/etapa\/diagnostico$/);
     await page.getByLabel('Diagnóstico', { exact: true }).selectOption('REPARAR');
     await page.getByLabel('Observación técnica').fill('Celdas con desbalance leve');
@@ -199,7 +199,7 @@ test.describe('Validaciones del ciclo', () => {
     page,
   }) => {
     test.setTimeout(150_000);
-    await cicloHastaFacturado(page, '7007', 'CICLO-FIX');
+    await cicloHastaFacturado(page, 'CICLO-FIX');
 
     await page.getByRole('button', { name: 'Editar datos' }).click();
     await expect(page).toHaveURL(/\/corregir$/);

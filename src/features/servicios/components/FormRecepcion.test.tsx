@@ -59,7 +59,6 @@ function completarCampos(): void {
   escribirCombo('Marca', 'ROQUET');
   escribir(/^Referencia$/, 'REF-1');
   escribir(/^Serie$/, 'SERIE-1');
-  escribir(/número de solicitud/i, '55');
 }
 
 describe('FormRecepcion', () => {
@@ -98,9 +97,18 @@ describe('FormRecepcion', () => {
         marca: 'ROQUET',
         referencia: 'REF-1',
         serie: 'SERIE-1',
-        numeroSolicitud: 55,
       })
     );
+    expect(onGuardar.mock.calls[0]?.[0]).not.toHaveProperty('numeroSolicitud');
+  });
+
+  it('no tiene campo de número de solicitud: lo asigna el sistema al sincronizar (ES-011-01)', () => {
+    renderFormulario({});
+
+    expect(screen.queryByLabelText(/número de solicitud/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/se asigna solo cuando el servicio se sincroniza/i)
+    ).toBeInTheDocument();
   });
 
   it('describe los errores de los campos accesibles', async () => {

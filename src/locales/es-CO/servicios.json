@@ -38,7 +38,9 @@
     "serie": "Serie",
     "serieAyuda": "Escanea o escribe la serie del equipo.",
     "numeroSolicitud": "Número de solicitud",
-    "duplicada": "Ya existe un servicio activo con esta serie y número de solicitud.",
+    "numeroPendiente": "Pendiente",
+    "numeroPendienteAyuda": "El número de solicitud se asigna solo cuando el servicio se sincroniza.",
+    "duplicada": "Ya existe un servicio activo con esta serie.",
     "verExistente": "Ver servicio existente"
   },
   "detalle": {

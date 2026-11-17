@@ -81,6 +81,16 @@ const itemARemoto = (item: ItemPushGraph): ServicioRemotoPush => {
   };
 };
 
+const errorNumeroDuplicado = (causa: unknown): AppError =>
+  new AppError({
+    codigo: 'SP_NUMERO_DUPLICADO',
+    mensaje: 'Otro dispositivo tomó el mismo número de solicitud.',
+    claveI18n: 'errores.codigo.SP_NUMERO_DUPLICADO',
+    reintentable: true,
+    estadoHttp: 400,
+    causa,
+  });
+
 export interface DepsSharePointGateway {
   readonly graph: GraphClient;
   readonly env: Entorno;
@@ -277,7 +287,45 @@ export class SharePointGateway implements RemoteGatewayPush, RemoteGatewayPull {
           const encontrado = await this.buscarItemServicio(sitio, servicioId);
           if (encontrado) return itemARemoto(encontrado);
         }
+        // Si no es el ServicioId, el choque es del NumeroSolicitud: otro dispositivo tomó ese número.
+        if (campos.NumeroSolicitud !== undefined) throw errorNumeroDuplicado(error);
       }
+      throw error;
+    }
+  }
+
+  async ultimoNumeroSolicitud(): Promise<number> {
+    const sitio = await this.obtenerSitio();
+    const respuesta = await this.deps.graph.enviar<{ value?: ItemPushGraph[] }>({
+      metodo: 'GET',
+      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items?$expand=fields($select=NumeroSolicitud)&$orderby=fields/NumeroSolicitud desc&$top=1`,
+    });
+    const numero = Number(respuesta.datos.value?.[0]?.fields?.NumeroSolicitud ?? 0);
+    return Number.isFinite(numero) && numero > 0 ? numero : 0;
+  }
+
+  async contarPorNumeroSolicitud(numero: number): Promise<readonly { readonly itemId: string }[]> {
+    const sitio = await this.obtenerSitio();
+    const ids: { itemId: string }[] = [];
+    const iterador = this.deps.graph.paginar<ItemPushGraph>(
+      `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items?$filter=fields/NumeroSolicitud eq ${Math.trunc(numero)}&$select=id`
+    );
+    for await (const item of iterador) {
+      if (item.id !== undefined) ids.push({ itemId: String(item.id) });
+    }
+    return ids;
+  }
+
+  async renumerarServicio(
+    itemId: string,
+    numero: number,
+    codigo: string
+  ): Promise<ResultadoActualizacion> {
+    try {
+      // Sin If-Match: el ítem es nuestro y acaba de crearse. Devuelve el eTag nuevo.
+      return await this.actualizarServicio(itemId, { NumeroSolicitud: numero, Title: codigo });
+    } catch (error) {
+      if (esValorUnicoDuplicado(error)) throw errorNumeroDuplicado(error);
       throw error;
     }
   }

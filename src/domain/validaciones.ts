@@ -61,7 +61,6 @@ export const esquemaRecepcion = (hoy: string = fechaLocalHoy()) =>
       clienteNombre: texto('errores.servicio.clienteRequerido').trim().min(1, {
         message: 'errores.servicio.clienteRequerido',
       }),
-      numeroSolicitud: numeroEntero('errores.servicio.solicitudRequerida', 1, 999999999),
       marca: texto('errores.servicio.marcaRequerida')
         .transform(normalizarMarca)
         .pipe(
