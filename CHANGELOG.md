@@ -9,6 +9,7 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **Prueba en vivo de sincronización** (`npm run test:live`, `tests/live/`): ejecuta el motor, los mapeadores, el cargador y el gateway reales contra un SharePoint real con 3 «dispositivos» (subida con 2 fotos y 1 PDF, descarga con miniaturas, edición con `If-Match`, campo vaciado, conflicto 412 resuelto, idempotencia, eliminación remota) y borra todo lo que crea. Es opcional: exige `LIVE_CONFIRMAR=SI`, `LIVE_SITE_URL` y `LIVE_ENV_FILE`, y nunca corre con `npm test`.
 - **Prueba de rendimiento con el volumen esperado** (`tests/e2e/rendimiento-volumen.spec.ts`): lista, búsqueda y detalle con 50 y 100 servicios, también con la CPU frenada 4×, con presupuestos holgados.
 - **Carpetas de año en `ServiciosAdjuntos`** con `provision-sharepoint-graph.mjs --anios`, y comprobación en una biblioteca real de que la carpeta `/{año}/{ServicioId}` se crea sola al subir el primer archivo.
 - **`scripts/provision-sharepoint-graph.mjs`:** aprovisiona por Microsoft Graph (aplicación + secreto, sin inicio de
@@ -34,6 +35,7 @@ adopta [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- **CSP:** `connect-src` permite `https://*.svc.ms`, el host de las miniaturas remotas de SharePoint (comprobado en vivo; CORS `*`). Prueba nueva en `cabeceras.test.ts`.
 - **Las eliminaciones hechas en SharePoint no llegaban a los dispositivos:** el `delta` de listas marca el borrado
   con `deleted` y no con `@removed`; la entrada se ignoraba. Ahora se reconocen ambas formas.
 - **Un servicio descargado por `delta` no se podía enviar después (409):** el eTag del `delta` llega sin comillas y
