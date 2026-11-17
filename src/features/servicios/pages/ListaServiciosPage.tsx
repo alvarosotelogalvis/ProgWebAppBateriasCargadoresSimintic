@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -7,7 +7,6 @@ import {
   type FiltrosServicios as Filtros,
 } from '@/application/servicios/buscarServicios';
 import { cumpleTarjeta, tarjetaPorClave } from '@/domain/tarjetasInicio';
-import { FiltrosServicios } from '@/features/servicios/components/FiltrosServicios';
 import { useConsultasServicios } from '@/features/servicios/useConsultasServicios';
 import { Banner } from '@/shared/ui/Banner';
 import { EmptyState } from '@/shared/ui/EmptyState';
@@ -16,6 +15,14 @@ import { SyncBadge } from '@/shared/ui/SyncBadge';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 
 import styles from './ListaServiciosPage.module.css';
+
+// El panel de filtros arrastra los selectores y el calendario (~55 KB comprimidos): se carga al abrirlo y no en
+// la primera visita a la lista, que se queda dentro del presupuesto de 350 KB (RNF-06).
+const FiltrosServicios = lazy(() =>
+  import('@/features/servicios/components/FiltrosServicios').then((modulo) => ({
+    default: modulo.FiltrosServicios,
+  }))
+);
 
 const ESTADOS = [
   'BORRADOR',
@@ -83,12 +90,14 @@ export function ListaServiciosPage(): React.JSX.Element {
       ) : null}
 
       {mostrarFiltros ? (
-        <FiltrosServicios
-          valor={filtrosPanel}
-          hoy={hoy}
-          onCambio={setFiltrosPanel}
-          onAplicar={() => setMostrarFiltros(false)}
-        />
+        <Suspense fallback={null}>
+          <FiltrosServicios
+            valor={filtrosPanel}
+            hoy={hoy}
+            onCambio={setFiltrosPanel}
+            onAplicar={() => setMostrarFiltros(false)}
+          />
+        </Suspense>
       ) : null}
 
       {visibles.length === 0 ? (
