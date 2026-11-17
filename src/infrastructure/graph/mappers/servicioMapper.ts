@@ -1,4 +1,5 @@
-﻿import { esPendiente } from '@/domain/sync/numeroSolicitud';
+﻿import { esClienteTemporal } from '@/domain/cliente';
+import { esPendiente } from '@/domain/sync/numeroSolicitud';
 import type { CamposServicio, Servicio } from '@/domain/servicio';
 
 import {
@@ -116,6 +117,8 @@ export function aCamposSP(
     const valor = servicio[clave];
     // Pendiente (0): el número lo asigna la subida; nunca se escribe un 0 en SharePoint (ADR-0024).
     if (clave === 'numeroSolicitud' && esPendiente(Number(valor))) continue;
+    // Cliente temporal (creado sin red, id ≤ 0): se escribe cuando la subida de clientes le da su id real.
+    if (clave === 'clienteId' && esClienteTemporal(Number(valor))) continue;
     if (valor === undefined) {
       // Un campo sucio sin valor es un campo que se vació: se envía `null` para limpiar la columna.
       if (camposSucios !== undefined) campos[columna] = null;

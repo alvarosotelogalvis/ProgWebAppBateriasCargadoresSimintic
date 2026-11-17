@@ -260,6 +260,13 @@ export class EmuladorGraph {
     return this.crearItem(lista, fields);
   }
 
+  /** Agrega un cliente directamente (sin validar unicidad), como si ya existiera en SharePoint. */
+  sembrarCliente(fields: Record<string, unknown>): ItemEstado {
+    const lista = this.listas.find((candidata) => candidata.name === 'Clientes');
+    if (!lista) throw new Error('El emulador no tiene la lista Clientes.');
+    return this.crearItem(lista, fields);
+  }
+
   /** Simula que otra persona editó el ítem en SharePoint (cambia eTag y versión). */
   modificarRemoto(
     servicioId: string,

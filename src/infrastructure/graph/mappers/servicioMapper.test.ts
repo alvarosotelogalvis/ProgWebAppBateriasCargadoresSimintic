@@ -114,6 +114,27 @@ describe('aCamposSP · número de solicitud pendiente (ADR-0024)', () => {
   });
 });
 
+describe('aCamposSP · cliente temporal (ADR-0023)', () => {
+  const conCliente = (clienteId: number) =>
+    servicioBuilder().conCampos({ clienteId, clienteNombre: 'X' }).construir();
+
+  it('la creación no envía ClienteLookupId si el cliente aún es temporal (id ≤ 0)', () => {
+    expect(aCamposSP(conCliente(-123))).not.toHaveProperty('ClienteLookupId');
+    expect(aCamposSP(conCliente(0))).not.toHaveProperty('ClienteLookupId');
+  });
+
+  it('nunca escribe un cliente temporal por PATCH, ni siquiera como campo sucio', () => {
+    expect(aCamposSP(conCliente(-123), ['clienteId', 'marca'])).not.toHaveProperty(
+      'ClienteLookupId'
+    );
+  });
+
+  it('con el id real de SharePoint sí lo envía', () => {
+    expect(aCamposSP(conCliente(7))).toMatchObject({ ClienteLookupId: 7 });
+    expect(aCamposSP(conCliente(7), ['clienteId'])).toMatchObject({ ClienteLookupId: 7 });
+  });
+});
+
 describe('deCamposSP', () => {
   it('hace ida y vuelta de los campos remotos', () => {
     const servicio = servicioCompleto();

@@ -1,3 +1,10 @@
+import type {
+  ClienteRemoto,
+  ClientesRemotos,
+  DetalleLogRemoto,
+  NuevoClienteRemoto,
+  ServicioDeCliente,
+} from '@/application/ports/clientesRemotos';
 import type { Logger } from '@/application/ports/loggerPort';
 import type { MetaRepository } from '@/application/ports/metaRepository';
 import type {
@@ -12,7 +19,7 @@ import type {
   CambiosServicios,
   RemoteGatewayPull,
 } from '@/application/ports/RemoteGatewayPull';
-import type { Catalogos, ClienteCatalogo, SitioResuelto } from '@/application/ports/remoteGateway';
+import type { Catalogos, SitioResuelto } from '@/application/ports/remoteGateway';
 import { ConflictoError } from '@/application/sync/ConflictoError';
 import type { Entorno } from '@/shared/env';
 import type { RemotoCambio } from '@/domain/sync/remoto';
@@ -22,9 +29,11 @@ import { esValorUnicoDuplicado } from './errores';
 import { normalizarETag } from './etag';
 import type { GraphClient } from './graphClient';
 import {
+  itemACliente,
   mapearChoices,
   mapearClientes,
   mapearConfiguracion,
+  mapearFusionados,
   mapearMarcas,
   type ColumnaGraph,
   type ItemGraph,
@@ -63,6 +72,9 @@ const leerEtag = (item: ItemPushGraph | undefined): string | undefined => {
 
 const escaparOdata = (valor: string): string => valor.replace(/'/g, "''");
 
+/** Columnas de `Clientes` que lee la app (alta idempotente y fusión). */
+const CAMPOS_CLIENTE = 'Title,Activo,ClienteGuid,NombreNormalizado,FusionadoConId';
+
 const itemARemoto = (item: ItemPushGraph): ServicioRemotoPush => {
   if (item.id === undefined) {
     throw new AppError({
@@ -100,7 +112,7 @@ export interface DepsSharePointGateway {
   readonly fetchImpl?: typeof fetch;
 }
 
-export class SharePointGateway implements RemoteGatewayPush, RemoteGatewayPull {
+export class SharePointGateway implements RemoteGatewayPush, RemoteGatewayPull, ClientesRemotos {
   private sitio: SitioResuelto | undefined;
 
   constructor(private readonly deps: DepsSharePointGateway) {}
@@ -158,12 +170,17 @@ export class SharePointGateway implements RemoteGatewayPush, RemoteGatewayPull {
 
   async leerCatalogos(): Promise<Catalogos> {
     const sitio = await this.obtenerSitio();
-    const [clientes, marcas, choices] = await Promise.all([
-      this.leerClientes(sitio),
+    const [itemsClientes, marcas, choices] = await Promise.all([
+      this.leerItemsClientes(sitio),
       this.leerMarcas(sitio),
       this.leerChoices(sitio),
     ]);
-    return { clientes, marcas, choices };
+    return {
+      clientes: mapearClientes(itemsClientes),
+      fusionados: mapearFusionados(itemsClientes),
+      marcas,
+      choices,
+    };
   }
 
   async leerConfiguracion(): Promise<Record<string, string>> {
@@ -177,14 +194,134 @@ export class SharePointGateway implements RemoteGatewayPush, RemoteGatewayPull {
     return mapearConfiguracion(items);
   }
 
-  private async leerClientes(sitio: SitioResuelto): Promise<ClienteCatalogo[]> {
+  /** Todos los ítems de `Clientes`, también los inactivos (para saber qué se fusionó). */
+  private async leerItemsClientes(sitio: SitioResuelto): Promise<ItemGraph[]> {
+    return this.consultarClientes(sitio, '');
+  }
+
+  private async consultarClientes(sitio: SitioResuelto, filtro: string): Promise<ItemGraph[]> {
     const items: ItemGraph[] = [];
+    const consulta = `${filtro}$expand=fields($select=${CAMPOS_CLIENTE})&$top=999`;
     for await (const item of this.deps.graph.paginar<ItemGraph>(
-      `/sites/${sitio.siteId}/lists/${sitio.listas.Clientes}/items?$expand=fields($select=Title,Activo)&$top=999`
+      `/sites/${sitio.siteId}/lists/${sitio.listas.Clientes}/items?${consulta}`
     )) {
       items.push(item);
     }
-    return mapearClientes(items);
+    return items;
+  }
+
+  // Clientes nuevos y fusión (spec 010, ADR-0023)
+
+  async listarClientes(): Promise<readonly ClienteRemoto[]> {
+    const sitio = await this.obtenerSitio();
+    return (await this.leerItemsClientes(sitio)).map(itemACliente);
+  }
+
+  async buscarPorGuid(guid: string): Promise<ClienteRemoto | null> {
+    const sitio = await this.obtenerSitio();
+    const items = await this.consultarClientes(
+      sitio,
+      `$filter=fields/ClienteGuid eq '${escaparOdata(guid)}'&`
+    );
+    const [primero] = items;
+    return primero ? itemACliente(primero) : null;
+  }
+
+  async buscarPorNormalizado(normalizado: string): Promise<readonly ClienteRemoto[]> {
+    const sitio = await this.obtenerSitio();
+    const items = await this.consultarClientes(
+      sitio,
+      `$filter=fields/NombreNormalizado eq '${escaparOdata(normalizado)}'&`
+    );
+    return items.map(itemACliente).sort((a, b) => a.id - b.id);
+  }
+
+  async crearCliente(cliente: NuevoClienteRemoto): Promise<ClienteRemoto> {
+    const propio = await this.buscarPorGuid(cliente.guid);
+    if (propio) return propio;
+    const sitio = await this.obtenerSitio();
+    try {
+      const respuesta = await this.deps.graph.enviar<ItemGraph>({
+        metodo: 'POST',
+        ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Clientes}/items`,
+        cuerpo: {
+          fields: {
+            Title: cliente.titulo,
+            ClienteGuid: cliente.guid,
+            NombreNormalizado: cliente.normalizado,
+            Activo: true,
+            CreadoDesdeApp: true,
+          },
+        },
+      });
+      if (respuesta.datos.id === undefined) {
+        throw new AppError({
+          codigo: 'SP_SERVIDOR',
+          mensaje: 'SharePoint no devolvió el cliente creado.',
+          reintentable: true,
+        });
+      }
+      return itemACliente({
+        id: respuesta.datos.id,
+        fields: {
+          Title: cliente.titulo,
+          ClienteGuid: cliente.guid,
+          NombreNormalizado: cliente.normalizado,
+          Activo: true,
+          ...respuesta.datos.fields,
+        },
+      });
+    } catch (error) {
+      // Valor único repetido (spike S10: inmediato en columnas de texto): otro dispositivo —o un reintento
+      // propio— ya lo creó. Se adopta ese cliente en vez de duplicarlo.
+      if (esValorUnicoDuplicado(error)) {
+        const porGuid = await this.buscarPorGuid(cliente.guid);
+        if (porGuid) return porGuid;
+        const [porNombre] = await this.buscarPorNormalizado(cliente.normalizado);
+        if (porNombre) return porNombre;
+      }
+      throw error;
+    }
+  }
+
+  async desactivarFusionado(origenId: number, destinoId: number): Promise<void> {
+    const sitio = await this.obtenerSitio();
+    await this.deps.graph.enviar({
+      metodo: 'PATCH',
+      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Clientes}/items/${origenId}/fields`,
+      cuerpo: { Activo: false, FusionadoConId: destinoId },
+    });
+  }
+
+  async listarServiciosDeCliente(clienteId: number): Promise<readonly ServicioDeCliente[]> {
+    const sitio = await this.obtenerSitio();
+    const encontrados: ServicioDeCliente[] = [];
+    // `Servicios.Cliente` debe estar indexada para filtrar sin `Prefer` (spike S10).
+    for await (const item of this.deps.graph.paginar<ItemGraph>(
+      `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items?$filter=fields/ClienteLookupId eq ${Math.trunc(clienteId)}&$expand=fields($select=ServicioId)&$top=200`
+    )) {
+      if (item.id !== undefined) encontrados.push({ itemId: String(item.id) });
+    }
+    return encontrados;
+  }
+
+  async reasignarServicio(itemId: string, clienteId: number): Promise<void> {
+    const sitio = await this.obtenerSitio();
+    await this.deps.graph.enviar({
+      metodo: 'PATCH',
+      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.Servicios}/items/${itemId}/fields`,
+      cuerpo: { ClienteLookupId: Math.trunc(clienteId) },
+    });
+  }
+
+  async registrarDetalleLog(entrada: DetalleLogRemoto): Promise<void> {
+    const sitio = await this.obtenerSitio();
+    await this.deps.graph.enviar({
+      metodo: 'POST',
+      ruta: `/sites/${sitio.siteId}/lists/${sitio.listas.LogSincronizacion}/items`,
+      cuerpo: { fields: { Title: entrada.tipo, Detalle: entrada.detalle } },
+      timeoutMs: 10_000,
+    });
   }
 
   private async leerMarcas(sitio: SitioResuelto): Promise<string[]> {
