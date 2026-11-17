@@ -30,6 +30,7 @@ Como **técnico** quiero no tener que escribir el número de solicitud, para reg
 - **ES-011-07** — **Dado** servicios existentes con número digitado antes del cambio, **cuando** se sincroniza uno nuevo, **entonces** continúa desde el mayor de ellos y los existentes no cambian.
 - **ES-011-08** — **Dado** un servicio ya sincronizado, **cuando** se abre su detalle, **entonces** el número aparece y no se puede editar desde la app.
 - **ES-011-09** — **Dado** un servicio pendiente (sin número) que se busca por el código o por la serie, **cuando** el técnico escribe la serie, **entonces** lo encuentra.
+- **ES-011-10** — **Dado** un servicio activo con la serie NV4520, **cuando** el técnico registra otro equipo con esa misma serie, **entonces** la app avisa que ya hay uno activo con esa serie (el aviso informa, no bloquea).
 
 ## 3. Casos borde
 
@@ -51,6 +52,7 @@ Como **técnico** quiero no tener que escribir el número de solicitud, para reg
 | FR-011-07 | Conservar los números ya existentes y continuar desde el mayor                                                                   | [RF-12] |
 | FR-011-08 | No permitir editar el número desde la app                                                                                        | [RF-06] |
 | FR-011-09 | Seguir encontrando el servicio pendiente por serie, código y cliente en el buscador                                              | [RF-14] |
+| FR-011-11 | Avisar (sin bloquear) si ya existe un servicio activo con la misma serie, porque sin número ya no se compara «serie + solicitud» | [RF-06] |
 | FR-011-10 | Mantener textos externalizados, accesibilidad AA y funcionamiento sin conexión del registro                                      | [RNF]   |
 
 ## 5. Entidades clave
